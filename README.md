@@ -1,1 +1,1 @@
-This is a starter template for [Learn Next.js](https://nextjs.org/learn).
+Distributed is an application for keeping connected with your friends and family who are distributed around the world.
