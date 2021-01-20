@@ -4,10 +4,11 @@ import styles from './layout.module.scss'
 
 interface Props {
   children?: any;
-  loading: Boolean;
+  loading?: Boolean;
+  className?: string;
 }
 
-export default function Layout({ children, loading }: Props) {
+export default function Layout({ children, loading, className }: Props) {
   // render a spinner whilst waiting for the user
   if(loading) {
     return (
@@ -35,7 +36,11 @@ export default function Layout({ children, loading }: Props) {
         <meta name="theme-color" content="#ffffff" />
       </Head>
       
-      <header className={styles.header}>
+     <header className={styles.header}>
+        <Link href='/'>
+          <img src='/logo.svg' alt='Logo' />
+        </Link>
+
         <nav>
           <Link href='/logout'>
             <a>Logout</a>
@@ -43,7 +48,9 @@ export default function Layout({ children, loading }: Props) {
         </nav>
       </header>
       <main>
-        { children }
+        <div className={[styles.inner, className].filter(c => !!c).join(' ')}>
+          { children }
+        </div>
       </main>
     </div>
   )

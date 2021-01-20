@@ -1,0 +1,33 @@
+.titleContainer {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    height: 50px;
+    margin-top: auto;
+    margin-bottom: auto;
+    background-color: #14248a;
+    border: none;
+    outline: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 25px;
+    padding-left: 40px;
+    padding-right: 40px;
+    font-size: 10pt;
+  }
+}
+
+.h2 {
+  font-size: 12pt;
+  margin-top: 50px;
+}
+
+.group {
+  background-color: white;
+  padding: 20px;
+  width: 100%;
+  border: solid 1px lightgray;
+  border-radius: 4px;
+  cursor: pointer;
+}
