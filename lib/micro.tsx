@@ -11,7 +11,7 @@ export default function call(path: string, params?: any): Promise<any> {
     const body = JSON.stringify(params)
     const headers = { 'Content-Type': 'application/json' }
     console.log(`Calling Micro API ${path}`)
-    
+
     fetch(URL + path, { method: 'POST', body , headers })
       .then((async (rsp) => {
         try {

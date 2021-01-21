@@ -1,8 +1,10 @@
 import useSWR from 'swr';
+import { User } from './user';
 
 export interface Group {
   id: string;
   name: string;
+  members?: User[];
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -12,6 +14,16 @@ export function useGroups (): { groups?: Group[], loading: boolean, error: Error
   
   return {
     groups: error ? undefined : data,
+    loading: !error && !data,
+    error: error,
+  }
+}
+
+export function useGroup (id: string): { group?: Group, loading: boolean, error: Error } {
+  const { data, error } = useSWR("/api/groups/" + id, fetcher);
+  
+  return {
+    group: error ? undefined : data,
     loading: !error && !data,
     error: error,
   }

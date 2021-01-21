@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call from '../../lib/micro'
+import call from '../../../lib/micro'
 import { parse } from 'cookie'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -32,9 +32,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // load the groups
     try {
       const rsp = await call("/groups/List", { member_id: user.id })
-      res.status(200).json(rsp.groups?.map(g => ({ id: g.id, name: g.name }) || []))
+      const groups = rsp.groups?.map(g => ({ id: g.id, name: g.name })) || []
+      res.status(200).json(groups)
     } catch ({ error, code }) {
-      res.status(code).json({ error })
+      console.error(`Error loading groups: ${error}. code: ${code}`)
+      res.status(500).json({ error })
     }
     return
   case "POST":

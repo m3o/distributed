@@ -1,0 +1,28 @@
+.table {
+  width: 100%;
+  background-color: rgba($color: white, $alpha: 0.7);
+
+  font-size: 12pt;
+  text-align: left;
+  border: solid 1px lightgray;
+}
+
+.titleContainer {
+  display: flex;
+  justify-content: space-between;
+
+  button {
+    height: 50px;
+    margin-top: auto;
+    margin-bottom: auto;
+    background-color: #14248a;
+    border: none;
+    outline: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 25px;
+    padding-left: 40px;
+    padding-right: 40px;
+    font-size: 10pt;
+  }
+}

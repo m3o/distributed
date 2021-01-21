@@ -1,16 +1,17 @@
 import useSWR from 'swr';
 
 export interface User {
-  first_name: String;
-  last_name: String;
-  email: String;
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 export interface SignupParams {
-  first_name: String;
-  last_name: String;
-  email: String;
-  password: String;
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
