@@ -38,7 +38,7 @@ export default function Home() {
   return (
     <Layout>
       <div className={styles.titleContainer}>
-        <h1>Welcome {userLoader.user.first_name}</h1>
+        <h1>Welcome {userLoader.user?.first_name}</h1>
         
         <Link href='/groups/new'>
           <button>New group</button>

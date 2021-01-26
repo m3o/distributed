@@ -1,28 +1,108 @@
-.table {
-  width: 100%;
-  background-color: rgba($color: white, $alpha: 0.7);
-
-  font-size: 12pt;
-  text-align: left;
-  border: solid 1px lightgray;
+.container {
+  display: grid;
+  grid-template-columns: 240px auto;
+  width: 100vw;
 }
 
-.titleContainer {
+.sidebar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  background-color: white;
+  margin-top: 2px;
+  padding: 20px;
 
-  button {
-    height: 50px;
-    margin-top: auto;
-    margin-bottom: auto;
-    background-color: #14248a;
-    border: none;
-    outline: none;
-    color: white;
+  h1 {
+    text-align: center;
+    font-size: 15pt;
+    margin-top: 30px;
+    margin-bottom: 0px;
+  }
+
+  .goback {
+    display: flex;
+    margin-top: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 30px;
     cursor: pointer;
-    border-radius: 25px;
-    padding-left: 40px;
-    padding-right: 40px;
-    font-size: 10pt;
+
+    opacity: 0.5;
+    &:hover {
+      opacity: 1;
+    }
+
+    img {
+      height: 10px;
+      margin-top: auto;
+      margin-bottom: auto;
+      margin-right: 5px;
+    }
+
+    p {
+      color: #14248a;
+      font-size: 9pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+  }
+
+  .section {
+    margin-top: 10px;
+
+    h3 {
+      font-size: 10pt;
+      color: gray;
+      font-weight: 400;
+      margin: 0px 0px 5px 0px;
+    }
+
+    ul {
+      padding: 0;
+      margin-top: 0px;
+      list-style-type: none;
+
+      li {
+        cursor: pointer;
+        margin: 0px -20px 0px -20px;
+        padding: 8px 20px 8px 20px;
+        font-size: 11pt;
+
+        &:hover,
+        &.linkActive {
+          background-color: #f9f9f9;
+        }
+      }
+    }
   }
 }
+
+// .table {
+//   width: 100%;
+//   background-color: rgba($color: white, $alpha: 0.7);
+
+//   font-size: 12pt;
+//   text-align: left;
+//   border: solid 1px lightgray;
+// }
+
+// .titleContainer {
+//   display: flex;
+//   justify-content: space-between;
+
+//   button {
+//     height: 50px;
+//     margin-top: auto;
+//     margin-bottom: auto;
+//     background-color: #14248a;
+//     border: none;
+//     outline: none;
+//     color: white;
+//     cursor: pointer;
+//     border-radius: 25px;
+//     padding-left: 40px;
+//     padding-right: 40px;
+//     font-size: 10pt;
+//   }
+// }

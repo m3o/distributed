@@ -1,10 +1,18 @@
 import useSWR from 'swr';
 import { User } from './user';
+import { Message } from './message';
 
 export interface Group {
   id: string;
   name: string;
   members?: User[];
+  streams?: Stream[];
+}
+
+export interface Stream {
+  id: string;
+  topic: string;
+  messages?: Message[];
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());

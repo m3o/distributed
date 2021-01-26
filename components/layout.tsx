@@ -6,9 +6,10 @@ interface Props {
   children?: any;
   loading?: Boolean;
   className?: string;
+  overrideClassName?: string;
 }
 
-export default function Layout({ children, loading, className }: Props) {
+export default function Layout({ children, loading, className, overrideClassName }: Props) {
   // render a spinner whilst waiting for the user
   if(loading) {
     return (
@@ -48,7 +49,7 @@ export default function Layout({ children, loading, className }: Props) {
         </nav>
       </header>
       <main>
-        <div className={[styles.inner, className].filter(c => !!c).join(' ')}>
+        <div className={overrideClassName || [styles.inner, className].filter(c => !!c).join(' ')}>
           { children }
         </div>
       </main>

@@ -1,62 +1,65 @@
+// Frameworks
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Layout from "../../../components/layout"
-import { useGroup } from "../../../lib/group"
+import { useState } from 'react'
+
+// Components
+import Chat from '../../../components/chat'
+import Layout from '../../../components/layout'
+
+// Utilities
+import { useGroup } from '../../../lib/group'
 import { useInvites } from '../../../lib/invites'
+
+// Styling
 import styles from './index.module.scss'
 
 export default function Group(props) {
   const router = useRouter()
   const groupLoader = useGroup(router.query.id as string)
   const invitesLoader = useInvites(router.query.id as string)
-  
+  const [streamID, setStreamID] = useState<string>();
+
   // todo: improve error handling
   if(groupLoader.error || invitesLoader.error) {
     router.push('/error')
     return <div />
   }
 
-  return <Layout loading={groupLoader.loading || invitesLoader.loading}>
-    <div className={styles.titleContainer}>
+  const stream = groupLoader?.group?.streams?.find(s => s.id === streamID);
+
+  return <Layout overrideClassName={styles.container} loading={groupLoader.loading || invitesLoader.loading}>
+    <div className={styles.sidebar}>
       <h1>{groupLoader.group?.name}</h1>
-      
-      <Link href={`/groups/${groupLoader.group?.id}/invites/new`}>
-        <button>Invite</button>
+
+      <Link href='/'>
+        <div className={styles.goback}>
+          <img src='/back.png' alt='Go back' />
+          <p>Go back</p>
+        </div>
       </Link>
+
+      <div className={styles.section}>
+        <h3>Channels</h3>
+        <ul>
+          { groupLoader.group?.streams?.map(s => {
+            const onClick = () => setStreamID(s.id)
+            const className = streamID === s.id ? styles.linkActive : null
+            return <li className={className} onClick={onClick} key={s.id}>{s.topic}</li>
+          })}
+        </ul>
+      </div>
+
+      <div className={styles.section}>
+        <h3>Friends</h3>
+        <ul>
+          { groupLoader.group?.members?.map(m => {
+            return <li key={m.id}>{m.first_name} {m.last_name}</li>
+          })}
+        </ul>
+      </div>
     </div>
 
-    <h3>Members</h3>
-    <table className={styles.table}>
-      <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Email</th>
-        </tr>
-      </thead>
-      <tbody>
-        { groupLoader?.group?.members?.map(m => <tr key={m.id}>
-          <td>{m.first_name}</td>
-          <td>{m.last_name}</td>
-          <td>{m.email}</td>
-        </tr>)}
-      </tbody>
-    </table>
-
-    <h3>Invites</h3>
-    <table className={styles.table}>
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Code</th>
-        </tr>
-      </thead>
-      <tbody>
-        { invitesLoader?.invites?.map(i => <tr key={i.id}>
-          <td>{i.email}</td>
-          <td>{i.code}</td>
-        </tr>)}
-      </tbody>
-    </table>
-  </Layout>
+    { stream ? <Chat streamID={stream.id} messages={stream.messages} /> : null }
+ </Layout> 
 }
