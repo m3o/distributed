@@ -94,7 +94,7 @@ export default function Group(props) {
             const className = chat?.type === 'chat' && chat?.id === m.id ? styles.linkActive : null            
             return <li key={m.id} className={className} onClick={onClick}>{m.first_name} {m.last_name}</li>
           })}
-          <li key='invite' onClick={sendInvite}>Send invite</li>
+          <li key='invite' onClick={sendInvite}>Send Invite</li>
         </ul>
       </div>
     </div>
