@@ -1,3 +1,5 @@
+import { rejects } from 'assert';
+import { da } from 'date-fns/locale';
 import useSWR from 'swr';
 
 export interface User {
@@ -15,11 +17,18 @@ export interface SignupParams {
   password: string;
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then(res => {
+  if(res.status === 200 || res.status === 201) {
+    return res.json();
+  } else {
+    throw `Error: ${res.statusText}`
+  }
+});
 
 export function useUser (): { user?: User, loading: boolean, error: Error } {
   const { data, error } = useSWR("/api/profile", fetcher);
-  
+  console.log(data, error)
+
   return {
     user: error ? undefined : data?.user,
     loading: !error && !data,

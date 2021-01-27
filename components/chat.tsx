@@ -5,7 +5,11 @@ import { Component } from 'react'
 import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
 
 interface Props {
-  streamID: string
+  // chatType, e.g. 'stream' or 'chat'
+  chatType: string;
+  // if the chat is a stream, this is that streams ID
+  chatID: string;
+  // any mesages preloaded
   messages?: Msg[]
 }
 
@@ -43,7 +47,7 @@ export default class Chat extends Component<Props, State> {
 
   async fetchMessages() {
     try {
-      const msgs = await fetchMessage(this.props.streamID)
+      const msgs = await fetchMessage(this.props.chatType, this.props.chatID)
       const messages = [...this.state.messages, ...msgs].filter((value, index, self) => self.findIndex(v => v.id === value.id) === index)
       this.setState({ messages })
     } catch(error) {
@@ -55,7 +59,7 @@ export default class Chat extends Component<Props, State> {
     e.preventDefault()
     this.setState({ loading: true })
 
-    createMessage(this.props.streamID, this.state.message)
+    createMessage(this.props.chatType, this.props.chatID, this.state.message)
       .then(msg => this.setState({ messages: [...this.state.messages, msg], loading: false, message: '' }))
       .catch(err => {
         this.setState({ loading: false })

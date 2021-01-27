@@ -7,9 +7,9 @@ export interface Message {
   author: User;
 }
 
-export function createMessage(streamID: string, text: string): Promise<Message> {
+export function createMessage(resourceType: string, resourceID: string, text: string): Promise<Message> {
   return new Promise<Message>((resolve: Function, reject: Function) => {
-    fetch('/api/streams/' + streamID + '/messages', { method: 'POST', body: JSON.stringify({ text }) })
+    fetch(`/api/${resourceType}s/${resourceID}/messages`, { method: 'POST', body: JSON.stringify({ text }) })
       .then(async (rsp) => {
         const body = await rsp.json()
         rsp.status === 201 ? resolve(body) : reject(body.error || rsp.statusText);
@@ -18,9 +18,9 @@ export function createMessage(streamID: string, text: string): Promise<Message> 
   })
 }
 
-export function fetchMessage(streamID: string): Promise<Message[]> {
+export function fetchMessage(resourceType: string, resourceID: string): Promise<Message[]> {
   return new Promise<Message[]>((resolve: Function, reject: Function) => {
-    fetch('/api/streams/' + streamID + '/messages', { method: 'GET' })
+    fetch(`/api/${resourceType}s/${resourceID}/messages`, { method: 'GET' })
       .then(async (rsp) => {
         const body = await rsp.json()
         rsp.status === 200 ? resolve(body) : reject(body.error || rsp.statusText);
