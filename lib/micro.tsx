@@ -1,7 +1,7 @@
-import { Http2ServerRequest } from "http2"
-import { connect } from "tls"
-
-const URL = 'http://localhost:8080'
+var baseURL = 'http://localhost:8080'
+if(process.env.MICRO_API_ENDPOINT?.length) {
+  baseURL = process.env.MICRO_API_ENDPOINT
+}
 
 // call makes HTTP JSON calls to the Micro API. If the request succeeds (200), the response body is 
 // returned, otherwise the error is parsed from the response body and returned in the reject. If no 
@@ -12,7 +12,7 @@ export default function call(path: string, params?: any): Promise<any> {
     const headers = { 'Content-Type': 'application/json' }
     console.log(`Calling Micro API ${path}`)
 
-    fetch(URL + path, { method: 'POST', body , headers })
+    fetch(baseURL + path, { method: 'POST', body , headers })
       .then((async (rsp) => {
         try {
           const data = await rsp.json()
