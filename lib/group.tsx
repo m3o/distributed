@@ -27,19 +27,31 @@ export function useGroups (): { groups?: Group[], loading: boolean, error: Error
   }
 }
 
-export function useGroup (id: string): { group?: Group, loading: boolean, error: Error } {
-  const { data, error } = useSWR("/api/groups/" + id, fetcher);
+export function useGroup (id: string): { group?: Group, loading: boolean, error: Error, mutate: Function } {
+  const { data, error, mutate } = useSWR("/api/groups/" + id, fetcher);
   
   return {
     group: error ? undefined : data,
     loading: !error && !data,
     error: error,
+    mutate,
   }
 }
 
 export function createGroup(name: string): Promise<Group> {
   return new Promise<Group>((resolve: Function, reject: Function) => {
     fetch('/api/groups', { method: 'POST', body: JSON.stringify({ name }) })
+      .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 201 ? resolve(body) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
+
+export function createStream(groupID: string, topic: string): Promise<Stream> {
+  return new Promise<Stream>((resolve: Function, reject: Function) => {
+    fetch(`/api/groups/${groupID}/streams`, { method: 'POST', body: JSON.stringify({ topic }) })
       .then(async (rsp) => {
         const body = await rsp.json()
         rsp.status === 201 ? resolve(body) : reject(body.error || rsp.statusText);
