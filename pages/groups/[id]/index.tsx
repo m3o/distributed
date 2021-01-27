@@ -37,7 +37,7 @@ export default function Group(props) {
   }
 
   async function createChannel() {
-    var channel = window.prompt("Enter the name of the channel");
+    var channel = window.prompt("Enter a new topic to discuss");
     if(!channel.length) return
 
     try {
@@ -75,19 +75,19 @@ export default function Group(props) {
       </Link>
 
       <div className={styles.section}>
-        <h3>Channels</h3>
+        <h3>Conversations</h3>
         <ul>
           { groupLoader.group?.streams?.map(s => {
             const onClick = () => setChat({ type: 'stream', id: s.id })
             const className = chat?.type === 'stream' && chat?.id === s.id ? styles.linkActive : null
             return <li className={className} onClick={onClick} key={s.id}>{s.topic}</li>
           })}
-          <li key='invite' onClick={createChannel}>Create channel</li>
+          <li key='invite' onClick={createChannel}>New Topic</li>
         </ul>
       </div>
 
       <div className={styles.section}>
-        <h3>Friends</h3>
+        <h3>People</h3>
         <ul>
           { groupLoader.group?.members?.map(m => {
             const onClick = () => setChat({ type: 'chat', id: m.id })
