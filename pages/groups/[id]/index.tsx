@@ -8,7 +8,7 @@ import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
 
 // Utilities
-import { createGroup, createStream, useGroup } from '../../../lib/group'
+import { createGroup, createThread, useGroup } from '../../../lib/group'
 import { createInvite, useInvites } from '../../../lib/invites'
 
 // Styling
@@ -32,8 +32,8 @@ export default function Group(props) {
   }
 
   let messages = [];
-  if(chat?.type === 'stream') {
-    messages = groupLoader?.group?.streams?.find(s => s.id === chat.id)?.messages || [];
+  if(chat?.type === 'thread') {
+    messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || [];
   }
 
   async function createChannel() {
@@ -41,10 +41,10 @@ export default function Group(props) {
     if(!channel.length) return
 
     try {
-      const stream = await createStream(router.query.id as string, channel)
-      console.log(stream)
-      groupLoader.mutate({ ...groupLoader.group!, streams: [...groupLoader.group!.streams, stream] })
-      setChat({ type: 'stream', id: stream.id })
+      const thread = await createThread(router.query.id as string, channel)
+      console.log(thread)
+      groupLoader.mutate({ ...groupLoader.group!, threads: [...groupLoader.group!.threads, thread] })
+      setChat({ type: 'thread', id: thread.id })
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
     }
@@ -77,9 +77,9 @@ export default function Group(props) {
       <div className={styles.section}>
         <h3>Topics</h3>
         <ul>
-          { groupLoader.group?.streams?.map(s => {
-            const onClick = () => setChat({ type: 'stream', id: s.id })
-            const className = chat?.type === 'stream' && chat?.id === s.id ? styles.linkActive : null
+          { groupLoader.group?.threads?.map(s => {
+            const onClick = () => setChat({ type: 'thread', id: s.id })
+            const className = chat?.type === 'thread' && chat?.id === s.id ? styles.linkActive : null
             return <li className={className} onClick={onClick} key={s.id}>{s.topic}</li>
           })}
           <li key='invite' onClick={createChannel}>New Topic</li>
