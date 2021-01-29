@@ -75,7 +75,7 @@ export default function Group(props) {
       </Link>
 
       <div className={styles.section}>
-        <h3>Conversations</h3>
+        <h3>Topics</h3>
         <ul>
           { groupLoader.group?.threads?.map(s => {
             const onClick = () => setChat({ type: 'thread', id: s.id })
