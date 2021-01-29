@@ -5,9 +5,9 @@ import { Component } from 'react'
 import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
 
 interface Props {
-  // chatType, e.g. 'stream' or 'chat'
+  // chatType, e.g. 'thread' or 'chat'
   chatType: string;
-  // if the chat is a stream, this is that streams ID
+  // if the chat is a thread, this is that threads ID
   chatID: string;
   // any mesages preloaded
   messages?: Msg[]

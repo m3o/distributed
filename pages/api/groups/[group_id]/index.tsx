@@ -51,10 +51,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // load the conversations and the recent messages within them
-  var streams: any;
+  var threads: any;
   try {
-    const rsp = await call("/streams/ListConversations", { group_id })
-    streams = rsp.conversations || [];
+    const rsp = await call("/threads/ListConversations", { group_id })
+    threads = rsp.conversations || [];
   } catch ({ error, code }) {
     console.error(`Error loading conversations: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading conversations" })
@@ -62,9 +62,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   var messages: any = {}
   var user_ids: any = group.member_ids || [];
-  if(streams.length > 0) {
+  if(threads.length > 0) {
     try {
-      const rsp = await call("/streams/RecentMessages", { conversation_ids: streams.map(s => s.id) })
+      const rsp = await call("/threads/RecentMessages", { conversation_ids: threads.map(s => s.id) })
       if(rsp.messages) {
         user_ids.push(...rsp.messages.map(m => m.author_id))
         messages = rsp.messages.reduce((res, m) => {
@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     id: group.id,
     name: group.name,
     members: Object.keys(users).filter(id => id !== user.id).map(k => users[k]),
-    streams: streams.map(s => ({
+    threads: threads.map(s => ({
       id: s.id,
       topic: s.topic,
       messages: (messages[s.id] || []).map(m => ({

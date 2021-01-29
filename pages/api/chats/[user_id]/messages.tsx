@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  // load the stream
+  // load the thread
   var chat_id: any
   try {
     const rsp = await call("/chats/CreateChat", { user_ids: [user.id, user_id] })
@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     body = {}
   }
 
-  // create the stream
+  // create the thread
   try {
     const params = {
       chat_id: chat_id,
