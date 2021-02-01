@@ -99,6 +99,6 @@ export default function Group(props) {
       </div>
     </div>
 
-    { chat ? <ChatUI key={chat.id} videoCall={chat.type === 'stream'} chatType={chat.type} chatID={chat.id} messages={messages} /> : null }
+    { chat ? <ChatUI key={chat.id} videoCall={chat.type === 'thread'} chatType={chat.type} chatID={chat.id} messages={messages} /> : null }
  </Layout> 
 }
