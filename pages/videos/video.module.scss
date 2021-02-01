@@ -1,0 +1,28 @@
+.container {
+  position: relative;
+  display: flex;
+  width: 100%;
+}
+
+.localMedia {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 100px;
+
+  video {
+    height: inherit;
+  }
+}
+
+.remoteMedia {
+  display: flex;
+  width: 100%;
+  justify-content: space-around;
+
+  video {
+    max-height: 70vh;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}

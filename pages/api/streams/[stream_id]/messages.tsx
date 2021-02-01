@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the stream
   var stream: any
   try {
-    const rsp = await call("/streams/ReadConversation", { id: stream_id })
+    const rsp = await call("/threads/ReadConversation", { id: stream_id })
     stream = rsp.conversation
   } catch ({ error, code }) {
     console.error(`Error loading conversation: ${error}, code: ${code}`)
@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if(req.method === 'GET') {
     var messages = []
     try {
-      const rsp = await call("/streams/ListMessages", { conversation_id: stream.id })
+      const rsp = await call("/threads/ListMessages", { conversation_id: stream.id })
       messages = rsp.messages || []
     } catch ({ error, code }) {
       console.error(`Error loading messages: ${error}, code: ${code}`)
@@ -109,7 +109,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       author_id: user.id,
       text: body.text,
     }
-    const rsp = await call("/streams/CreateMessage", params)
+    const rsp = await call("/threads/CreateMessage", params)
     res.status(201).json({
       id: rsp.message.id,
       text: rsp.message.text,

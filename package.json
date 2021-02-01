@@ -9,6 +9,8 @@
     "export": "next export"
   },
   "dependencies": {
+    "@types/twilio": "^2.11.0",
+    "@types/twilio-video": "^2.7.3",
     "cookie": "^0.4.1",
     "date-fns": "^2.16.1",
     "gray-matter": "^4.0.2",
@@ -20,6 +22,8 @@
     "remark-html": "^13.0.1",
     "sass": "^1.32.4",
     "swr": "^0.4.0",
+    "twilio": "^3.55.1",
+    "twilio-video": "^2.11.0",
     "uuidv4": "^6.2.6"
   },
   "devDependencies": {

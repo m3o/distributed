@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the conversations and the recent messages within them
   var streams: any;
   try {
-    const rsp = await call("/streams/ListConversations", { group_id })
+    const rsp = await call("/threads/ListConversations", { group_id })
     streams = rsp.conversations || [];
   } catch ({ error, code }) {
     console.error(`Error loading conversations: ${error}, code: ${code}`)
@@ -64,7 +64,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   var user_ids: any = group.member_ids || [];
   if(streams.length > 0) {
     try {
-      const rsp = await call("/streams/RecentMessages", { conversation_ids: streams.map(s => s.id) })
+      const rsp = await call("/threads/RecentMessages", { conversation_ids: streams.map(s => s.id) })
       if(rsp.messages) {
         user_ids.push(...rsp.messages.map(m => m.author_id))
         messages = rsp.messages.reduce((res, m) => {
