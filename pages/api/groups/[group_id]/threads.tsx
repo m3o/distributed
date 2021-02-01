@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     body = {}
   }
   
-  // create the stream
+  // create the thread
   try {
     const rsp = await call("/threads/CreateConversation", { group_id, topic: body.topic })
     res.status(201).json(rsp.conversation)

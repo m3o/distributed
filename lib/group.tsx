@@ -6,10 +6,10 @@ export interface Group {
   id: string;
   name: string;
   members?: User[];
-  streams?: Stream[];
+  threads?: Thread[];
 }
 
-export interface Stream {
+export interface Thread {
   id: string;
   topic: string;
   messages?: Message[];
@@ -49,9 +49,9 @@ export function createGroup(name: string): Promise<Group> {
   })
 }
 
-export function createStream(groupID: string, topic: string): Promise<Stream> {
-  return new Promise<Stream>((resolve: Function, reject: Function) => {
-    fetch(`/api/groups/${groupID}/streams`, { method: 'POST', body: JSON.stringify({ topic }) })
+export function createThread(groupID: string, topic: string): Promise<Thread> {
+  return new Promise<Thread>((resolve: Function, reject: Function) => {
+    fetch(`/api/groups/${groupID}/threads`, { method: 'POST', body: JSON.stringify({ topic }) })
       .then(async (rsp) => {
         const body = await rsp.json()
         rsp.status === 201 ? resolve(body) : reject(body.error || rsp.statusText);

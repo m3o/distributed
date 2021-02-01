@@ -1,10 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
 import { parse } from 'cookie'
-import { RSA_PKCS1_OAEP_PADDING } from 'constants';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { query: { stream_id } } = req;
+  const { query: { thread_id } } = req;
 
   if(req.method !== 'POST' && req.method !== 'GET') {
     res.status(405).json({})
@@ -29,11 +28,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  // load the stream
-  var stream: any
+  // load the thread
+  var thread: any
   try {
-    const rsp = await call("/threads/ReadConversation", { id: stream_id })
-    stream = rsp.conversation
+    const rsp = await call("/threads/ReadConversation", { id: thread_id })
+    thread = rsp.conversation
   } catch ({ error, code }) {
     console.error(`Error loading conversation: ${error}, code: ${code}`)
     res.status(code).json({ error })
@@ -43,8 +42,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group
   var group: any
   try {
-    const rsp = await call("/groups/Read", { ids: [stream.group_id] })
-    group = rsp.groups[stream.group_id]
+    const rsp = await call("/groups/Read", { ids: [thread.group_id] })
+    group = rsp.groups[thread.group_id]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading groups" })
@@ -61,11 +60,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  // if a get request, load the messages in the stream
+  // if a get request, load the messages in the thread
   if(req.method === 'GET') {
     var messages = []
     try {
-      const rsp = await call("/threads/ListMessages", { conversation_id: stream.id })
+      const rsp = await call("/threads/ListMessages", { conversation_id: thread.id })
       messages = rsp.messages || []
     } catch ({ error, code }) {
       console.error(`Error loading messages: ${error}, code: ${code}`)
@@ -102,10 +101,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     body = {}
   }
 
-  // create the stream
+  // create the thread
   try {
     const params = {
-      conversation_id: stream.id,
+      conversation_id: thread.id,
       author_id: user.id,
       text: body.text,
     }
