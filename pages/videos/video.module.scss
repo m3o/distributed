@@ -1,7 +1,9 @@
 .container {
   position: relative;
   display: flex;
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(35, 35, 35);
 }
 
 .localMedia {
@@ -21,8 +23,10 @@
   justify-content: space-around;
 
   video {
-    max-height: 70vh;
+    flex-grow: 1;
     margin-top: auto;
     margin-bottom: auto;
+    object-fit: cover;
+    max-height: 100%;
   }
 }

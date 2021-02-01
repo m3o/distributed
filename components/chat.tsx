@@ -3,6 +3,7 @@ import Message from './message'
 import styles from './chat.module.scss'
 import { Component } from 'react'
 import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
+import Link from 'next/link'
 
 interface Props {
   // chatType, e.g. 'stream' or 'chat'
@@ -11,6 +12,8 @@ interface Props {
   chatID: string;
   // any mesages preloaded
   messages?: Msg[]
+  // videoCall enabled
+  videoCall?: boolean
 }
 
 interface State {
@@ -69,6 +72,10 @@ export default class Chat extends Component<Props, State> {
 
   render() {
     return <div className={styles.container}>
+      { this.props.videoCall ? <Link href={`/videos/${this.props.chatID}`}>
+        <p className={styles.videoCall}>Join video call</p>
+      </Link> : null }
+
       <div className={styles.messages}>
         { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
       </div>

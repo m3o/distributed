@@ -13,6 +13,22 @@
   margin-bottom: -30px;
 }
 
+.videoCall {
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 5px;
+  font-size: 10pt;
+  padding: 5px 15px;
+  cursor: pointer;
+
+  background-color: white;
+  color: green;
+  &:hover {
+    color: white;
+    background-color: green;
+  }
+}
+
 .compose {
   z-index: 2;
   padding: 20px;
