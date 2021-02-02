@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.status(200).json({
     id: group.id,
     name: group.name,
-    members: Object.keys(users).filter(id => id !== user.id).map(k => users[k]),
+    members: Object.keys(users).map(k => ({ ...users[k], current_user: users[k].id === user.id })),
     threads: threads.map(s => ({
       id: s.id,
       topic: s.topic,

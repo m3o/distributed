@@ -12,6 +12,7 @@ import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
 
 // Styling
 import styles from './chat.module.scss'
+import { User } from '../lib/user'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'
@@ -22,6 +23,8 @@ interface Props {
   messages?: Msg[]
   // callsEnabled enables video and audio calls
   callsEnabled?: boolean
+  // participants in the conversation
+  participants?: User[]
 }
 
 interface State {
@@ -29,12 +32,14 @@ interface State {
   loading: boolean
   message: string
   intervalID?: any
+  listening: boolean
   joinedAudio: boolean
+  joinedVideo: boolean
+  onlineUserIDs: string[];
 }
 
 export default class Chat extends Component<Props, State> {
-  readonly localMedia = createRef<HTMLDivElement>()
-  readonly remoteMedia = createRef<HTMLDivElement>()
+  readonly mediaRef = createRef<HTMLDivElement>()
 
   constructor(props: Props) {
     super(props)
@@ -42,7 +47,10 @@ export default class Chat extends Component<Props, State> {
       loading: false,
       message: '',
       messages: props.messages || [],
+      listening: false,
       joinedAudio: false,
+      joinedVideo: false,
+      onlineUserIDs: [],
     }
     this.sendMessage = this.sendMessage.bind(this)
     this.fetchMessages = this.fetchMessages.bind(this)
@@ -84,44 +92,68 @@ export default class Chat extends Component<Props, State> {
   }
 
   render() {
-    const { joinedAudio } = this.state
-    const toggleAudio = () => this.setState({ joinedAudio: !joinedAudio })
-
     return <div className={styles.container}>
-      <div className={styles.callsContainer}>
-        <div className={styles.localMedia} ref={this.localMedia} />
-        <div className={styles.remoteMedia} ref={this.remoteMedia} />
+      { this.props.callsEnabled ? this.renderStream() : null }
 
-        { joinedAudio ? <Stream
-                          audio={true}
-                          video={false}
-                          roomID={this.props.chatID}
-                          localMediaRef={this.localMedia}
-                          remoteMediaRef={this.remoteMedia} /> : null }
+      <div className={styles.inner}>
+        <div className={styles.messages}>
+          { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
+        </div>
 
-        { this.props.callsEnabled ? <p onClick={toggleAudio} className={styles.callButton}>{joinedAudio ? 'Leave' : 'Join'} audio</p> : null }
-        { this.props.callsEnabled ? <Link href={`/videos/${this.props.chatID}`}>
-          <p className={styles.callButton}>Join video</p>
-        </Link> : null }
-      </div>
-
-      <div className={styles.messages}>
-        { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
-      </div>
-
-      <div className={styles.compose}>
-        <form onSubmit={this.sendMessage}>
-          <input 
-            required
-            ref={r => r?.focus()}
-            type='text'
-            value={this.state.message} 
-            disabled={this.state.loading}
-            placeholder='Send a message' 
-            onChange={e => this.setState({ message: e.target.value || ''} )} />
-        </form>
+        <div className={styles.compose}>
+          <form onSubmit={this.sendMessage}>
+            <input 
+              required
+              ref={r => r?.focus()}
+              type='text'
+              value={this.state.message} 
+              disabled={this.state.loading}
+              placeholder='Send a message' 
+              onChange={e => this.setState({ message: e.target.value || ''} )} />
+          </form>
+        </div>
       </div>
     </div>
+  }
+
+  renderStream(): JSX.Element {
+    const { listening, joinedAudio, joinedVideo, onlineUserIDs } = this.state
+    const toggleAudio = () => this.setState({ joinedAudio: !joinedAudio })
+    const toggleVideo = () => this.setState({ joinedVideo: !joinedVideo })
+    const toggleListening = () => this.setState({ listening: !listening })
+
+    return(
+      <div className={styles.stream}>
+        <Stream
+          audio={joinedAudio}
+          video={joinedVideo}
+          listening={listening}
+          roomID={this.props.chatID}
+          localMediaRef={this.mediaRef}
+          remoteMediaRef={this.mediaRef} 
+          participantsUpdated={(onlineUserIDs) => this.setState({ onlineUserIDs })} />
+
+        <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>{listening ? 'Stop' : 'Start'} listening</p>
+        <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>{joinedAudio ? 'Leave' : 'Join'} audio</p>
+        <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>{joinedVideo ? 'Leave' : 'Join'} video</p>
+
+        <div className={styles.participants}>
+          <h3>Members</h3>
+          { this.props.participants?.map(p => {
+            const online = onlineUserIDs.includes(p.id)
+
+            return(
+              <div className={styles.participant} key={p.id}>
+                <div className={styles.onlineStatus} style={{ backgroundColor: online ? 'green' : 'red' }} />
+                <p>{p.first_name} {p.last_name}</p>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className={styles.media} ref={this.mediaRef} />
+      </div>
+    )
   }
 }
 

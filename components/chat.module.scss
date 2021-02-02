@@ -1,7 +1,13 @@
 .container {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.inner {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 }
 
 .messages {
@@ -13,32 +19,81 @@
   margin-bottom: -30px;
 }
 
-.callsContainer {
+.stream {
   margin-left: auto;
   margin-right: auto;
   display: flex;
-}
-
-.callButton {
-  border-radius: 5px;
-  font-size: 10pt;
-  padding: 5px 15px;
-  cursor: pointer;
-
+  flex-direction: column;
+  width: 300px;
   background-color: white;
-  color: green;
-  &:hover {
-    color: white;
-    background-color: green;
+  margin-top: 2px;
+  padding: 10px 20px;
+
+  .buttonContainer {
+    display: flex;
+    justify-content: space-between;
   }
 
-  &:first-of-type {
+  .button {
+    font-size: 10pt;
+    line-height: 30px;
+    width: 100%;
+    margin: 5px 0px;
+    cursor: pointer;
+    text-align: center;
+
+    background-color: rgba($color: green, $alpha: 0.1);
+    color: green;
+    &:hover {
+      color: white;
+      background-color: green;
+    }
+  }
+
+  .buttonActive {
     margin-right: 10px;
     color: #14248a;
-    background-color: white;
+    background-color: rgba($color: #14248a, $alpha: 0.1);
     &:hover {
       color: white;
       background-color: #14248a;
+    }
+  }
+
+  .media {
+    margin-top: 30px;
+
+    video {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+
+  .participants {
+    h3 {
+      font-size: 12pt;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+
+    .participant {
+      display: flex;
+      flex-direction: row;
+      margin: 8px 0px;
+
+      .onlineStatus {
+        height: 8px;
+        width: 8px;
+        border-radius: 50%;
+        margin-top: auto;
+        margin-bottom: auto;
+        margin-right: 10px;
+      }
+
+      p {
+        margin: 0px;
+        font-size: 10pt;
+      }
     }
   }
 }

@@ -32,8 +32,10 @@ export default function Group(props) {
   }
 
   let messages = [];
+  let participants = [];
   if(chat?.type === 'thread') {
     messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || [];
+    participants = groupLoader?.group?.members || [];
   }
 
   async function createChannel() {
@@ -99,6 +101,12 @@ export default function Group(props) {
       </div>
     </div>
 
-    { chat ? <ChatUI key={chat.id} callsEnabled={chat.type === 'thread'} chatType={chat.type} chatID={chat.id} messages={messages} /> : null }
+    { chat ? <ChatUI
+                key={chat.id}
+                callsEnabled={chat.type === 'thread'}
+                chatType={chat.type}
+                chatID={chat.id}
+                messages={messages}
+                participants={participants} /> : null }
  </Layout> 
 }
