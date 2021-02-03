@@ -138,7 +138,6 @@ export default class Chat extends Component<Props, State> {
         <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>{joinedVideo ? 'Leave' : 'Join'} video</p>
 
         <div className={styles.participants}>
-          <h3>Members</h3>
           { this.props.participants?.map(p => {
             const online = onlineUserIDs.includes(p.id)
 

@@ -1,7 +1,5 @@
 .container {
-  display: grid;
-  grid-template-columns: 240px auto;
-  width: 100vw;
+  display: flex;
 }
 
 .sidebar {
@@ -10,6 +8,9 @@
   background-color: white;
   margin-top: 2px;
   padding: 20px;
+  overflow: scroll;
+  width: 250px;
+  flex-shrink: 0;
 
   h1 {
     text-align: center;

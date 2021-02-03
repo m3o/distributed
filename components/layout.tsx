@@ -48,11 +48,15 @@ export default function Layout({ children, loading, className, overrideClassName
           </Link>
         </nav>
       </header>
-      <main>
-        <div className={overrideClassName || [styles.inner, className].filter(c => !!c).join(' ')}>
-          { children }
-        </div>
-      </main>
+      { 
+        overrideClassName ? 
+        <main className={overrideClassName}>{children}</main> :
+        <main>
+          <div className={[styles.inner, className].filter(c => !!c).join(' ')}>
+            { children }
+          </div>
+        </main>
+      }
     </div>
   )
 }

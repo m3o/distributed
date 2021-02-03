@@ -1,6 +1,7 @@
 .container {
   display: flex;
   flex-direction: row-reverse;
+  flex-grow: 1;
 }
 
 .inner {
@@ -25,9 +26,11 @@
   display: flex;
   flex-direction: column;
   width: 300px;
+  flex-shrink: 0;
   background-color: white;
   margin-top: 2px;
   padding: 10px 20px;
+  overflow: scroll;
 
   .buttonContainer {
     display: flex;
@@ -70,9 +73,13 @@
   }
 
   .participants {
+    margin-top: 20px;
+    padding: 10px 0px;
+    border-top: solid 1px rgba(0, 0, 0, 0.1);
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
+
     h3 {
       font-size: 12pt;
-      margin-top: 30px;
       margin-bottom: 10px;
     }
 
