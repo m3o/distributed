@@ -1,5 +1,4 @@
 // Frameworks
-import { de } from 'date-fns/esm/locale'
 import { Component } from 'react'
 import Video from 'twilio-video'
 
@@ -146,11 +145,12 @@ export default class Stream extends Component<Props, State> {
 		}
     
     // Attach the Tracks of the room's participants.
+    var ids: string[] = []
     room.participants.forEach(participant => {
       console.log("Already in Room: '" + participant.identity + "'")
+      ids.push(participant.identity)
       this.attachParticipantTracks(participant, this.props.remoteMediaRef.current)
     })
-    const ids = Object.values(room.participants).map((p: any) => p.identity)
     this.setState({ participantIDs: [...ids, this.state.identity] })
 
     // Participant joining room

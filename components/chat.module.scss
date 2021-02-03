@@ -25,16 +25,18 @@
   margin-right: auto;
   display: flex;
   flex-direction: column;
-  width: 300px;
+  width: 280px;
   flex-shrink: 0;
   background-color: white;
   margin-top: 2px;
   padding: 10px 20px;
   overflow-y: auto;
 
-  .buttonContainer {
-    display: flex;
-    justify-content: space-between;
+  .streamButtons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: 12px;
+    margin: 10px 0px;
   }
 
   .button {
@@ -44,27 +46,20 @@
     margin: 5px 0px;
     cursor: pointer;
     text-align: center;
+    border-radius: 5px;
 
-    background-color: rgba($color: green, $alpha: 0.1);
-    color: green;
-    &:hover {
-      color: white;
-      background-color: green;
-    }
+    background-color: rgba($color: #14248a, $alpha: 0.1);
+    color: #14248a;
   }
 
   .buttonActive {
     margin-right: 10px;
-    color: #14248a;
-    background-color: rgba($color: #14248a, $alpha: 0.1);
-    &:hover {
-      color: white;
-      background-color: #14248a;
-    }
+    color: green;
+    background-color: rgba($color: green, $alpha: 0.1);
   }
 
   .media {
-    margin-top: 30px;
+    margin-top: 25px;
 
     video {
       width: 100%;
@@ -74,11 +69,6 @@
   }
 
   .participants {
-    margin-top: 20px;
-    padding: 10px 0px;
-    border-top: solid 1px rgba(0, 0, 0, 0.1);
-    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
-
     h3 {
       font-size: 12pt;
       margin-bottom: 10px;

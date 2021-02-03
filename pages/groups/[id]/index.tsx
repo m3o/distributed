@@ -31,6 +31,12 @@ export default function Group(props) {
     return <div />
   }
 
+  // default to the first chat
+  console.log(chat, groupLoader?.group?.threads?.length)
+  if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
+    setChat({ type: 'thread', id: groupLoader.group.threads[0].id })
+  }
+
   let messages = [];
   let participants = [];
   if(chat?.type === 'thread') {

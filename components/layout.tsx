@@ -37,26 +37,25 @@ export default function Layout({ children, loading, className, overrideClassName
         <meta name="theme-color" content="#ffffff" />
       </Head>
       
-     <header className={styles.header}>
-        <Link href='/'>
-          <img src='/logo.svg' alt='Logo' />
-        </Link>
-
-        <nav>
-          <Link href='/logout'>
-            <a>Logout</a>
+     { overrideClassName ? <main className={overrideClassName}>{children}</main> : <div className={styles.container}>
+        <header className={styles.header}>
+          <Link href='/'>
+            <img src='/logo.svg' alt='Logo' />
           </Link>
-        </nav>
-      </header>
-      { 
-        overrideClassName ? 
-        <main className={overrideClassName}>{children}</main> :
+
+          <nav>
+            <Link href='/logout'>
+              <a>Logout</a>
+            </Link>
+          </nav>
+        </header>
+
         <main>
           <div className={[styles.inner, className].filter(c => !!c).join(' ')}>
             { children }
           </div>
         </main>
-      }
+      </div> }
     </div>
   )
 }
