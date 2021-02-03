@@ -77,7 +77,7 @@ export default function Group(props) {
       </Link>
 
       <div className={styles.section}>
-        <h3>Topics</h3>
+        <h3><span>#️⃣</span> Topics</h3>
         <ul>
           { groupLoader.group?.threads?.map(s => {
             const onClick = () => setChat({ type: 'thread', id: s.id })
@@ -89,7 +89,7 @@ export default function Group(props) {
       </div>
 
       <div className={styles.section}>
-        <h3>People</h3>
+        <h3><span>👨‍👩‍👦</span> People</h3>
         <ul>
           { groupLoader.group?.members?.map(m => {
             const onClick = () => setChat({ type: 'chat', id: m.id })

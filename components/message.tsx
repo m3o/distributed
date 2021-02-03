@@ -1,5 +1,6 @@
 import moment from 'moment'
-import { Message as Msg } from "../lib/message"
+import Linkify from 'react-linkify'
+import { Message as Msg } from '../lib/message'
 import styles from './message.module.scss'
 
 interface Props {
@@ -12,6 +13,6 @@ export default function Message({ data }: Props) {
       <p className={styles.author}>{ data.author.first_name } {data.author.last_name }</p>
       <p className={styles.sentAt}><time dateTime={data.sent_at}>{ moment(data.sent_at).format('LT') }</time></p>
     </div>
-    <p className={styles.text}>{ data.text }</p>
+    <p className={styles.text}><Linkify >{ data.text }</Linkify></p>
   </div>
 }

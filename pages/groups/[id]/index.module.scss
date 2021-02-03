@@ -26,6 +26,7 @@
     margin-right: auto;
     margin-bottom: 30px;
     cursor: pointer;
+    padding: 10px 20px;
 
     opacity: 0.5;
     &:hover {
@@ -46,6 +47,20 @@
       text-transform: uppercase;
       margin-top: auto;
       margin-bottom: auto;
+      overflow: hidden;
+      word-wrap: none;
+      white-space: nowrap;
+      width: 0px;
+      transition: width 0.5s;
+      height: 10px;
+      line-height: 10px;
+      max-lines: 1;
+    }
+
+    &:hover {
+      p {
+        width: 60px;
+      }
     }
   }
 
@@ -53,9 +68,13 @@
     margin-top: 10px;
 
     h3 {
-      font-size: 9.5pt;
+      font-size: 10pt;
       font-weight: 500;
       margin: 0px 0px 5px 0px;
+
+      span {
+        margin-right: 3px;
+      }
     }
 
     ul {
