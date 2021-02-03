@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     process.env.TWILIO_API_KEY!,
     process.env.TWILIO_API_SECRET!,
     {
-      ttl: 360,
+      ttl: 60 * 60 * 24,
       identity: user.id,
     }
   );
