@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="81px" height="70px" viewBox="0 0 81 70" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="144px" height="144px" viewBox="0 0 144 144" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 60.1 (88133) - https://sketch.com -->
-    <title>Combined Shape</title>
+    <title>Artboard</title>
     <desc>Created with Sketch.</desc>
-    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Artboard" transform="translate(-674.000000, -209.000000)" fill="#A38B7B" fill-rule="nonzero">
-            <g id="Group-2-Copy" transform="translate(674.000000, 209.000000)">
-                <path d="M36,69.8279797 C-2.41798173,69.5850368 0.0313242384,33.8592286 0.0313242384,33.8592286 C0.0313242384,33.8592286 35.7533073,31.412135 36,69.8279797 Z M44.4887137,69.8279797 C44.7398113,31.412135 80.4573894,33.8592286 80.4573894,33.8592286 C80.4573894,33.8592286 82.9066955,69.5850368 44.4887137,69.8279797 Z M39.7968981,0 C39.7968981,0 69.0492858,23.1286903 39.7968981,50 C10.5492858,23.1286903 39.7968981,0 39.7968981,0 Z" id="Combined-Shape"></path>
-            </g>
+    <g id="Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-2-Copy" transform="translate(0.000000, 8.000000)" fill="#A38B7B" fill-rule="nonzero">
+            <path d="M64.4065455,127 C-4.32594029,126.558146 0.0560412774,61.5816475 0.0560412774,61.5816475 C0.0560412774,61.5816475 63.9651949,57.1309833 64.4065455,127 Z M79.5934545,127 C80.0426859,57.1309833 143.943959,61.5816475 143.943959,61.5816475 C143.943959,61.5816475 148.32594,126.558146 79.5934545,127 Z M71.1994648,0 C71.1994648,0 123.534055,42.0654253 71.1994648,90.9377592 C18.8734182,42.0654253 71.1994648,0 71.1994648,0 Z" id="Combined-Shape"></path>
         </g>
     </g>
 </svg>
