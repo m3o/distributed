@@ -5,7 +5,6 @@ import { useUser } from '../lib/user'
 import { useGroups } from '../lib/group'
 import styles from './index.module.scss'
 import { acceptInvite, rejectInvite, Invite, useInvites } from '../lib/invites'
-import { useState } from 'react'
 
 export default function Home() {
   const router = useRouter()

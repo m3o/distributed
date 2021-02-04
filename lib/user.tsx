@@ -27,7 +27,6 @@ const fetcher = (url: string) => fetch(url).then(res => {
 
 export function useUser (): { user?: User, loading: boolean, error: Error } {
   const { data, error } = useSWR("/api/profile", fetcher);
-  console.log(data, error)
 
   return {
     user: error ? undefined : data?.user,

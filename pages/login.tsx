@@ -1,13 +1,9 @@
-import { de } from 'date-fns/esm/locale'
 import Head from 'next/head'
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { login, signup } from '../lib/user'
 import styles from './login.module.scss'
 
 export default function Login() {
-  const router = useRouter()
-
   const [isSignup, setSignup] = useState<boolean>(false)
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
@@ -21,7 +17,8 @@ export default function Login() {
     setLoading(true)
 
     function onSuccess() {
-      router.push('/')
+      // push to homepage, temp hack to fix stale errors in homepage
+      window.location.href = '/'
     }
 
     function onError(err: any) {

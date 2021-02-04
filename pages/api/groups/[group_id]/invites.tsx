@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // get the token from cookies
-  const token = parse(req.headers.cookie).token
+  const token = parse(req.headers.cookie || '').token
   if(!token) {
     res.status(401).json({ error: "No token cookie set" })
     return
