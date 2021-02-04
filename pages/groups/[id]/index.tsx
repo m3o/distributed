@@ -1,4 +1,5 @@
 // Frameworks
+import { de } from 'date-fns/esm/locale'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -8,8 +9,10 @@ import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
 
 // Utilities
-import { createGroup, createThread, useGroup } from '../../../lib/group'
+import { createThread, useGroup } from '../../../lib/group'
 import { createInvite, useInvites } from '../../../lib/invites'
+import { Message } from '../../../lib/message'
+import { setSeen } from '../../../lib/seen'
 
 // Styling
 import styles from './index.module.scss'
@@ -31,10 +34,28 @@ export default function Group(props) {
     return <div />
   }
 
+  function setChatWrapped(type: string, id: string) {
+    if(type === 'thread') {
+      let threads = [...groupLoader.group.threads]
+      threads.find(t => t.id === id).last_seen = Date.now().toString()
+      groupLoader.mutate({ ...groupLoader.group, threads }, false)
+    } else if(type === 'chat') {
+      let members = [...groupLoader.group.members]
+      members.find(t => t.id === id).chat = { 
+        ...(members.find(t => t.id === id).chat || {}),
+        last_seen: Date.now().toString(),
+      }
+      groupLoader.mutate({ ...groupLoader.group, members }, false)
+    }
+
+    setSeen(type, id)
+    setChat({ type, id })
+  }
+
   // default to the first chat
   console.log(chat, groupLoader?.group?.threads?.length)
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
-    setChat({ type: 'thread', id: groupLoader.group.threads[0].id })
+    setChatWrapped('thread', groupLoader.group.threads[0].id)
   }
 
   let messages = [];
@@ -42,6 +63,8 @@ export default function Group(props) {
   if(chat?.type === 'thread') {
     messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || [];
     participants = groupLoader?.group?.members || [];
+  } else if(chat?.type === 'chat') {
+    messages = groupLoader?.group?.members?.find(s => s.id === chat.id)?.chat?.messages || [];
   }
 
   async function createChannel() {
@@ -71,6 +94,28 @@ export default function Group(props) {
     }
   }
 
+  function showMsgIndicator(type: string, id: string): boolean {
+    let resource: { messages?: Message[], last_seen?: string | number }
+
+    if(type === 'chat') {
+      resource = groupLoader.group.members.find(t => t.id === id)?.chat
+    } else if(type === 'thread') {
+      resource = groupLoader.group.threads.find(t => t.id === id)
+    }
+
+    if(chat?.type === type && chat?.id === id) return false
+    if(!resource?.messages?.length) return false
+    if(!resource.last_seen) return true
+
+    const lastSeen = Date.parse(resource.last_seen as string)
+    let showIndicator = false
+    resource.messages.forEach(msg => {
+      const sentAt = Date.parse(msg.sent_at)
+      if(sentAt > lastSeen) showIndicator = true
+    })
+    return showIndicator
+  }
+
   return <Layout overrideClassName={styles.container} loading={groupLoader.loading || invitesLoader.loading}>
     <div className={styles.sidebar}>
       <h1>{groupLoader.group?.name}</h1>
@@ -86,9 +131,12 @@ export default function Group(props) {
         <h3><span>#️⃣</span> Topics</h3>
         <ul>
           { groupLoader.group?.threads?.map(s => {
-            const onClick = () => setChat({ type: 'thread', id: s.id })
+            const onClick = () => setChatWrapped('thread', s.id)
             const className = chat?.type === 'thread' && chat?.id === s.id ? styles.linkActive : null
-            return <li className={className} onClick={onClick} key={s.id}>{s.topic}</li>
+            return <li className={className} onClick={onClick} key={s.id}>
+              <p>{s.topic}</p>
+              { showMsgIndicator('thread', s.id) ? <div className={styles.msgIndicator} /> : null }
+            </li>
           })}
           <li key='invite' onClick={createChannel}>New Topic</li>
         </ul>
@@ -97,10 +145,13 @@ export default function Group(props) {
       <div className={styles.section}>
         <h3><span>👨‍👩‍👦</span> People</h3>
         <ul>
-          { groupLoader.group?.members?.map(m => {
-            const onClick = () => setChat({ type: 'chat', id: m.id })
+          { groupLoader.group?.members?.filter(u => !u.current_user)?.map(m => {
+            const onClick = () => setChatWrapped('chat', m.id)
             const className = chat?.type === 'chat' && chat?.id === m.id ? styles.linkActive : null            
-            return <li key={m.id} className={className} onClick={onClick}>{m.first_name} {m.last_name}</li>
+            return <li key={m.id} className={className} onClick={onClick}>
+              <p>{m.first_name} {m.last_name}</p>
+              { showMsgIndicator('chat', m.id) ? <div className={styles.msgIndicator} /> : null }
+            </li>
           })}
           <li key='invite' onClick={sendInvite}>Send Invite</li>
         </ul>

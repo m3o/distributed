@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
 import { parse } from 'cookie'
-import { isError } from 'util'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query: { group_id } } = req
@@ -61,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
   var messages: any = {}
-  var user_ids: any = group.member_ids || [];
+  var user_ids: any = [...(group.member_ids || [])];
   if(threads.length > 0) {
     try {
       const rsp = await call("/threads/RecentMessages", { conversation_ids: threads.map(s => s.id) })
@@ -69,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         user_ids.push(...rsp.messages.map(m => m.author_id))
         messages = rsp.messages.reduce((res, m) => {
           return { ...res, [m.conversation_id]: [...(res[m.conversation_id] || []), m] }
-        })
+        }, {})
       }
     } catch ({ error, code }) {
       console.error(`Error loading recent messages: ${error}, code: ${code}`)
@@ -78,14 +77,54 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } 
   }
 
+  // load the recent messages for all members
+  const chatMessages = await group.member_ids.filter(id => user.id !== id)?.reduce(async (res: Record<string,any[]>, id: string) => {
+    var chat_id: any
+    try {
+      const rsp = await call("/chats/CreateChat", { user_ids: [user.id, id] })
+      chat_id = rsp.chat.id
+    } catch ({ error, code }) {
+      console.error(`Error loading chat: ${error}, code: ${code}`)
+      return res
+    }
+
+    try {
+      const rsp = await call("/chats/ListMessages", { chat_id })
+      // console.log("CHAT MSGS", id, rsp.messages)
+      return { ...res, [id]: rsp.messages || [] }
+    } catch ({ error, code }) {
+      console.error(`Error loading messages: ${error}, code: ${code}`)
+      return res
+    }
+  }, {});
+
   // load the details of the users
   var users: any
   try {
-    const rsp = await call("/users/Read", { ids: user_ids })
-    users = rsp.users
+    users = (await call("/users/Read", { ids: user_ids })).users
   } catch ({ error, code }) {
     console.error(`Error loading users: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading users" })
+    return
+  }
+
+  // load the last time each thread and chat was seen
+  var threadLastSeens = {}
+  try {
+    const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
+    threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
+  } catch ({ error, code }) {
+    console.error(`Error loading last seen: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error loading last seen times"})
+    return
+  }
+  var chatLastSeens = {}
+  try {
+    const req = { user_id: user.id, resource_type: "chat", resource_ids: Object.keys(users) }
+    chatLastSeens = (await call("/seen/Read", req)).timestamps || {}
+  } catch ({ error, code }) {
+    console.error(`Error loading last seen: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error loading last seen times"})
     return
   }
 
@@ -93,10 +132,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.status(200).json({
     id: group.id,
     name: group.name,
-    members: Object.keys(users).map(k => ({ ...users[k], current_user: users[k].id === user.id })),
+    members: Object.keys(users).map(id => ({ 
+      ...users[id], 
+      current_user: users[id].id === user.id,
+      chat: {
+        last_seen: chatLastSeens[id],
+        messages: (chatMessages[id] || []).map(m => ({
+          id: m.id,
+          text: m.text,
+          sent_at: m.sent_at,
+          author: { ...users[m.author_id], current_user: m.author_id === user.id },
+        })),
+      },
+    })),
     threads: threads.map(s => ({
       id: s.id,
       topic: s.topic,
+      last_seen: threadLastSeens[s.id],
       messages: (messages[s.id] || []).map(m => ({
         id: m.id,
         text: m.text,

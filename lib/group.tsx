@@ -13,6 +13,7 @@ export interface Thread {
   id: string;
   topic: string;
   messages?: Message[];
+  last_seen?: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());

@@ -13,6 +13,7 @@ import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
 // Styling
 import styles from './chat.module.scss'
 import { User } from '../lib/user'
+import { setSeen } from '../lib/seen'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'
@@ -76,6 +77,12 @@ export default class Chat extends Component<Props, State> {
       this.setState({ messages })
     } catch(error) {
       console.error(`Error loading messages: ${error}`)
+    }
+
+    try {
+      const msgs = await setSeen(this.props.chatType, this.props.chatID)
+    } catch(error) {
+      console.error(`Error setting seen: ${error}`)
     }
   }
   

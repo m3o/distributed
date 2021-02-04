@@ -1,6 +1,7 @@
 import { rejects } from 'assert';
 import { da } from 'date-fns/locale';
 import useSWR from 'swr';
+import { Message } from './message';
 
 export interface User {
   id: string;
@@ -8,6 +9,10 @@ export interface User {
   last_name: string;
   email: string;
   current_user?: boolean;
+  chat: {
+    last_seen?: number | string;
+    messages?: Message[],
+  }
 }
 
 export interface SignupParams {
