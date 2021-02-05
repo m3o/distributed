@@ -14,6 +14,7 @@ import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
 import styles from './chat.module.scss'
 import { User } from '../lib/user'
 import { setSeen } from '../lib/seen'
+import { uuid } from 'uuidv4'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'
@@ -30,7 +31,6 @@ interface Props {
 
 interface State {
   messages: Msg[]
-  loading: boolean
   message: string
   intervalID?: any
   listening: boolean
@@ -45,7 +45,6 @@ export default class Chat extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      loading: false,
       message: '',
       messages: props.messages || [],
       listening: false,
@@ -88,14 +87,26 @@ export default class Chat extends Component<Props, State> {
   
   sendMessage(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    this.setState({ loading: true })
 
-    createMessage(this.props.chatType, this.props.chatID, this.state.message)
-      .then(msg => this.setState({ messages: [...this.state.messages, msg], loading: false, message: '' }))
-      .catch(err => {
-        this.setState({ loading: false })
-        alert(`Error sending message: ${err}`)
-      })
+    const resource = { type: this.props.chatType, id: this.props.chatID }
+    const message = { id: uuid(), text: this.state.message }
+    
+    createMessage(resource, message).catch(err => {
+      alert(`Error sending message: ${err}`)
+      this.setState({ messages: this.state.messages.filter(m => m.id !== message.id ) })
+    })
+
+    this.setState({ 
+      message: '',
+      messages: [
+        ...this.state.messages,
+        { 
+          ...message,
+          sent_at: Date.now(),
+          author: this.props.participants?.find(p => p.current_user),
+        },
+      ],
+    })
   }
 
   render() {
@@ -114,7 +125,6 @@ export default class Chat extends Component<Props, State> {
               ref={r => r?.focus()}
               type='text'
               value={this.state.message} 
-              disabled={this.state.loading}
               placeholder='Send a message' 
               onChange={e => this.setState({ message: e.target.value || ''} )} />
           </form>

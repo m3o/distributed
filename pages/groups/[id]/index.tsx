@@ -18,15 +18,15 @@ import { setSeen } from '../../../lib/seen'
 import styles from './index.module.scss'
 
 interface Chat {
-  type: string;
-  id: string;
+  type: string
+  id: string
 }
 
 export default function Group(props) {
   const router = useRouter()
   const groupLoader = useGroup(router.query.id as string)
   const invitesLoader = useInvites(router.query.id as string)
-  const [chat, setChat] = useState<Chat>();
+  const [chat, setChat] = useState<Chat>()
 
   // todo: improve error handling
   if(groupLoader.error || invitesLoader.error) {
@@ -58,17 +58,18 @@ export default function Group(props) {
     setChatWrapped('thread', groupLoader.group.threads[0].id)
   }
 
-  let messages = [];
-  let participants = [];
+  let messages = []
+  let participants = []
   if(chat?.type === 'thread') {
-    messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || [];
-    participants = groupLoader?.group?.members || [];
+    messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || []
+    participants = groupLoader?.group?.members || []
   } else if(chat?.type === 'chat') {
-    messages = groupLoader?.group?.members?.find(s => s.id === chat.id)?.chat?.messages || [];
+    messages = groupLoader?.group?.members?.find(s => s.id === chat.id)?.chat?.messages || []
+    participants = groupLoader.group.members.filter(m => m.id === chat.id || m.current_user)
   }
 
   async function createChannel() {
-    var channel = window.prompt("Enter a new topic to discuss");
+    var channel = window.prompt("Enter a new topic to discuss")
     if(!channel.length) return
 
     try {
@@ -83,7 +84,7 @@ export default function Group(props) {
   }
 
   async function sendInvite() {
-    var email = window.prompt("Enter the email address of the user you want to invite");
+    var email = window.prompt("Enter the email address of the user you want to invite")
     if(!email.length) return
 
     try {
@@ -109,8 +110,8 @@ export default function Group(props) {
 
     const lastSeen = Date.parse(resource.last_seen as string)
     let showIndicator = false
-    resource.messages.forEach(msg => {
-      const sentAt = Date.parse(msg.sent_at)
+    resource.messages.filter(m => !m.author?.current_user).forEach(msg => {
+      const sentAt = Date.parse(msg.sent_at as string)
       if(sentAt > lastSeen) showIndicator = true
     })
     return showIndicator

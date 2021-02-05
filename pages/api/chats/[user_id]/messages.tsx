@@ -86,6 +86,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // create the thread
   try {
     const params = {
+      id: body.id,
       chat_id: chat_id,
       author_id: user.id,
       text: body.text,
