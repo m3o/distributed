@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call from '../../../../lib/micro'
+import call, { BaseURL } from '../../../../lib/micro'
 import { parse } from 'cookie'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -128,6 +128,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
+  // generate a token for the websocket
+  var websocket: any = { topic: "group/" + group.id }
+  try {
+    websocket.token = (await call("/streams/Token", websocket)).token
+    websocket.url = BaseURL.replace('http', 'ws') + "/streams/Subscribe"
+  } catch ({ error, code }) {
+    console.error(`Error loading websocket token: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error loading websocket token"})
+    return
+  }
+
   // return the data
   res.status(200).json({
     id: group.id,
@@ -155,6 +166,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sent_at: m.sent_at,
         author: { ...users[m.author_id], current_user: m.author_id === user.id },
       }))
-    }))
+    })),
+    websocket
   })
 }

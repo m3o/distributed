@@ -1,8 +1,7 @@
 // Frameworks
-import { de } from 'date-fns/esm/locale'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // Components
 import ChatUI from '../../../components/chat'
@@ -10,7 +9,7 @@ import Layout from '../../../components/layout'
 
 // Utilities
 import { createThread, useGroup } from '../../../lib/group'
-import { createInvite, useInvites } from '../../../lib/invites'
+import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { setSeen } from '../../../lib/seen'
 
@@ -25,13 +24,29 @@ interface Chat {
 export default function Group(props) {
   const router = useRouter()
   const groupLoader = useGroup(router.query.id as string)
-  const invitesLoader = useInvites(router.query.id as string)
   const [chat, setChat] = useState<Chat>()
+  const [connected, setConnected] = useState<boolean>(false)
 
   // todo: improve error handling
-  if(groupLoader.error || invitesLoader.error) {
+  if(groupLoader.error) {
     router.push('/error')
     return <div />
+  }
+
+  if(!connected && groupLoader.group) {
+    setConnected(true)
+
+    const w = groupLoader.group?.websocket
+    var ws = new WebSocket(w.url)
+
+    ws.onopen = function (event) {
+      console.log("Websocket opened")
+      ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
+    }
+
+    ws.onmessage = function (event) {
+      console.log("Message recieved: ", event);
+    }
   }
 
   function setChatWrapped(type: string, id: string) {
@@ -117,7 +132,7 @@ export default function Group(props) {
     return showIndicator
   }
 
-  return <Layout overrideClassName={styles.container} loading={groupLoader.loading || invitesLoader.loading}>
+  return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
     <div className={styles.sidebar}>
       <h1>{groupLoader.group?.name}</h1>
 

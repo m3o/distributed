@@ -1,6 +1,6 @@
-var baseURL = 'http://localhost:8080'
+export var BaseURL = 'http://localhost:8080'
 if(process.env.MICRO_API_ENDPOINT?.length) {
-  baseURL = process.env.MICRO_API_ENDPOINT
+  BaseURL = process.env.MICRO_API_ENDPOINT
 }
 
 // call makes HTTP JSON calls to the Micro API. If the request succeeds (200), the response body is 
@@ -12,7 +12,7 @@ export default function call(path: string, params?: any): Promise<any> {
     const headers = { 'Content-Type': 'application/json' }
     console.log(`Calling Micro API ${path}`)
 
-    fetch(baseURL + path, { method: 'POST', body , headers })
+    fetch(BaseURL + path, { method: 'POST', body , headers })
       .then((async (rsp) => {
         try {
           const data = await rsp.json()
