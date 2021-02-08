@@ -69,7 +69,7 @@ export default function Group(props) {
   }
 
   async function createChannel() {
-    var channel = window.prompt("Enter a new topic to discuss")
+    var channel = window.prompt("Enter a new room name")
     if(!channel.length) return
 
     try {
@@ -129,7 +129,7 @@ export default function Group(props) {
       </Link>
 
       <div className={styles.section}>
-        <h3><span>#️⃣</span> Topics</h3>
+        <h3><span>🛋️</span> Rooms</h3>
         <ul>
           { groupLoader.group?.threads?.map(s => {
             const onClick = () => setChatWrapped('thread', s.id)
@@ -139,7 +139,7 @@ export default function Group(props) {
               { showMsgIndicator('thread', s.id) ? <div className={styles.msgIndicator} /> : null }
             </li>
           })}
-          <li key='invite' onClick={createChannel}>New Topic</li>
+          <li key='invite' onClick={createChannel}>New Room</li>
         </ul>
       </div>
 
