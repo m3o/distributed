@@ -40,7 +40,7 @@ export default function Home() {
         <h1>Welcome {userLoader.user?.first_name}</h1>
         
         <Link href='/groups/new'>
-          <button>New group</button>
+          <button>New Group</button>
         </Link>
       </div>
 
