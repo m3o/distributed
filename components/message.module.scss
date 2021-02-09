@@ -9,6 +9,12 @@
   width: fit-content;
   max-width: 60%;
   margin-top: 10px;
+
+  iframe {
+    min-width: 500px;
+    min-height: 300px;
+    margin-top: 10px;
+  }
 }
 
 .upper {
