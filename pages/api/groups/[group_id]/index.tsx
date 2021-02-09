@@ -110,13 +110,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // load the last time each thread and chat was seen
   var threadLastSeens = {}
-  try {
-    const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
-    threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
-  } catch ({ error, code }) {
-    console.error(`Error loading last seen: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error loading last seen times"})
-    return
+  if (threads.length > 0) {
+    try {
+      const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
+      threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
+    } catch ({ error, code }) {
+      console.error(`Error loading last seen: ${error}, code: ${code}`)
+      res.status(500).json({ error: "Error loading last seen times"})
+      return
+    }
   }
   var chatLastSeens = {}
   try {
@@ -129,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // generate a token for the websocket
-  var websocket: any = { topic: "group/" + group.id }
+  var websocket: any = { topic: user.id }
   try {
     websocket.token = (await call("/streams/Token", websocket)).token
     websocket.url = BaseURL.replace('http', 'ws') + "/streams/Subscribe"

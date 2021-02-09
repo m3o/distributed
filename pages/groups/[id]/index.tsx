@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { jsonSchema } from 'uuidv4'
 
 // Components
 import ChatUI from '../../../components/chat'
@@ -36,7 +37,7 @@ export default function Group(props) {
   if(!connected && groupLoader.group) {
     setConnected(true)
 
-    const w = groupLoader.group?.websocket
+    const w = groupLoader.group.websocket
     var ws = new WebSocket(w.url)
 
     ws.onopen = function (event) {
@@ -44,26 +45,41 @@ export default function Group(props) {
       ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
     }
 
-    ws.onmessage = function (event) {
-      console.log("Message recieved: ", event);
+    ws.onmessage = function ({ data }) {
+      // todo: fix duplicate encoding?!
+      const event = JSON.parse(data)
+      const message = JSON.parse(JSON.parse(event.message))
+      
+      switch(message.type) {
+      case 'message.created':
+        console.log("New message: ", message)
+        let group = { ...groupLoader.group }
+        if(message.payload.chat.type === "chat") {
+          group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
+        } else if(message.payload.chat.type === "thread") {
+          group.threads.find(m => m.id === message.payload.chat.id).messages.push(message.payload.message)
+        }
+        groupLoader.mutate(group)
+      }
     }
   }
 
   function setChatWrapped(type: string, id: string) {
-    if(type === 'thread') {
+    var group = { ...groupLoader.group }
+
+    if(chat?.type === 'thread') {
       let threads = [...groupLoader.group.threads]
-      threads.find(t => t.id === id).last_seen = Date.now().toString()
-      groupLoader.mutate({ ...groupLoader.group, threads }, false)
-    } else if(type === 'chat') {
-      let members = [...groupLoader.group.members]
-      members.find(t => t.id === id).chat = { 
-        ...(members.find(t => t.id === id).chat || {}),
+      threads.find(t => t.id === chat.id).last_seen = Date.now().toString()
+      groupLoader.mutate({ ...group, threads }, false)
+    } else if(chat?.type === 'chat') {
+      let members = [...group.members]
+      members.find(t => t.id === chat.id).chat = { 
+        ...(members.find(t => t.id === chat.id).chat || {}),
         last_seen: Date.now().toString(),
       }
-      groupLoader.mutate({ ...groupLoader.group, members }, false)
+      groupLoader.mutate({ ...group, members }, false)
     }
 
-    setSeen(type, id)
     setChat({ type, id })
   }
 
@@ -95,7 +111,6 @@ export default function Group(props) {
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
     }
-
   }
 
   async function sendInvite() {

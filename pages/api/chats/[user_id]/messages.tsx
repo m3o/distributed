@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
 import { parse } from 'cookie'
-import { v4 } from 'uuid'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query: { user_id } } = req;
@@ -83,7 +82,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     body = {}
   }
 
-  // create the thread
+  // create the message
+  var msg: any;
   try {
     const params = {
       id: body.id,
@@ -91,14 +91,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       author_id: user.id,
       text: body.text,
     }
-    const rsp = await call("/chats/CreateMessage", params)
-    res.status(201).json({
-      id: rsp.message.id,
-      text: rsp.message.text,
-      sent_at: rsp.message.sent_at,
-      author: { ...user, current_user: true },
-    })
+    msg = (await call("/chats/CreateMessage", params)).message
   } catch ({ error, code }) {
     res.status(code || 500).json({ error })
+    return
   }
+
+  // publish the message to the other user
+  try {
+    await call("/streams/Publish", {
+      topic: chatUser.id,
+      message: JSON.stringify({
+        type: "message.created",
+        payload: {
+          chat: {
+            id: user.id,
+            type: 'chat',
+          },
+          message: {
+            id: msg.id,
+            text: msg.text,
+            sent_at: msg.sent_at,
+            author: { ...user },        
+          },
+        },
+      })
+    })
+  } catch ({ error, code }) {
+    console.error(`Error publishing to stream: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error publishing to stream"})
+    return
+  }
+
+  // serialize the response
+  res.status(201).json({
+    id: msg.id,
+    text: msg.text,
+    sent_at: msg.sent_at,
+    author: { ...user, current_user: true },  
+  })
 }
