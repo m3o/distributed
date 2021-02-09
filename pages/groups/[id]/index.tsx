@@ -1,8 +1,8 @@
 // Frameworks
-import { de } from 'date-fns/esm/locale'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { jsonSchema } from 'uuidv4'
 
 // Components
 import ChatUI from '../../../components/chat'
@@ -10,7 +10,7 @@ import Layout from '../../../components/layout'
 
 // Utilities
 import { createThread, useGroup } from '../../../lib/group'
-import { createInvite, useInvites } from '../../../lib/invites'
+import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { setSeen } from '../../../lib/seen'
 
@@ -25,30 +25,61 @@ interface Chat {
 export default function Group(props) {
   const router = useRouter()
   const groupLoader = useGroup(router.query.id as string)
-  const invitesLoader = useInvites(router.query.id as string)
   const [chat, setChat] = useState<Chat>()
+  const [connected, setConnected] = useState<boolean>(false)
 
   // todo: improve error handling
-  if(groupLoader.error || invitesLoader.error) {
+  if(groupLoader.error) {
     router.push('/error')
     return <div />
   }
 
-  function setChatWrapped(type: string, id: string) {
-    if(type === 'thread') {
-      let threads = [...groupLoader.group.threads]
-      threads.find(t => t.id === id).last_seen = Date.now().toString()
-      groupLoader.mutate({ ...groupLoader.group, threads }, false)
-    } else if(type === 'chat') {
-      let members = [...groupLoader.group.members]
-      members.find(t => t.id === id).chat = { 
-        ...(members.find(t => t.id === id).chat || {}),
-        last_seen: Date.now().toString(),
-      }
-      groupLoader.mutate({ ...groupLoader.group, members }, false)
+  if(!connected && groupLoader.group) {
+    setConnected(true)
+
+    const w = groupLoader.group.websocket
+    var ws = new WebSocket(w.url)
+
+    ws.onopen = function (event) {
+      console.log("Websocket opened")
+      ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
     }
 
-    setSeen(type, id)
+    ws.onmessage = function ({ data }) {
+      // todo: fix duplicate encoding?!
+      const event = JSON.parse(data)
+      const message = JSON.parse(JSON.parse(event.message))
+      
+      switch(message.type) {
+      case 'message.created':
+        console.log("New message: ", message)
+        let group = { ...groupLoader.group }
+        if(message.payload.chat.type === "chat") {
+          group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
+        } else if(message.payload.chat.type === "thread") {
+          group.threads.find(m => m.id === message.payload.chat.id).messages.push(message.payload.message)
+        }
+        groupLoader.mutate(group)
+      }
+    }
+  }
+
+  function setChatWrapped(type: string, id: string) {
+    var group = { ...groupLoader.group }
+
+    if(chat?.type === 'thread') {
+      let threads = [...groupLoader.group.threads]
+      threads.find(t => t.id === chat.id).last_seen = Date.now().toString()
+      groupLoader.mutate({ ...group, threads }, false)
+    } else if(chat?.type === 'chat') {
+      let members = [...group.members]
+      members.find(t => t.id === chat.id).chat = { 
+        ...(members.find(t => t.id === chat.id).chat || {}),
+        last_seen: Date.now().toString(),
+      }
+      groupLoader.mutate({ ...group, members }, false)
+    }
+
     setChat({ type, id })
   }
 
@@ -80,7 +111,6 @@ export default function Group(props) {
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
     }
-
   }
 
   async function sendInvite() {
@@ -117,7 +147,7 @@ export default function Group(props) {
     return showIndicator
   }
 
-  return <Layout overrideClassName={styles.container} loading={groupLoader.loading || invitesLoader.loading}>
+  return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
     <div className={styles.sidebar}>
       <h1>{groupLoader.group?.name}</h1>
 

@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call from '../../../../lib/micro'
+import call, { BaseURL } from '../../../../lib/micro'
 import { parse } from 'cookie'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -110,13 +110,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // load the last time each thread and chat was seen
   var threadLastSeens = {}
-  try {
-    const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
-    threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
-  } catch ({ error, code }) {
-    console.error(`Error loading last seen: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error loading last seen times"})
-    return
+  if (threads.length > 0) {
+    try {
+      const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
+      threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
+    } catch ({ error, code }) {
+      console.error(`Error loading last seen: ${error}, code: ${code}`)
+      res.status(500).json({ error: "Error loading last seen times"})
+      return
+    }
   }
   var chatLastSeens = {}
   try {
@@ -125,6 +127,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch ({ error, code }) {
     console.error(`Error loading last seen: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading last seen times"})
+    return
+  }
+
+  // generate a token for the websocket
+  var websocket: any = { topic: user.id }
+  try {
+    websocket.token = (await call("/streams/Token", websocket)).token
+    websocket.url = BaseURL.replace('http', 'ws') + "/streams/Subscribe"
+  } catch ({ error, code }) {
+    console.error(`Error loading websocket token: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error loading websocket token"})
     return
   }
 
@@ -155,6 +168,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         sent_at: m.sent_at,
         author: { ...users[m.author_id], current_user: m.author_id === user.id },
       }))
-    }))
+    })),
+    websocket
   })
 }

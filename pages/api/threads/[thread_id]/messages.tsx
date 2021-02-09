@@ -3,7 +3,7 @@ import call from '../../../../lib/micro'
 import { parse } from 'cookie'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { query: { thread_id } } = req;
+  const { query: { thread_id } } = req
 
   if(req.method !== 'POST' && req.method !== 'GET') {
     res.status(405).json({})
@@ -94,14 +94,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // parse the request
-  var body: any;
+  var body: any
   try {
     body = JSON.parse(req.body)
   } catch {
     body = {}
   }
 
-  // create the thread
+  // create the message
+  var msg: any
   try {
     const params = {
       id: body.id,
@@ -109,14 +110,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       author_id: user.id,
       text: body.text,
     }
-    const rsp = await call("/threads/CreateMessage", params)
-    res.status(201).json({
-      id: rsp.message.id,
-      text: rsp.message.text,
-      sent_at: rsp.message.sent_at,
-      author: { ...user, current_user: true },
-    })
+    msg = (await call("/threads/CreateMessage", params)).message
   } catch ({ error, code }) {
     res.status(code).json({ error })
+    return
   }
+
+  // publish the message to the other users in the group
+  try {
+    group.member_ids.filter(id => id !== user.id).forEach(async(id: string) => {
+      await call("/streams/Publish", {
+        topic: id,
+        message: JSON.stringify({
+          type: "message.created",
+          payload: {
+            chat: {
+              id: thread.id,
+              type: 'thread',
+            },
+            message: {
+              id: msg.id,
+              text: msg.text,
+              sent_at: msg.sent_at,
+              author: { ...user },        
+            },
+          },
+        })
+      })
+    })
+  } catch ({ error, code }) {
+    console.error(`Error publishing to stream: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error publishing to stream"})
+    return
+  }
+
+  // return the response
+  res.status(201).json({
+    id: msg.id,
+    text: msg.text,
+    sent_at: msg.sent_at,
+    author: { ...user, current_user: true },
+  })
 }

@@ -8,13 +8,13 @@ import Message from './message'
 import Stream from '../components/stream'
 
 // Utilities
-import { createMessage, fetchMessage, Message as Msg } from '../lib/message'
+import { createMessage, Message as Msg } from '../lib/message'
 
 // Styling
 import styles from './chat.module.scss'
 import { User } from '../lib/user'
 import { setSeen } from '../lib/seen'
-import { uuid } from 'uuidv4'
+import { v4 as uuid } from 'uuid'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'
@@ -32,7 +32,6 @@ interface Props {
 interface State {
   messages: Msg[]
   message: string
-  intervalID?: any
   listening: boolean
   joinedAudio: boolean
   joinedVideo: boolean
@@ -53,33 +52,24 @@ export default class Chat extends Component<Props, State> {
       onlineUserIDs: [],
     }
     this.sendMessage = this.sendMessage.bind(this)
-    this.fetchMessages = this.fetchMessages.bind(this)
+    this.setSeen = this.setSeen.bind(this)
   }
   
   componentDidMount() {
-    this.fetchMessages()
-    const intervalID = setInterval(this.fetchMessages, 5000)
-    this.setState({ intervalID })
+    this.setSeen()
   }
 
-  componentWillUnmount() {
-    if(this.state.intervalID) {
-      clearInterval(this.state.intervalID)
-      this.setState({ intervalID: undefined })
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if(prevProps?.messages !== this.props.messages) {
+      this.setState({ messages: [...this.state.messages, ...this.props.messages].filter((x, xi, arr) => !arr.slice(xi + 1).some(y => y.id === x.id)) })
     }
+
+    if(this.state.messages !== prevState.messages || this.props.messages !== prevProps?.messages) this.setSeen()
   }
 
-  async fetchMessages() {
+  async setSeen() {
     try {
-      const msgs = await fetchMessage(this.props.chatType, this.props.chatID)
-      const messages = [...this.state.messages, ...msgs].filter((value, index, self) => self.findIndex(v => v.id === value.id) === index)
-      this.setState({ messages })
-    } catch(error) {
-      console.error(`Error loading messages: ${error}`)
-    }
-
-    try {
-      const msgs = await setSeen(this.props.chatType, this.props.chatID)
+      await setSeen(this.props.chatType, this.props.chatID)
     } catch(error) {
       console.error(`Error setting seen: ${error}`)
     }

@@ -7,6 +7,13 @@ export interface Group {
   name: string;
   members?: User[];
   threads?: Thread[];
+  websocket?: Websocket;
+}
+
+export interface Websocket {
+  topic: string;
+  token: string;
+  url: string;
 }
 
 export interface Thread {
