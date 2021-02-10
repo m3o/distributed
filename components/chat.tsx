@@ -39,8 +39,6 @@ interface State {
 }
 
 export default class Chat extends Component<Props, State> {
-  readonly mediaRef = createRef<HTMLDivElement>()
-
   constructor(props: Props) {
     super(props)
     this.state = {
@@ -131,15 +129,6 @@ export default class Chat extends Component<Props, State> {
 
     return(
       <div className={styles.stream}>
-        <Stream
-          audio={joinedAudio}
-          video={joinedVideo}
-          listening={listening}
-          roomID={this.props.chatID}
-          localMediaRef={this.mediaRef}
-          remoteMediaRef={this.mediaRef} 
-          participantsUpdated={(onlineUserIDs) => this.setState({ onlineUserIDs })} />
-
         <div className={styles.streamButtons}>
           <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>🔈</p>
           <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>🎤</p>
@@ -159,7 +148,13 @@ export default class Chat extends Component<Props, State> {
           })}
         </div>
 
-        <div className={styles.media} ref={this.mediaRef} />
+        <Stream
+          audio={joinedAudio}
+          video={joinedVideo}
+          listening={listening}
+          roomID={this.props.chatID}
+          className={styles.media}
+          participantsUpdated={(onlineUserIDs) => this.setState({ onlineUserIDs })} />
       </div>
     )
   }

@@ -1,5 +1,5 @@
 // Frameworks
-import { Component } from 'react'
+import { Component, createRef } from 'react'
 import Video from 'twilio-video'
 
 // Utilities
@@ -10,8 +10,7 @@ interface Props {
   audio?: boolean
   video?: boolean
   listening: boolean
-  localMediaRef: React.RefObject<HTMLDivElement>
-  remoteMediaRef: React.RefObject<HTMLDivElement>
+  className?: string
   participantsUpdated?: (ids: string[]) => void
 }
 
@@ -22,7 +21,10 @@ interface State {
   participantIDs: string[]
 }
 
+const localMediaAttr = 'local-media';
+
 export default class Stream extends Component<Props, State> {
+  readonly mediaRef = createRef<HTMLDivElement>()
   readonly state: State = { participantIDs: [] }
 
 	constructor(props) {
@@ -54,8 +56,8 @@ export default class Stream extends Component<Props, State> {
 
     // when the listening changes, toggle the attribute on the video element
     if(prevProps?.listening !== this.props.listening) {
-      Object.values(this.props.remoteMediaRef.current.getElementsByTagName("audio")).forEach(a => {
-        if(a.getAttribute('local-media') !== "true") a.muted = !this.props.listening
+      Object.values(this.mediaRef.current.getElementsByTagName("audio")).forEach(a => {
+        if(a.getAttribute(localMediaAttr) !== "true") a.muted = !this.props.listening
       })
     }
 
@@ -89,7 +91,7 @@ export default class Stream extends Component<Props, State> {
     this.setState({ room: undefined, participantIDs: [] })
   }
 
-	attachTracks(trackPubs: any[], container: HTMLDivElement, localMedia?: boolean) {
+	attachTracks(trackPubs: any[], localMedia?: boolean) {
     trackPubs.forEach(pub => {
       if (pub.isSubscribed) {
         console.log('already subscribed to: ', pub.trackName)
@@ -100,27 +102,27 @@ export default class Stream extends Component<Props, State> {
       if(pub.track) {
         let media = pub.track.attach()
         if(localMedia) {
-          media.setAttribute('local-media', true)
+          media.setAttribute(localMediaAttr, true)
           media.muted = true
         }
-        container.appendChild(media)
+        this.mediaRef.current.appendChild(media)
       }
       
       console.log('subscribing to: ', pub.trackName, pub.track)
       pub.on('subscribed', track => {
         let media = track.attach()
-        if(localMedia) media.setAttribute('local-media', true)
+        if(localMedia) media.setAttribute(localMediaAttr, true)
         if(pub.kind === 'audio' && !localMedia) media.muted = !this.props.listening
-        container?.appendChild(media)
+        this.mediaRef.current.appendChild(media)
       })
       pub.on('unsubscribed', track => track.detach().forEach(e => e.remove()))
 		})
   }
   
 	// Attaches a track to a specified DOM container
-	attachParticipantTracks(participant: any, container: any, localMedia?: boolean) {
+	attachParticipantTracks(participant: any, localMedia?: boolean) {
 		var trackPubs = Array.from(participant.tracks.values())
-		this.attachTracks(trackPubs, container, localMedia)
+		this.attachTracks(trackPubs, localMedia)
 	}
 
 	detachTracks(trackPubs) {
@@ -138,18 +140,15 @@ export default class Stream extends Component<Props, State> {
 	roomJoined(room) {
     this.setState({ room })
 
-		// Attach LocalParticipant's Tracks, if not already attached.
-		var previewContainer: any = this.props.localMediaRef.current
-		if (!previewContainer?.querySelector('video')) {
-      this.attachParticipantTracks(room.localParticipant, this.props.localMediaRef.current, true)
-		}
+		// Attach LocalParticipant's tracks
+    this.attachParticipantTracks(room.localParticipant, true)
     
-    // Attach the Tracks of the room's participants.
+    // Attach the tracks of the room's participants.
     var ids: string[] = []
     room.participants.forEach(participant => {
       console.log("Already in Room: '" + participant.identity + "'")
       ids.push(participant.identity)
-      this.attachParticipantTracks(participant, this.props.remoteMediaRef.current)
+      this.attachParticipantTracks(participant)
     })
     this.setState({ participantIDs: [...ids, this.state.identity] })
 
@@ -157,13 +156,13 @@ export default class Stream extends Component<Props, State> {
     room.on('participantConnected', participant => {
       console.log("Joining: '" + participant.identity + "'")
       this.setState({ participantIDs: [...this.state.participantIDs, participant.identity] })
-      this.attachParticipantTracks(participant, this.props.remoteMediaRef.current)
+      this.attachParticipantTracks(participant)
     })
 
     // Attach participant’s tracks to DOM when they add a track
     room.on('trackAdded', (track, participant) => {
       console.log(participant.identity + ' added track: ' + track.kind)
-      this.attachTracks([track], this.props.remoteMediaRef.current)
+      this.attachTracks([track])
     })
 
     // Detach participant’s track from DOM when they remove a track.
@@ -188,6 +187,6 @@ export default class Stream extends Component<Props, State> {
   }
 
 	render() {
-		return <div />
+		return <div className={this.props.className} ref={this.mediaRef} />
   }
 }
