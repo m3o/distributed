@@ -44,7 +44,7 @@ export default class Chat extends Component<Props, State> {
     this.state = {
       message: '',
       messages: props.messages || [],
-      listening: false,
+      listening: true,
       joinedAudio: false,
       joinedVideo: false,
       onlineUserIDs: [],

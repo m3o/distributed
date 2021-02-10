@@ -14,7 +14,7 @@ interface Props {
   video?: boolean
   listening: boolean
   className?: string
-  participants: User[];
+  participants: User[]
 }
 
 interface State {
@@ -25,13 +25,11 @@ interface State {
 }
 
 interface Participant {
-  videoStream?: MediaStream;
-  audioStream?: MediaStream;
-  connected?: boolean;
-  user: User;
+  videoStream?: MediaStream
+  audioStream?: MediaStream
+  user: User
+  connectedAt?: number
 }
-
-const localMediaAttr = 'local-media';
 
 export default class Stream extends Component<Props, State> {
 	constructor(props: Props) {
@@ -40,7 +38,6 @@ export default class Stream extends Component<Props, State> {
     const participants = (props.participants || []).reduce((result, user) => ({ ...result, [user.id]: { user } }), {})
     this.state = { participants }
 
-		this.renderParticipant = this.renderParticipant.bind(this)
 		this.roomJoined = this.roomJoined.bind(this)
 		this.addMedia = this.addMedia.bind(this)
 		this.removeMedia = this.addMedia.bind(this)
@@ -64,12 +61,10 @@ export default class Stream extends Component<Props, State> {
   }
 
   componentDidUpdate(prevProps?: Props, prevState?: State) {
-    if(prevState?.participants !== this.state.participants) console.log("PARTICIPANTS", this.state.participants)
-
     const { token, room } = this.state
     if(!token) return
 
-    const { roomID, audio, video } = this.props;
+    const { roomID, audio, video } = this.props
     const audioChanged = audio !== prevProps?.audio
     const videoChanged = video !== prevProps?.video
     const roomIDChanged = roomID !== prevProps?.roomID
@@ -158,12 +153,12 @@ export default class Stream extends Component<Props, State> {
     
     // Attach the tracks of the room's participants.
     var participants = { ...this.state.participants }
-    participants[this.state.identity].connected = true
+    participants[this.state.identity].connectedAt = Date.now()
     room.participants.forEach(participant => {
       console.log("Already in Room: '" + participant.identity + "'")
       var trackPubs = Array.from(participant.tracks.values())
       this.attachTracks(participant.identity, trackPubs)
-      participants[participant.identity].connected = true
+      participants[participant.identity].connectedAt = Date.now()
     })
     this.setState({ participants })
 
@@ -175,7 +170,7 @@ export default class Stream extends Component<Props, State> {
       this.setState({ 
         participants: {
           ...this.state.participants, 
-          [participant.identity]: { ...this.state.participants[participant.identity], connected: true }, 
+          [participant.identity]: { ...this.state.participants[participant.identity], connectedAt: Date.now() }, 
         },
       })
     })
@@ -199,7 +194,7 @@ export default class Stream extends Component<Props, State> {
       this.setState({ 
         participants: {
           ...this.state.participants, 
-          [participant.identity]: { ...this.state.participants[participant.identity], connected: false }, 
+          [participant.identity]: { ...this.state.participants[participant.identity], connected: false, connectedAt: undefined }, 
         },
       })  
     })
@@ -213,48 +208,50 @@ export default class Stream extends Component<Props, State> {
   }
 
 	render() {
+    const participants = Object.values(this.state.participants)
+                               .filter(p => !!p.connectedAt)
+                               .sort((a,b) => a.connectedAt - b.connectedAt)
+
 		return <div className={`${this.props.className} ${styles.container}`}>
-      { Object.values(this.state.participants).map(p => {
+      { participants.map(p => {
         const muted = p.user.id === this.state.identity ? true : !this.props.listening
-        return <ParticipantComponent key={p.user.id} participant={p} muted={muted} />
+        return <ParticipantComponent key={p.user.id} participant={p} muted={muted} videoEnabled={this.props.video} />
       })}
     </div>
   }
-
-  renderParticipant(p: Participant): JSX.Element {
-    return 
-  }
 }
 
-class ParticipantComponent extends Component<{ participant: Participant, muted: boolean }> {
+class ParticipantComponent extends Component<{ participant: Participant, muted: boolean, videoEnabled: boolean }> {
   readonly videoRef = createRef<HTMLVideoElement>()
   readonly audioRef = createRef<HTMLAudioElement>()
 
   componentDidMount() {
     let { videoStream, audioStream } = this.props.participant
-    if(videoStream && this.videoRef.current) this.videoRef.current.srcObject = videoStream; 
-    if(audioStream && this.audioRef.current) this.audioRef.current.srcObject = audioStream; 
+    if(videoStream && this.videoRef.current) this.videoRef.current.srcObject = videoStream 
+    if(audioStream && this.audioRef.current) this.audioRef.current.srcObject = audioStream 
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     let { videoStream, audioStream } = this.props.participant
-    if(videoStream && this.videoRef.current) this.videoRef.current.srcObject = videoStream; 
-    if(audioStream && this.audioRef.current) this.audioRef.current.srcObject = audioStream; 
+    if(videoStream?.id !== prevProps?.videoStream?.id && this.videoRef.current) {
+      this.videoRef.current.srcObject = videoStream
+    }
+    if(audioStream?.id !== prevProps?.audioStream?.id && this.audioRef.current) {
+      console.log(`AUDIO CHANGED FOR ${this.props.participant.user.first_name}`)
+      this.audioRef.current.srcObject = audioStream
+    }
   }
 
   render(): JSX.Element {
-    const { muted, participant } = this.props
-    const { user, videoStream, audioStream, connected } = participant
-
-    const className = [
-      styles.participant,
-      connected ? styles.connected : '',
-    ].join(' ')
+    const { muted, participant, videoEnabled } = this.props
+    const { user, videoStream, audioStream, connectedAt } = participant
 
     return (
-      <div className={className}>
+      <div className={styles.participant}>
         { audioStream?.active ? <audio muted={muted} autoPlay playsInline ref={this.audioRef} /> : null }
-        { videoStream?.active ? <video muted={muted} autoPlay playsInline ref={this.videoRef} /> : <p>{user.first_name} {audioStream?.active ? '🎤' : ''}</p> }
+        { videoStream?.active && videoEnabled ? <video muted={muted} autoPlay playsInline ref={this.videoRef} /> : null }
+        { videoStream?.active && videoEnabled ? null : <p>{user.first_name}</p> }
+        { videoStream?.active && videoEnabled ? null : <p className={styles.icons}>{audioStream?.active ? <span>🎤</span> : null}{videoStream?.active ? <span>🎥</span> : null}</p> }
       </div>
     )
   }

@@ -2,14 +2,18 @@
   display: flex;
   margin-top: auto;
   margin-bottom: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 .participant {
-  width: 100px;
-  height: 100px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   border: solid 2px lightgray;
   margin-right: 20px;
+  margin-bottom: 20px;
   overflow: hidden;
   position: relative;
   background-color: white;
@@ -30,12 +34,18 @@
     font-weight: 800;
     font-size: 12pt;
     text-align: center;
+    color: gray;
   }
-}
 
-.connected {
-  border-color: green;
-  p {
-    color: green;
+  .icons {
+    top: 75%;
+    font-size: 8pt;
+
+    span {
+      margin-right: 5px;
+      &:last-of-type {
+        margin-right: 0px;
+      }
+    }
   }
 }
