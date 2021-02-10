@@ -39,14 +39,12 @@ interface State {
 }
 
 export default class Chat extends Component<Props, State> {
-  readonly mediaRef = createRef<HTMLDivElement>()
-
   constructor(props: Props) {
     super(props)
     this.state = {
       message: '',
       messages: props.messages || [],
-      listening: false,
+      listening: true,
       joinedAudio: false,
       joinedVideo: false,
       onlineUserIDs: [],
@@ -103,22 +101,20 @@ export default class Chat extends Component<Props, State> {
     return <div className={styles.container}>
       { this.props.callsEnabled ? this.renderStream() : null }
 
-      <div className={styles.inner}>
-        <div className={styles.messages}>
-          { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
-        </div>
+      <div className={styles.messages}>
+        { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
+      </div>
 
-        <div className={styles.compose}>
-          <form onSubmit={this.sendMessage}>
-            <input 
-              required
-              ref={r => r?.focus()}
-              type='text'
-              value={this.state.message} 
-              placeholder='Send a message' 
-              onChange={e => this.setState({ message: e.target.value || ''} )} />
-          </form>
-        </div>
+      <div className={styles.compose}>
+        <form onSubmit={this.sendMessage}>
+          <input 
+            required
+            ref={r => r?.focus()}
+            type='text'
+            value={this.state.message} 
+            placeholder='Send a message' 
+            onChange={e => this.setState({ message: e.target.value || ''} )} />
+        </form>
       </div>
     </div>
   }
@@ -131,35 +127,19 @@ export default class Chat extends Component<Props, State> {
 
     return(
       <div className={styles.stream}>
-        <Stream
-          audio={joinedAudio}
-          video={joinedVideo}
-          listening={listening}
-          roomID={this.props.chatID}
-          localMediaRef={this.mediaRef}
-          remoteMediaRef={this.mediaRef} 
-          participantsUpdated={(onlineUserIDs) => this.setState({ onlineUserIDs })} />
-
         <div className={styles.streamButtons}>
           <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>🔈</p>
           <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>🎤</p>
           <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>🎥</p>
         </div>
-
-        <div className={styles.participants}>
-          { this.props.participants?.map(p => {
-            const online = onlineUserIDs.includes(p.id)
-
-            return(
-              <div className={styles.participant} key={p.id}>
-                <div className={styles.onlineStatus} style={{ backgroundColor: online ? 'green' : 'red' }} />
-                <p>{p.first_name} {p.last_name}</p>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className={styles.media} ref={this.mediaRef} />
+        
+        <Stream
+          audio={joinedAudio}
+          video={joinedVideo}
+          listening={listening}
+          roomID={this.props.chatID}
+          className={styles.media}
+          participants={this.props.participants} />
       </div>
     )
   }
