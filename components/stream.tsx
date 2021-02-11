@@ -222,35 +222,39 @@ export default class Stream extends Component<Props, State> {
 }
 
 class ParticipantComponent extends Component<{ participant: Participant, muted: boolean, videoEnabled: boolean }> {
+  readonly state: { videoStream?: MediaStream, audioStream?: MediaStream }
   readonly videoRef = createRef<HTMLVideoElement>()
   readonly audioRef = createRef<HTMLAudioElement>()
 
-  componentDidMount() {
-    let { videoStream, audioStream } = this.props.participant
-    if(videoStream && this.videoRef.current) this.videoRef.current.srcObject = videoStream 
-    if(audioStream && this.audioRef.current) this.audioRef.current.srcObject = audioStream 
+  constructor(props) {
+    super(props)
+    this.state = {
+      videoStream: props.participant.videoStream,
+      audioStream: props.participant.audioStream,
+    }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate() {
     let { videoStream, audioStream } = this.props.participant
-    if(videoStream?.id !== prevProps?.videoStream?.id && this.videoRef.current) {
+    if(videoStream?.id !== this.state.videoStream?.id) {
       this.videoRef.current.srcObject = videoStream
+      this.setState({ videoStream })
     }
-    if(audioStream?.id !== prevProps?.audioStream?.id && this.audioRef.current) {
-      console.log(`AUDIO CHANGED FOR ${this.props.participant.user.first_name}`)
+    if(audioStream?.id !== this.state.audioStream?.id) {
       this.audioRef.current.srcObject = audioStream
+      this.setState({ audioStream })
     }
   }
 
   render(): JSX.Element {
     const { muted, participant, videoEnabled } = this.props
-    const { user, videoStream, audioStream, connectedAt } = participant
+    const { videoStream, audioStream } = this.state
 
     return (
       <div className={styles.participant}>
-        { audioStream?.active ? <audio muted={muted} autoPlay playsInline ref={this.audioRef} /> : null }
-        { videoStream?.active && videoEnabled ? <video muted={muted} autoPlay playsInline ref={this.videoRef} /> : null }
-        { videoStream?.active && videoEnabled ? null : <p>{user.first_name}</p> }
+        <audio muted={muted} autoPlay playsInline ref={this.audioRef} />
+        <video style={videoStream?.active && videoEnabled ? {} : { display: "none" }} muted={muted} autoPlay playsInline ref={this.videoRef} />
+        { videoStream?.active && videoEnabled ? null : <p>{participant.user.first_name}</p> }
         { videoStream?.active && videoEnabled ? null : <p className={styles.icons}>{audioStream?.active ? <span>🎤</span> : null}{videoStream?.active ? <span>🎥</span> : null}</p> }
       </div>
     )

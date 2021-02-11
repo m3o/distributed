@@ -1,8 +1,7 @@
 // Frameworks
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { jsonSchema } from 'uuidv4'
+import { useState } from 'react'
 
 // Components
 import ChatUI from '../../../components/chat'
@@ -22,9 +21,14 @@ interface Chat {
   id: string
 }
 
+export async function getServerSideProps(content) {
+  const id = content.query.id
+  return {props: { id }}
+} 
+
 export default function Group(props) {
   const router = useRouter()
-  const groupLoader = useGroup(router.query.id as string)
+  const groupLoader = useGroup(props.id)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
 
@@ -62,6 +66,9 @@ export default function Group(props) {
         groupLoader.mutate(group)
       }
     }
+
+    ws.onclose = () => console.log("Websocket closed");
+    ws.onerror = () => console.log("Websocket errored");
   }
 
   function setChatWrapped(type: string, id: string) {
@@ -84,7 +91,6 @@ export default function Group(props) {
   }
 
   // default to the first chat
-  console.log(chat, groupLoader?.group?.threads?.length)
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
     setChatWrapped('thread', groupLoader.group.threads[0].id)
   }

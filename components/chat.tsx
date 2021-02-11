@@ -120,7 +120,7 @@ export default class Chat extends Component<Props, State> {
   }
 
   renderStream(): JSX.Element {
-    const { listening, joinedAudio, joinedVideo, onlineUserIDs } = this.state
+    const { listening, joinedAudio, joinedVideo } = this.state
     const toggleAudio = () => this.setState({ joinedAudio: !joinedAudio })
     const toggleVideo = () => this.setState({ joinedVideo: !joinedVideo })
     const toggleListening = () => this.setState({ listening: !listening })
