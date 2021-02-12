@@ -18,6 +18,13 @@ export default function Message({ data }: Props) {
               allowFullScreen
               src={`https://www.youtube.com/embed/${params['v']}`} 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"  />
+  } else if(comps.length === 1 && comps[0].includes("youtu.be")) {
+    const id = comps[0].split(".be/")[1].split("?")[0]
+    inner = <iframe
+              frameBorder="0"
+              allowFullScreen
+              src={`https://www.youtube.com/embed/${id}`} 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"  />
   } else if(comps.length === 1 && comps[0].includes("open.spotify.com/")) {
     // embed Spotify playlists / tracks
     const urlComps = (comps[0].split('?')[0] || '').split('/');
