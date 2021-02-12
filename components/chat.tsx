@@ -23,8 +23,6 @@ interface Props {
   chatID: string
   // any mesages preloaded
   messages?: Msg[]
-  // callsEnabled enables video and audio calls
-  callsEnabled?: boolean
   // participants in the conversation
   participants?: User[]
 }
@@ -99,7 +97,7 @@ export default class Chat extends Component<Props, State> {
 
   render() {
     return <div className={styles.container}>
-      { this.props.callsEnabled ? this.renderStream() : null }
+      { this.renderStream() }
 
       <div className={styles.messages}>
         { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
@@ -125,6 +123,8 @@ export default class Chat extends Component<Props, State> {
     const toggleVideo = () => this.setState({ joinedVideo: !joinedVideo })
     const toggleListening = () => this.setState({ listening: !listening })
 
+    const roomID = this.props.chatType === 'thread' ? this.props.chatID : this.props.participants.sort((a,b) => a.id > b.id ? 1 : -1).map(a => a.id).join("-")
+
     return(
       <div className={styles.stream}>
         <div className={styles.streamButtons}>
@@ -134,10 +134,10 @@ export default class Chat extends Component<Props, State> {
         </div>
         
         <Stream
+          roomID={roomID}
           audio={joinedAudio}
           video={joinedVideo}
           listening={listening}
-          roomID={this.props.chatID}
           className={styles.media}
           participants={this.props.participants} />
       </div>

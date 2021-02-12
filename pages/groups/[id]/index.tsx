@@ -197,7 +197,6 @@ export default function Group(props) {
 
     { chat ? <ChatUI
                 key={chat.id}
-                callsEnabled={chat.type === 'thread'}
                 chatType={chat.type}
                 chatID={chat.id}
                 messages={messages}
