@@ -7,6 +7,7 @@ export default function Login() {
   const [isSignup, setSignup] = useState<boolean>(false)
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
@@ -14,6 +15,12 @@ export default function Login() {
 
   function onSubmit(e: React.FormEvent): void {
     e.preventDefault()
+
+    if(isSignup && passwordConfirmation !== password) {
+      setError("Passwords do not match")
+      return
+    }
+
     setLoading(true)
 
     function onSuccess() {
@@ -87,6 +94,15 @@ export default function Login() {
           disabled={loading}
           placeholder='Password'
           onChange={e => setPassword(e.target.value || '')} />
+
+        { isSignup ? <label>Password Confirmation</label> : null }
+        { isSignup ? <input
+          required
+          type='password'
+          value={passwordConfirmation}
+          disabled={loading}
+          placeholder='Password Confirmation'
+          onChange={e => setPasswordConfirmation(e.target.value || '')} />  : null }
 
         <input
           type="submit"
