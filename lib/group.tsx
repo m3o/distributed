@@ -57,6 +57,28 @@ export function createGroup(name: string): Promise<Group> {
   })
 }
 
+export function renameGroup(id: string, name: string): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch('/api/groups/' + id, { method: 'PATCH', body: JSON.stringify({ name }) })
+      .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
+
+export function leaveGroup(id: string): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch(`/api/groups/${id}/leave`, { method: 'POST' })
+    .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
+
 export function createThread(groupID: string, topic: string): Promise<Thread> {
   return new Promise<Thread>((resolve: Function, reject: Function) => {
     fetch(`/api/groups/${groupID}/threads`, { method: 'POST', body: JSON.stringify({ topic }) })

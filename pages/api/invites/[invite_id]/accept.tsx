@@ -45,6 +45,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
+  // load the group to get the members
+  var group: any
+  try {
+    group = (await call("/groups/Read", { ids: [invite.group_id] })).groups[invite.group_id]
+  } catch ({ error, code }) {
+    console.error(`Error reading group: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error reading group" })
+    return
+  }
+
   // add the user as a member of the group
   try {
     await call("/groups/AddMember", { group_id: invite.group_id, member_id: user.id })
@@ -63,5 +73,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  res.status(200).json({})
+  // publish the message to the users in the group
+  try {
+    group.member_ids.forEach(async(id: string) => {
+      await call("/streams/Publish", {
+        topic: id,
+        message: JSON.stringify({
+          type: "group.user.joined",
+          payload: user,
+        })
+      })
+    })
+    res.status(200).json({})
+  } catch ({ error, code }) {
+    console.error(`Error publishing to stream: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error publishing to stream"})
+  }
 }

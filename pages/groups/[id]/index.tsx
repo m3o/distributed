@@ -1,4 +1,5 @@
 // Frameworks
+import { group } from 'console'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -8,7 +9,7 @@ import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
 
 // Utilities
-import { createThread, useGroup } from '../../../lib/group'
+import { createThread, leaveGroup, renameGroup, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { setSeen } from '../../../lib/seen'
@@ -55,6 +56,24 @@ export default function Group(props) {
       const message = JSON.parse(JSON.parse(event.message))
       
       switch(message.type) {
+      case 'group.updated':
+        console.log("Group updated:", message)
+        groupLoader.mutate({ ...groupLoader.group, ...message })
+        break
+      case 'group.user.left':
+        console.log("User left group:", message)
+        groupLoader.mutate({ ...groupLoader.group, members: groupLoader.group.members?.filter(m => m.id !== message.payload.id) }, false)
+        break
+      case 'group.user.joined':
+        console.log("User joined group:", message)
+        groupLoader.mutate({ 
+          ...groupLoader.group, 
+          members: [
+            ...groupLoader.group.members,
+            message.payload,
+          ],
+        })
+        break
       case 'message.created':
         console.log("New message: ", message)
         let group = { ...groupLoader.group }
@@ -64,6 +83,7 @@ export default function Group(props) {
           group.threads.find(m => m.id === message.payload.chat.id).messages.push(message.payload.message)
         }
         groupLoader.mutate(group)
+        break
       }
     }
 
@@ -107,11 +127,10 @@ export default function Group(props) {
 
   async function createChannel() {
     var channel = window.prompt("Enter a new room name")
-    if(!channel.length) return
+    if(!channel?.length) return
 
     try {
-      const thread = await createThread(router.query.id as string, channel)
-      console.log(thread)
+      const thread = await createThread(props.id, channel)
       groupLoader.mutate({ ...groupLoader.group!, threads: [...groupLoader.group!.threads, thread] })
       setChat({ type: 'thread', id: thread.id })
     } catch (error) {
@@ -121,13 +140,36 @@ export default function Group(props) {
 
   async function sendInvite() {
     var email = window.prompt("Enter the email address of the user you want to invite")
-    if(!email.length) return
+    if(!email?.length) return
 
     try {
-      await createInvite(router.query.id as string, email)
+      await createInvite(props.id, email)
       alert(`Invite sent to ${email}`)
     } catch (error) {
       alert(`Error sending invite to ${email}: ${error}`)
+    }
+  }
+
+  async function renameGroupPopup() {
+    var name = window.prompt("Enter the new name of the group")
+    if(!name?.length) return
+
+    try {
+      await renameGroup(props.id, name)
+      groupLoader.mutate({ ...groupLoader.group, name })
+    } catch (error) {
+      alert(`Error renaming group: ${error}`)
+    }
+  }
+
+  async function leaveGroupPopup() {
+    if(!window.confirm("Are you sure you want to leave this group")) return
+
+    try {
+      await leaveGroup(props.id)
+      window.location.href = '/'
+    } catch (error) {
+      alert(`Error leaving group: ${error}`)
     }
   }
 
@@ -175,7 +217,7 @@ export default function Group(props) {
               { showMsgIndicator('thread', s.id) ? <div className={styles.msgIndicator} /> : null }
             </li>
           })}
-          <li key='invite' onClick={createChannel}>New Room</li>
+          <li className={styles.gray} key='room' onClick={createChannel}>New Room</li>
         </ul>
       </div>
 
@@ -190,7 +232,15 @@ export default function Group(props) {
               { showMsgIndicator('chat', m.id) ? <div className={styles.msgIndicator} /> : null }
             </li>
           })}
-          <li key='invite' onClick={sendInvite}>Send Invite</li>
+          <li className={styles.gray} key='invite' onClick={sendInvite}>Send Invite</li>
+        </ul>
+      </div>
+
+      <div className={styles.section}>
+        <h3><span>⚙️</span> Settings</h3>
+        <ul>
+          <li onClick={renameGroupPopup} className={styles.gray}>Rename group</li>
+          <li onClick={leaveGroupPopup} className={styles.gray}>Leave group</li>
         </ul>
       </div>
     </div>

@@ -64,6 +64,15 @@ export default class Stream extends Component<Props, State> {
     const { token, room } = this.state
     if(!token) return
 
+    if(prevProps.participants !== this.props.participants) {
+      let participants: Record<string,Participant> = {}
+      this.props.participants.forEach(p => {
+        const e = this.state.participants[p.id]
+        participants[p.id] = e || { user: p }
+      })
+      this.setState({ participants })
+    }
+
     const { roomID, audio, video } = this.props
     const audioChanged = audio !== prevProps?.audio
     const videoChanged = video !== prevProps?.video

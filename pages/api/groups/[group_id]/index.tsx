@@ -5,7 +5,7 @@ import { parse } from 'cookie'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query: { group_id } } = req
 
-  if(req.method !== 'GET') {
+  if(req.method !== 'GET' && req.method !== 'PATCH') {
     res.status(405)
     return
   }
@@ -47,6 +47,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if(!group.member_ids?.includes(user.id)) {
     res.status(403).json({ error: "Not a member of this group" })
     return
+  }
+
+  // update the groups name
+  if(req.method === 'PATCH') {
+    var body: { name?: string } = {}
+    try {
+      body = JSON.parse(req.body)
+    } catch (error) {
+      res.status(400).json({ error: "Error parsing request body" })
+    }
+    if(!body.name?.length) {
+      res.status(400).json({ error: "Name required" })
+    }
+
+    try {
+      await call("/groups/Update", { id: group.id, name: body.name })
+    } catch ({ error, code }) {
+      console.error(`Error updating group: ${error}, code: ${code}`)
+      res.status(500).json({ error: "Error updating group" })
+      return
+    }
+
+    // publish the message to the other users in the group
+    try {
+      group.member_ids.forEach(async(id: string) => {
+        await call("/streams/Publish", {
+          topic: id,
+          message: JSON.stringify({
+            type: "group.updated",
+            payload: { name: body.name },
+          })
+        })
+      })
+      res.status(200).json({})
+      return
+    } catch ({ error, code }) {
+      console.error(`Error publishing to stream: ${error}, code: ${code}`)
+      res.status(500).json({ error: "Error publishing to stream"})
+      return
+    }
   }
 
   // load the conversations and the recent messages within them
@@ -145,7 +185,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.status(200).json({
     id: group.id,
     name: group.name,
-    members: Object.keys(users).map(id => ({ 
+    members: group.member_ids.map(id => ({ 
       ...users[id], 
       current_user: users[id].id === user.id,
       chat: {
