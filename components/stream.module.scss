@@ -7,9 +7,22 @@
   width: 100%;
 }
 
-.participant {
+.small {
   width: 120px;
   height: 120px;
+}
+
+.medium {
+  width: 150px;
+  height: 150px;
+}
+
+.large {
+  width: 180px;
+  height: 180px;
+}
+
+.participant {
   border-radius: 50%;
   border: solid 2px lightgray;
   margin-right: 20px;
@@ -17,6 +30,7 @@
   overflow: hidden;
   position: relative;
   background-color: white;
+  cursor: pointer;
 
   video {
     width: 100%;
@@ -35,6 +49,7 @@
     font-size: 12pt;
     text-align: center;
     color: gray;
+    user-select: none;
   }
 
   .icons {

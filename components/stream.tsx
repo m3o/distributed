@@ -231,16 +231,18 @@ export default class Stream extends Component<Props, State> {
 }
 
 class ParticipantComponent extends Component<{ participant: Participant, muted: boolean, videoEnabled: boolean }> {
-  readonly state: { videoStream?: MediaStream, audioStream?: MediaStream }
+  readonly state: { videoStream?: MediaStream, audioStream?: MediaStream, size?: number }
   readonly videoRef = createRef<HTMLVideoElement>()
   readonly audioRef = createRef<HTMLAudioElement>()
 
   constructor(props) {
     super(props)
     this.state = {
+      size: 0,
       videoStream: props.participant.videoStream,
       audioStream: props.participant.audioStream,
     }
+    this.onClick = this.onClick.bind(this)
   }
 
   componentDidUpdate() {
@@ -255,12 +257,20 @@ class ParticipantComponent extends Component<{ participant: Participant, muted: 
     }
   }
 
+  onClick(): void {
+    let size = this.state.size + 1
+    if(size > 2) size = 0
+    this.setState({ size })
+  }
+
   render(): JSX.Element {
     const { muted, participant, videoEnabled } = this.props
-    const { videoStream, audioStream } = this.state
+    const { videoStream, audioStream, size } = this.state
+
+    const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[size]
 
     return (
-      <div className={styles.participant}>
+      <div className={`${styles.participant} ${sizeStyle}`} onClick={this.onClick}>
         <audio muted={muted} autoPlay playsInline ref={this.audioRef} />
         <video style={videoStream?.active && videoEnabled ? {} : { display: "none" }} muted={muted} autoPlay playsInline ref={this.videoRef} />
         { videoStream?.active && videoEnabled ? null : <p>{participant.user.first_name}</p> }
