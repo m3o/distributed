@@ -118,8 +118,15 @@ export default function Group(props) {
       }
     }
 
-    ws.onclose = () => console.log("Websocket closed");
-    ws.onerror = () => console.log("Websocket errored");
+    ws.onclose = () => {
+      console.log("Websocket closed")
+      setConnected(false)
+    }
+    
+    ws.onerror = () => {
+      console.log("Websocket errored")
+      setConnected(false)
+    }
   }
 
   function setChatWrapped(type: string, id: string) {
