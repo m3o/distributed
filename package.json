@@ -13,6 +13,7 @@
     "@types/twilio-video": "^2.7.3",
     "cookie": "^0.4.1",
     "date-fns": "^2.16.1",
+    "emoji-mart": "^3.0.0",
     "gray-matter": "^4.0.2",
     "moment": "^2.29.1",
     "next": "^10.0.0",

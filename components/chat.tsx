@@ -1,6 +1,6 @@
 // Frameworks
-import { Component, createRef } from 'react'
-import Link from 'next/link'
+import { Component } from 'react'
+import { Picker } from 'emoji-mart'
 import moment from 'moment'
 
 // Components
@@ -15,6 +15,7 @@ import styles from './chat.module.scss'
 import { User } from '../lib/user'
 import { setSeen } from '../lib/seen'
 import { v4 as uuid } from 'uuid'
+import 'emoji-mart/css/emoji-mart.css'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'
@@ -33,7 +34,8 @@ interface State {
   listening: boolean
   joinedAudio: boolean
   joinedVideo: boolean
-  onlineUserIDs: string[];
+  onlineUserIDs: string[]
+  showEmojiPicker: boolean
 }
 
 export default class Chat extends Component<Props, State> {
@@ -46,6 +48,7 @@ export default class Chat extends Component<Props, State> {
       joinedAudio: false,
       joinedVideo: false,
       onlineUserIDs: [],
+      showEmojiPicker: false,
     }
     this.sendMessage = this.sendMessage.bind(this)
     this.setSeen = this.setSeen.bind(this)
@@ -99,7 +102,7 @@ export default class Chat extends Component<Props, State> {
     return <div className={styles.container}>
       { this.renderStream() }
 
-      <div className={styles.messages}>
+      <div onClick={() => this.setState({ showEmojiPicker: false })} className={styles.messages}>
         { this.state.messages.sort(sortMessages).map(m => <Message key={m.id} data={m} />) }
       </div>
 
@@ -112,7 +115,13 @@ export default class Chat extends Component<Props, State> {
             value={this.state.message} 
             placeholder='Send a message' 
             onChange={e => this.setState({ message: e.target.value || ''} )} />
+
+          <p onClick={() => this.setState({ showEmojiPicker: !this.state.showEmojiPicker })}><span>🙂</span></p>
         </form>
+        { this.state.showEmojiPicker ? <Picker
+          showPreview={false}
+          style={{ position: 'absolute', bottom: '70px', right: '20px' }}
+          onSelect={(e) => this.setState({ message: this.state.message + e.native, showEmojiPicker: false })} /> : null }
       </div>
     </div>
   }

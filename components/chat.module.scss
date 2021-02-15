@@ -68,11 +68,34 @@
     rgba($color: #f5f3f2, $alpha: 1)
   );
 
-  input {
-    border: solid 1px rgb(240, 240, 240);
-    outline: none;
+  form {
+    display: flex;
+    flex-direction: row;
     width: 100%;
+    height: 45px;
+  }
+
+  p {
+    height: 45px;
+    width: 45px;
+    margin: 0px;
+    margin-right: -15px;
+    position: relative;
+    cursor: pointer;
+
+    span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  input {
+    flex-grow: 1;
+    border: solid 1px rgb(240, 240, 240);
     line-height: 30px;
+    outline: none;
     border-radius: 10px;
     padding: 5px 15px;
   }
