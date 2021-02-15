@@ -72,6 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     group.member_ids.forEach(async(id: string) => {
       await call("/streams/Publish", {
         topic: id,
+        group_id: group.id,
         message: JSON.stringify({
           type: "thread.deleted",
           payload: { id: thread.id },
@@ -101,6 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     group.member_ids.forEach(async(id: string) => {
       await call("/streams/Publish", {
         topic: id,
+        group_id: group.id,
         message: JSON.stringify({
           type: "thread.updated",
           payload: { id: thread.id, topic: body.topic },

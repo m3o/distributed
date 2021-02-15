@@ -65,6 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     group.member_ids.forEach(async(id: string) => {
       await call("/streams/Publish", {
         topic: id,
+        group_id: group.id,
         message: JSON.stringify({
           type: "tread.created",
           payload: conversation,

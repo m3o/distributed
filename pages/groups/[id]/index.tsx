@@ -55,6 +55,11 @@ export default function Group(props) {
       const event = JSON.parse(data)
       const message = JSON.parse(JSON.parse(event.message))
       
+      if(message.group_id && message.group_id !== props.id) {
+        console.log("Ignoring message: ", message)
+        return
+      }
+
       switch(message.type) {
       case 'group.updated':
         console.log("Group updated:", message)
@@ -105,7 +110,7 @@ export default function Group(props) {
         if(message.payload.chat.type === "chat") {
           group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
         } else if(message.payload.chat.type === "thread") {
-          const messages = group.threads.find(m => m.id === message.payload.chat.id).messages || []
+          const messages = group.threads.find(m => m.id === message.payload.chat.id)?.messages || []
           group.threads.find(m => m.id === message.payload.chat.id).messages = [...messages, message.payload.message]
         }
         groupLoader.mutate(group)
