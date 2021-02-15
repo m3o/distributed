@@ -12,7 +12,6 @@ import Layout from '../../../components/layout'
 import { createThread, deleteThread, leaveGroup, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-import { setSeen } from '../../../lib/seen'
 
 // Styling
 import styles from './index.module.scss'
@@ -132,6 +131,10 @@ export default function Group(props) {
   function setChatWrapped(type: string, id: string) {
     var group = { ...groupLoader.group }
 
+    if(chat && (chat.type !== type || chat.id !== id) && (window.audioEnabled || window.videoEnabled)) {
+      if(!confirm("Are you sure you want to switch rooms? You will be disconnected from audio and video")) return
+    }
+
     if(chat?.type === 'thread') {
       let threads = [...groupLoader.group.threads]
       threads.find(t => t.id === chat.id).last_seen = Date.now().toString()
@@ -145,12 +148,19 @@ export default function Group(props) {
       groupLoader.mutate({ ...group, members }, false)
     }
 
+    localStorage.setItem(`group/${props.id}/chat`, JSON.stringify({ type, id }))
     setChat({ type, id })
   }
 
-  // default to the first chat
+  // default to the last opened chat, or the first
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
-    setChatWrapped('thread', groupLoader.group.threads[0].id)
+    const chatStr = localStorage.getItem(`group/${props.id}/chat`)
+    if(chatStr) {
+      const { type, id } = JSON.parse(chatStr)
+      setChatWrapped(type, id)
+    } else {
+      setChatWrapped('thread', groupLoader.group.threads[0].id)
+    }
   }
 
   let messages = []

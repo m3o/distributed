@@ -81,6 +81,10 @@ export default class Stream extends Component<Props, State> {
 
     // don't update without reason
     if(!audioChanged && !videoChanged && !roomIDChanged && !tokenChanged) return
+
+    // todo: find a cleaner way to share this info globally. redux?
+    window.audioEnabled = audio;
+    window.videoEnabled = video;
     
     // disconnect from the old room if joining a new room
     if(roomIDChanged && room) this.disconnectRoom()
