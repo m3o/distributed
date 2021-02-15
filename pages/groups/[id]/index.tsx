@@ -9,7 +9,7 @@ import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
 
 // Utilities
-import { createThread, leaveGroup, renameGroup, useGroup } from '../../../lib/group'
+import { createThread, deleteThread, leaveGroup, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { setSeen } from '../../../lib/seen'
@@ -74,13 +74,39 @@ export default function Group(props) {
           ],
         })
         break
+      case 'tread.created':
+        console.log("Thread created: ", message)
+        groupLoader.mutate({ 
+          ...groupLoader.group, 
+          threads: [
+            ...groupLoader.group.threads,
+            message.payload,
+          ],
+        })
+        break
+      case 'thread.updated':
+        console.log("Thread updated: ", message)
+        groupLoader.mutate({
+          ...groupLoader.group, 
+          threads: [
+            ...groupLoader.group.threads.filter(t => t.id !== message.payload.id),
+            { ...groupLoader.group.threads.find(t => t.id === message.payload.id), ...message.payload },
+          ],
+        })
+        break
+      case 'thread.deleted':
+        console.log("Thread deleted: ", message)
+        groupLoader.mutate({ ...groupLoader.group, threads: groupLoader.group.threads?.filter(m => m.id !== message.payload.id) }, false)
+        if(chat?.type === 'thread' && chat?.id === message.payload.id) setChat(undefined)
+        break
       case 'message.created':
         console.log("New message: ", message)
         let group = { ...groupLoader.group }
         if(message.payload.chat.type === "chat") {
           group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
         } else if(message.payload.chat.type === "thread") {
-          group.threads.find(m => m.id === message.payload.chat.id).messages.push(message.payload.message)
+          const messages = group.threads.find(m => m.id === message.payload.chat.id).messages || []
+          group.threads.find(m => m.id === message.payload.chat.id).messages = [...messages, message.payload.message]
         }
         groupLoader.mutate(group)
         break
@@ -173,6 +199,32 @@ export default function Group(props) {
     }
   }
 
+  async function deleteThreadPopup() {
+    if(!window.confirm("Are you sure you want to delete this room")) return
+
+    try {
+      await deleteThread(chat.id)
+      groupLoader.mutate({ 
+        ...groupLoader.group,
+        threads: groupLoader.group.threads?.filter(t => t.id !== chat.id),
+      })
+      setChat(undefined)
+    } catch (error) {
+      alert(`Error deleting room: ${error}`)
+    }
+  }
+
+  async function renameThreadPopup() {
+    var name = window.prompt("Enter the new name of the room")
+    if(!name?.length) return
+
+    try {
+      await updateThread(chat.id, name)
+    } catch (error) {
+      alert(`Error renaming thread: ${error}`)
+    }
+  }
+
   function showMsgIndicator(type: string, id: string): boolean {
     let resource: { messages?: Message[], last_seen?: string | number }
 
@@ -209,7 +261,7 @@ export default function Group(props) {
       <div className={styles.section}>
         <h3><span>🛋️</span> Rooms</h3>
         <ul>
-          { groupLoader.group?.threads?.map(s => {
+          { uniqueByID(groupLoader.group?.threads || []).map(s => {
             const onClick = () => setChatWrapped('thread', s.id)
             const className = chat?.type === 'thread' && chat?.id === s.id ? styles.linkActive : null
             return <li className={className} onClick={onClick} key={s.id}>
@@ -245,11 +297,22 @@ export default function Group(props) {
       </div>
     </div>
 
-    { chat ? <ChatUI
-                key={chat.id}
-                chatType={chat.type}
-                chatID={chat.id}
-                messages={messages}
-                participants={participants} /> : null }
+    <div className={styles.main}>
+      { chat?.type === 'thread' ? <div className={styles.actionButtons}>
+        <p onClick={deleteThreadPopup}><span>❌</span></p>
+        <p onClick={renameThreadPopup}><span>✏️</span></p>
+      </div> : null }
+
+      { chat ? <ChatUI
+                  key={chat.id}
+                  chatType={chat.type}
+                  chatID={chat.id}
+                  messages={messages}
+                  participants={participants} /> : null }
+      </div>
  </Layout> 
+}
+
+function uniqueByID(array) {
+  return array.filter((x, xi) => !array.slice(xi + 1).some(y => y.id === x.id));
 }

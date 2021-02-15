@@ -29,9 +29,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // load the groups the user is a part of
+  var group: any
   try {
     const rsp = await call("/groups/List", { member_id: user.id })
-    if(!rsp.groups?.find(g => g.id === group_id)) {
+    group = rsp.groups?.find(g => g.id === group_id)
+    if(!group) {
       res.status(403).json({ error: "Not a member of this group" })
       return
     }
@@ -50,10 +52,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   
   // create the thread
+  var conversation: any;
   try {
     const rsp = await call("/threads/CreateConversation", { group_id, topic: body.topic })
-    res.status(201).json(rsp.conversation)
+    conversation = rsp.conversation
   } catch ({ error, code }) {
     res.status(code).json({ error })
+  }
+
+  // publish the message to the users in the group
+  try {
+    group.member_ids.forEach(async(id: string) => {
+      await call("/streams/Publish", {
+        topic: id,
+        message: JSON.stringify({
+          type: "tread.created",
+          payload: conversation,
+        })
+      })
+    })
+    res.status(201).json(conversation)
+  } catch ({ error, code }) {
+    console.error(`Error publishing to stream: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error publishing to stream"})
+    return
   }
 }

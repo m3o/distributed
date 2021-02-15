@@ -2,6 +2,13 @@
   display: flex;
 }
 
+.main {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -112,6 +119,27 @@
         }
       }
     }
+  }
+}
+
+.actionButtons {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 10px;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+
+  p {
+    font-size: 10pt;
+    line-height: 30px;
+    width: 50px;
+    margin: 5px 0px;
+    cursor: pointer;
+    text-align: center;
+    border-radius: 5px;
+    background-color: rgba($color: gray, $alpha: 0.1);
   }
 }
 

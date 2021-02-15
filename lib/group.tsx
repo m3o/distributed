@@ -89,3 +89,19 @@ export function createThread(groupID: string, topic: string): Promise<Thread> {
       .catch(err => reject(err))
   })
 }
+
+export function deleteThread(id: string): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch(`/api/threads/${id}`, { method: 'DELETE' })
+      .then(async (rsp) => rsp.status === 200 ? resolve(null) : reject(rsp.statusText))
+      .catch(err => reject(err))
+  })
+}
+
+export function updateThread(id: string, topic: string): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch(`/api/threads/${id}`, { method: 'PATCH', body: JSON.stringify({ topic }) })
+      .then(async (rsp) => rsp.status === 200 ? resolve(null) : reject(rsp.statusText))
+      .catch(err => reject(err))
+  })
+}
