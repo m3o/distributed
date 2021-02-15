@@ -121,9 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     group.member_ids.filter(id => id !== user.id).forEach(async(id: string) => {
       await call("/streams/Publish", {
         topic: id,
-        group_id: group.id,
         message: JSON.stringify({
           type: "message.created",
+          group_id: group.id,
           payload: {
             chat: {
               id: thread.id,
