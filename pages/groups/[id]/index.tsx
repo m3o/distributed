@@ -12,7 +12,7 @@ import Layout from '../../../components/layout'
 import { createThread, deleteThread, leaveGroup, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-import { logout } from '../../../lib/user'
+import { deleteProfile, logout } from '../../../lib/user'
 
 // Styling
 import styles from './index.module.scss'
@@ -217,6 +217,17 @@ export default function Group(props) {
     router.push('/logout')
   }
 
+  async function deleteProfilePopup() {
+    if(!window.confirm("Are you sure you want to delete your profile?")) return
+
+    try {
+      await deleteProfile()
+      router.push('/logout')
+    } catch (error) {
+      alert(`Error deleting profile: ${error}`)
+    }
+  }
+
   async function leaveGroupPopup() {
     if(!window.confirm("Are you sure you want to leave this group")) return
 
@@ -296,9 +307,9 @@ export default function Group(props) {
         <section>
           <h2>Profile</h2>
           <ul>
-            <li onClick={logoutPopup}>Logout</li>
             <li>Edit profile<span className={styles.comingSoon}>Coming Soon</span></li>
-            <li>Delete profile<span className={styles.comingSoon}>Coming Soon</span></li>
+            <li onClick={deleteProfilePopup}>Delete profile</li>
+            <li onClick={logoutPopup}>Logout</li>
           </ul>
         </section>
       </div>

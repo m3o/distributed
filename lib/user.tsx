@@ -74,3 +74,18 @@ export function signup(params: SignupParams): Promise<User> {
       .catch(err => reject(err))
   })
 }
+
+export function deleteProfile(): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch('/api/profile', { method: 'DELETE' })
+      .then(async (rsp) => {
+        try {
+          const body = await rsp.json()
+          rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+        } catch {
+          rsp.status === 200 ? resolve(null) : reject(rsp.statusText);
+        }
+      })
+      .catch(err => reject(err))
+  })
+}
