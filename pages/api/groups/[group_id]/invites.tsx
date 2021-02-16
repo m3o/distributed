@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
 import { parse } from 'cookie'
+import { group } from 'console';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query: { group_id } } = req;
@@ -30,30 +31,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // load the groups the user is a part of
+  var group: any;
   try {
     const rsp = await call("/groups/List", { member_id: user.id })
-    if(!rsp.groups?.find(g => g.id === group_id)) {
-      res.status(403).json({ error: "Not a member of this group" })
-      return
-    }
+    group = rsp.groups?.find(g => g.id === group_id)
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading groups" })
     return
   }
+  if(!group) {
+    res.status(403).json({ error: "Not a member of this group" })
+    return
+  }
 
+  // load the invites
+  let invites = [];
+  try {
+    const rsp = await call("/invites/List", { group_id })
+    invites = rsp.invites || []
+  } catch ({ error, code }) {
+    console.error(`Error loading invites: ${error}, code: ${code}`)
+    res.status(500).json({ error: "Error loading invites" })
+    return
+  }
+  
   switch(req.method) {
   case 'GET':
-    // load the invites
-    try {
-      const rsp = await call("/invites/List", { group_id })
-      res.status(200).json(rsp.invites || [])
-    } catch ({ error, code }) {
-      console.error(`Error loading invites: ${error}, code: ${code}`)
-      res.status(500).json({ error: "Error loading invites" })
-    }
+    res.status(200).json(invites)
     return
   case 'POST':
+    // limit group sizes to 24
+    if(group.member_ids.length + invites.length >= 24) {
+      res.status(400).json({ error: "Maximum group size of 24 already reached (including pending invites)"})
+      return
+    }
+
     // parse the request
     var body: any;
     try {
