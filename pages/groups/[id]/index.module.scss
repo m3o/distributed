@@ -185,6 +185,13 @@
         margin-bottom: 5px;
       }
 
+      .emptyState {
+        text-align: center;
+        color: gray;
+        font-style: italic;
+        font-size: 10pt;
+      }
+
       ul {
         padding: 0;
         margin: 0px;
@@ -195,9 +202,25 @@
           line-height: 35px;
           cursor: pointer;
           padding: 0px 20px;
+          display: flex;
+          justify-content: space-between;
+
+          p {
+            margin: 0px;
+            &:last-of-type {
+              color: red;
+              display: none;
+              font-weight: 500;
+            }
+          }
 
           &:hover {
             background-color: #f9f9f9;
+            p {
+              &:last-of-type {
+                display: inline;
+              }
+            }
           }
 
           .comingSoon {

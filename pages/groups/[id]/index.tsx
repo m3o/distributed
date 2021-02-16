@@ -10,7 +10,7 @@ import Layout from '../../../components/layout'
 
 // Utilities
 import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
-import { createInvite } from '../../../lib/invites'
+import { createInvite, Invite, revokeInvite, useInvites } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { deleteProfile, updateUser, User } from '../../../lib/user'
 
@@ -30,12 +30,13 @@ export async function getServerSideProps(content) {
 export default function Group(props) {
   const router = useRouter()
   const groupLoader = useGroup(props.id)
+  const inviteLoader = useInvites(props.id)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
-  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile'>(undefined)
+  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites'>(undefined)
 
   // todo: improve error handling
-  if(groupLoader.error) {
+  if(groupLoader.error || inviteLoader.error) {
     router.push('/error')
     return <div />
   }
@@ -319,7 +320,7 @@ export default function Group(props) {
             <li onClick={() => router.push('/')}>Switch group</li>
             <li onClick={() => leaveGroupPopup() && setSubview(undefined)}>Leave group</li>
             <li onClick={() => renameGroupPopup() && setSubview(undefined)}>Rename group</li>
-            <li>Manage invites<span className={styles.comingSoon}>Coming Soon</span></li>
+            <li onClick={() => setSubview('manage-invites')}>Manage invites</li>
           </ul>
         </section>
 
@@ -346,6 +347,34 @@ export default function Group(props) {
             { chat.type === 'thread' ? <li onClick={() => renameThreadPopup() && setSubview(undefined)}>Rename room</li> : null }
             { chat.type === 'thread' ? <li onClick={() => deleteThreadPopup() && setSubview(undefined)}>Delete room</li> : null }
             { chat.type === 'thread' ? null : <li onClick={() => removeUserPopuop() && setSubview(undefined)}>Remove user from group</li> }
+          </ul>
+        </section>
+      </div>
+    </div>
+  }
+
+  function deleteInvite(i: Invite) {
+    const invites = [...inviteLoader.invites]
+    if(!confirm(`Are you sure you want to delete the invite for ${i.email}?`)) return;
+
+    revokeInvite(i.id)
+      .then(() => inviteLoader.mutate(invites.filter(x => i.id !== x.id)))
+      .catch(err => alert(`Erorr revoking invite: ${err}`))
+  }
+
+  function renderInvites(): JSX.Element {
+    return <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={() => setSubview(undefined)} />
+      <div className={styles.settings}>
+        <h1>Manage Invites</h1>
+
+        <section>
+          { inviteLoader.invites?.length ? null : <p className={styles.emptyState}>There are no pending invites</p>}
+          <ul>
+            { inviteLoader.invites?.map(i => <li onClick={() => deleteInvite(i)}>
+              <p>{i.email}</p>
+              <p>Click to delete</p>
+            </li>)}            
           </ul>
         </section>
       </div>
@@ -400,6 +429,7 @@ export default function Group(props) {
     { subview === 'settings' ? renderSettings() : null }
     { subview === 'chat-settings' ? renderChatSettings() : null }
     { subview === 'edit-profile' ? renderEditProfile() : null }
+    { subview === 'manage-invites' ? renderInvites() : null }
 
     <div className={styles.sidebar}>
       <div className={styles.upper} onClick={() => setSubview('settings')}>

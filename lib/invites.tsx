@@ -53,3 +53,14 @@ export function rejectInvite(id: string): Promise<any> {
       .catch(err => reject(err))
   })
 }
+
+export function revokeInvite(id: string): Promise<any> {
+  return new Promise<any>((resolve: Function, reject: Function) => {
+    fetch(`/api/invites/${id}/revoke`, { method: 'POST' })
+      .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
