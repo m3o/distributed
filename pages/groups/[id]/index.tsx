@@ -1,18 +1,18 @@
 // Frameworks
-import { group } from 'console'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
 
 // Components
 import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
 
 // Utilities
-import { createThread, deleteThread, leaveGroup, renameGroup, updateThread, useGroup } from '../../../lib/group'
+import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-import { deleteProfile, logout } from '../../../lib/user'
+import { deleteProfile } from '../../../lib/user'
 
 // Styling
 import styles from './index.module.scss'
@@ -33,6 +33,7 @@ export default function Group(props) {
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
   const [viewSettings, setViewSettings] = useState<boolean>(false)
+  const [viewChatSettings, setViewChatSettings] = useState<boolean>(false)
 
   // todo: improve error handling
   if(groupLoader.error) {
@@ -68,6 +69,11 @@ export default function Group(props) {
         break
       case 'group.user.left':
         console.log("User left group:", message)
+        if(message.payload.current_user) {
+          alert("You have been removed from the group")
+          window.location.href = '/'
+          return
+        }
         groupLoader.mutate({ ...groupLoader.group, members: groupLoader.group.members?.filter(m => m.id !== message.payload.id) }, false)
         break
       case 'group.user.joined':
@@ -212,7 +218,7 @@ export default function Group(props) {
     }
   }
 
-  function logoutPopup() {
+  async function logoutPopup() {
     if(!window.confirm("Are you sure you want to logout?")) return
     router.push('/logout')
   }
@@ -251,6 +257,21 @@ export default function Group(props) {
       setChat(undefined)
     } catch (error) {
       alert(`Error deleting room: ${error}`)
+    }
+  }
+
+  async function removeUserPopuop() {
+    if(!window.confirm("Are you sure you want to remove this user from the group?")) return
+
+    try {
+      await removeMember(props.id, chat.id)
+      groupLoader.mutate({ 
+        ...groupLoader.group,
+        threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
+      })
+      setChat(undefined)
+    } catch (error) {
+      alert(`Error removing user: ${error}`)
     }
   }
 
@@ -297,10 +318,9 @@ export default function Group(props) {
           <h2>Group</h2>
           <ul>
             <li onClick={() => router.push('/')}>Switch group</li>
-            <li onClick={leaveGroupPopup}>Leave group</li>
-            <li onClick={renameGroupPopup}>Rename group</li>
+            <li onClick={() => leaveGroupPopup() && setViewSettings(false)}>Leave group</li>
+            <li onClick={() => renameGroupPopup() && setViewSettings(false)}>Rename group</li>
             <li>Manage invites<span className={styles.comingSoon}>Coming Soon</span></li>
-            <li>Manage people<span className={styles.comingSoon}>Coming Soon</span></li>
           </ul>
         </section>
 
@@ -308,8 +328,25 @@ export default function Group(props) {
           <h2>Profile</h2>
           <ul>
             <li>Edit profile<span className={styles.comingSoon}>Coming Soon</span></li>
-            <li onClick={deleteProfilePopup}>Delete profile</li>
-            <li onClick={logoutPopup}>Logout</li>
+            <li onClick={() => deleteProfilePopup() && setViewSettings(false)}>Delete profile</li>
+            <li onClick={() => logoutPopup() && setViewSettings(false)}>Logout</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  }
+
+  function renderChatSettings(): JSX.Element {
+    return <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={() => setViewChatSettings(false)} />
+      <div className={styles.settings}>
+        <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
+
+        <section>
+          <ul>
+            { chat.type === 'thread' ? <li onClick={() => renameThreadPopup() && setViewChatSettings(false)}>Rename room</li> : null }
+            { chat.type === 'thread' ? <li onClick={() => deleteThreadPopup() && setViewChatSettings(false)}>Delete room</li> : null }
+            { chat.type === 'thread' ? null : <li onClick={() => removeUserPopuop() && setViewChatSettings(false)}>Remove user from group</li> }
           </ul>
         </section>
       </div>
@@ -324,6 +361,7 @@ export default function Group(props) {
 
   return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
     { viewSettings ? renderSettings() : null }
+    { viewChatSettings ? renderChatSettings() : null }
 
     <div className={styles.sidebar}>
       <div className={styles.upper} onClick={() => setViewSettings(true)}>
@@ -366,11 +404,10 @@ export default function Group(props) {
     </div>
 
     <div className={styles.main}>
-      { chat?.type === 'thread' ? <div className={styles.actionButtons}>
-        <p onClick={deleteThreadPopup}><span>❌</span></p>
-        <p onClick={renameThreadPopup}><span>✏️</span></p>
-      </div> : null }
-
+      <div className={styles.actionButtons}>
+        <p onClick={() => setViewChatSettings(true)}><span>⚙️</span></p>
+      </div>
+      
       { chat ? <ChatUI
                   key={chat.id}
                   chatType={chat.type}

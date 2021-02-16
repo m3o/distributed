@@ -79,6 +79,17 @@ export function leaveGroup(id: string): Promise<null> {
   })
 }
 
+export function removeMember(id: string, userID: string): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    fetch(`/api/groups/${id}/removeMember`, { method: 'POST', body: JSON.stringify({ id: userID }) })
+    .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
+
 export function createThread(groupID: string, topic: string): Promise<Thread> {
   return new Promise<Thread>((resolve: Function, reject: Function) => {
     fetch(`/api/groups/${groupID}/threads`, { method: 'POST', body: JSON.stringify({ topic }) })

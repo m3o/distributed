@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     user = rsp.user
   } catch ({ error, code }) {
     if(code === 400) code = 401
+    res.status(code).json({ error })
     return
   }
 
