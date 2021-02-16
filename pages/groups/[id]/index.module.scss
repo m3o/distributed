@@ -134,6 +134,12 @@ $mobileWidth: 500px;
   left: 10px;
   z-index: 3;
 
+  @media only screen and (min-device-width: $mobileWidth) {
+    .burgerIcon {
+      display: none;
+    }
+  }
+
   p {
     font-size: 10pt;
     line-height: 30px;
