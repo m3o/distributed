@@ -33,6 +33,7 @@ export default function Group(props) {
   const inviteLoader = useInvites(props.id)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
+  const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites'>(undefined)
 
   // todo: improve error handling
@@ -158,6 +159,7 @@ export default function Group(props) {
 
     localStorage.setItem(`group/${props.id}/chat`, JSON.stringify({ type, id }))
     setChat({ type, id })
+    if(showSidebar) setShowSidebar(false)
   }
 
   // default to the last opened chat, or the first
@@ -431,8 +433,8 @@ export default function Group(props) {
     { subview === 'edit-profile' ? renderEditProfile() : null }
     { subview === 'manage-invites' ? renderInvites() : null }
 
-    <div className={styles.sidebar}>
-      <div className={styles.upper} onClick={() => setSubview('settings')}>
+    <div className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}>
+      <div className={styles.upper} onClick={() => { setSubview('settings'); setShowSidebar(false) }}>
         <h1>{groupLoader.group?.name}</h1>
 
         <div className={styles.initials}>
@@ -473,6 +475,7 @@ export default function Group(props) {
 
     <div className={styles.main}>
       <div className={styles.actionButtons}>
+        <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
         <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p>
       </div>
       

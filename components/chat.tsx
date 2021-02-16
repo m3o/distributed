@@ -44,7 +44,8 @@ export default class Chat extends Component<Props, State> {
     this.state = {
       message: '',
       messages: props.messages || [],
-      listening: true,
+      // listen automatically except for mobile
+      listening: !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
       joinedAudio: false,
       joinedVideo: false,
       onlineUserIDs: [],
