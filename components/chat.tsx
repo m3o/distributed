@@ -137,9 +137,9 @@ export default class Chat extends Component<Props, State> {
     return(
       <div className={styles.stream}>
         <div className={styles.streamButtons}>
-          <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>🔈</p>
-          <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>🎤</p>
-          <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>🎥</p>
+          <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>🎧</p>
+          <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>🎙️</p>
+          <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>📹</p>
         </div>
         
         <Stream
