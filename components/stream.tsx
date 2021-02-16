@@ -222,13 +222,15 @@ export default class Stream extends Component<Props, State> {
   }
 
 	render() {
+    const identity = this.state.identity;
+    const listening = this.props.listening;
     const participants = Object.values(this.state.participants)
                                .filter(p => !!p.connectedAt)
                                .sort((a,b) => a.connectedAt - b.connectedAt)
 
 		return <div className={`${this.props.className} ${styles.container}`}>
       { participants.map(p => {
-        const muted = p.user.id === this.state.identity ? true : !this.props.listening
+        const muted = p.user.id === identity ? true : !listening
         return <ParticipantComponent key={p.user.id} participant={p} muted={muted} videoEnabled={this.props.video} />
       })}
     </div>
@@ -273,7 +275,6 @@ class ParticipantComponent extends Component<{ participant: Participant, muted: 
     const { videoStream, audioStream, size } = this.state
 
     const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[size]
-
     return (
       <div className={`${styles.participant} ${sizeStyle}`} onClick={this.onClick}>
         <audio muted={muted} autoPlay playsInline ref={this.audioRef} />
