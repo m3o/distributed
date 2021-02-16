@@ -13,65 +13,50 @@
   display: flex;
   flex-direction: column;
   background-color: white;
-  padding: 20px;
   overflow-y: auto;
   width: 250px;
   flex-shrink: 0;
 
-  h1 {
-    text-align: center;
-    font-size: 15pt;
-    margin-top: 30px;
-    margin-bottom: 0px;
-  }
-
-  .goback {
-    display: flex;
-    margin-top: 5px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-bottom: 30px;
+  .upper {
+    height: 65px;
+    margin-bottom: 20px;
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    padding: 10px 20px;
+    display: flex;
+    flex-direction: row;
+    padding: 0px 20px;
 
-    opacity: 0.5;
-    &:hover {
-      opacity: 1;
-    }
-
-    img {
-      height: 10px;
+    h1 {
+      font-size: 11pt;
       margin-top: auto;
       margin-bottom: auto;
-      margin-right: 5px;
+      flex-grow: 1;
     }
 
-    p {
-      color: #14248a;
-      font-size: 9pt;
-      font-weight: 900;
-      text-transform: uppercase;
+    .initials {
+      background-color: rgba($color: #a38b7b, $alpha: 0.1);
+      position: relative;
+      height: 30px;
+      width: 30px;
       margin-top: auto;
       margin-bottom: auto;
-      overflow: hidden;
-      word-wrap: none;
-      white-space: nowrap;
-      width: 0px;
-      transition: width 0.5s;
-      height: 10px;
-      line-height: 10px;
-      max-lines: 1;
-    }
+      border-radius: 50%;
 
-    &:hover {
       p {
-        width: 60px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin: 0px;
+        transform: translate(-50%, -50%);
+        font-size: 8pt;
+        font-weight: 500;
+        color: #a38b7b;
       }
     }
   }
 
   .section {
-    margin-top: 10px;
+    padding: 10px 20px;
 
     h3 {
       font-size: 10pt;
@@ -91,7 +76,7 @@
       li {
         cursor: pointer;
         margin: 0px -20px 0px -20px;
-        padding: 8px 20px 8px 20px;
+        padding: 6px 20px 6px 20px;
         font-size: 9.5pt;
         display: flex;
 
@@ -143,31 +128,104 @@
   }
 }
 
-// .table {
-//   width: 100%;
-//   background-color: rgba($color: white, $alpha: 0.7);
+.settingsContainer {
+  z-index: 5;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  display: flex;
 
-//   font-size: 12pt;
-//   text-align: left;
-//   border: solid 1px lightgray;
-// }
+  .background {
+    background-color: rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+  }
 
-// .titleContainer {
-//   display: flex;
-//   justify-content: space-between;
+  .settings {
+    z-index: 6;
+    min-height: 400px;
+    max-height: 80%;
+    min-width: 350px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    background-color: white;
+    overflow: auto;
+    border-radius: 8px;
 
-//   button {
-//     height: 50px;
-//     margin-top: auto;
-//     margin-bottom: auto;
-//     background-color: #14248a;
-//     border: none;
-//     outline: none;
-//     color: white;
-//     cursor: pointer;
-//     border-radius: 25px;
-//     padding-left: 40px;
-//     padding-right: 40px;
-//     font-size: 10pt;
-//   }
-// }
+    h1 {
+      text-align: center;
+      font-size: 12pt;
+      margin: 20px 0px;
+    }
+
+    section {
+      margin-bottom: 30px;
+      &:last-of-type {
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        font-size: 8pt;
+        font-weight: 500;
+        padding: 0px 20px;
+        text-transform: uppercase;
+        color: gray;
+        margin-bottom: 5px;
+      }
+
+      ul {
+        padding: 0;
+        margin: 0px;
+        list-style-type: none;
+
+        li {
+          font-size: 10pt;
+          line-height: 35px;
+          cursor: pointer;
+          padding: 0px 20px;
+
+          &:hover {
+            background-color: #f9f9f9;
+          }
+
+          .comingSoon {
+            color: lightgray;
+            font-style: italic;
+            border-radius: 50px;
+            float: right;
+            font-size: 8.5pt;
+          }
+        }
+      }
+    }
+
+    @media only screen and (max-device-width: 480px) {
+      width: 100%;
+      height: 100%;
+      margin: 0px;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 0px;
+
+      h1 {
+        margin: 40px 0px;
+      }
+
+      section {
+        ul {
+          li {
+            line-height: 45px;
+          }
+        }
+      }
+    }
+  }
+}

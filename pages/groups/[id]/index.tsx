@@ -12,6 +12,7 @@ import Layout from '../../../components/layout'
 import { createThread, deleteThread, leaveGroup, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
+import { logout } from '../../../lib/user'
 
 // Styling
 import styles from './index.module.scss'
@@ -31,6 +32,7 @@ export default function Group(props) {
   const groupLoader = useGroup(props.id)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
+  const [viewSettings, setViewSettings] = useState<boolean>(false)
 
   // todo: improve error handling
   if(groupLoader.error) {
@@ -210,6 +212,11 @@ export default function Group(props) {
     }
   }
 
+  function logoutPopup() {
+    if(!window.confirm("Are you sure you want to logout?")) return
+    router.push('/logout')
+  }
+
   async function leaveGroupPopup() {
     if(!window.confirm("Are you sure you want to leave this group")) return
 
@@ -269,16 +276,52 @@ export default function Group(props) {
     return showIndicator
   }
 
-  return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
-    <div className={styles.sidebar}>
-      <h1>{groupLoader.group?.name}</h1>
+  function renderSettings(): JSX.Element {
+    return <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={() => setViewSettings(false)} />
+      <div className={styles.settings}>
+        <h1>Settings</h1>
 
-      <Link href='/'>
-        <div className={styles.goback}>
-          <img src='/back.png' alt='Go back' />
-          <p>Go back</p>
+        <section>
+          <h2>Group</h2>
+          <ul>
+            <li onClick={() => router.push('/')}>Switch group</li>
+            <li onClick={leaveGroupPopup}>Leave group</li>
+            <li onClick={renameGroupPopup}>Rename group</li>
+            <li>Manage invites<span className={styles.comingSoon}>Coming Soon</span></li>
+            <li>Manage people<span className={styles.comingSoon}>Coming Soon</span></li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Profile</h2>
+          <ul>
+            <li onClick={logoutPopup}>Logout</li>
+            <li>Edit profile<span className={styles.comingSoon}>Coming Soon</span></li>
+            <li>Delete profile<span className={styles.comingSoon}>Coming Soon</span></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  }
+
+  let initials = '';
+  const user = groupLoader.group?.members?.find(m => m.current_user)
+  if(user) {
+    initials = user.first_name.slice(0,1) + user.last_name.slice(0,1)
+  }
+
+  return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
+    { viewSettings ? renderSettings() : null }
+
+    <div className={styles.sidebar}>
+      <div className={styles.upper} onClick={() => setViewSettings(true)}>
+        <h1>{groupLoader.group?.name}</h1>
+
+        <div className={styles.initials}>
+          <p>{initials}</p>
         </div>
-      </Link>
+      </div>
 
       <div className={styles.section}>
         <h3><span>🛋️</span> Rooms</h3>
@@ -307,14 +350,6 @@ export default function Group(props) {
             </li>
           })}
           <li className={styles.gray} key='invite' onClick={sendInvite}>Send Invite</li>
-        </ul>
-      </div>
-
-      <div className={styles.section}>
-        <h3><span>⚙️</span> Settings</h3>
-        <ul>
-          <li onClick={renameGroupPopup} className={styles.gray}>Rename group</li>
-          <li onClick={leaveGroupPopup} className={styles.gray}>Leave group</li>
         </ul>
       </div>
     </div>
