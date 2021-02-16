@@ -26,6 +26,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
+  if(req.method === 'PATCH') {
+    var body = {}
+    try {
+      body = JSON.parse(req.body)
+    } catch {
+      res.status(400).json({ error: "Error parsing request body" })
+      return
+    }
+
+    try {
+      await call ("/users/Update", { ...body, id: user.id })
+      res.status(200).json({})
+    } catch ({ error, code }) {
+      console.error(`Error updating user: ${error}`)
+      res.status(code).json({ error })
+    }
+    return
+  }
+
   if(req.method !== 'DELETE') {
     res.status(405).json({})
     return

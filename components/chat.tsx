@@ -110,7 +110,7 @@ export default class Chat extends Component<Props, State> {
         <form onSubmit={this.sendMessage}>
           <input 
             required
-            ref={r => r?.focus()}
+            // ref={r => r?.focus()}
             type='text'
             value={this.state.message} 
             placeholder='Send a message' 

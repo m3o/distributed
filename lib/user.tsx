@@ -51,6 +51,18 @@ export function login(email: string, password: string): Promise<User> {
   })
 }
 
+export function updateUser(user: User): Promise<null> {
+  return new Promise<null>((resolve: Function, reject: Function) => {
+    const params = { first_name: user.first_name, last_name: user.last_name, email: user.email }
+    fetch('/api/profile', { method: 'PATCH', body: JSON.stringify(params) })
+      .then(async (rsp) => {
+        const body = await rsp.json()
+        rsp.status === 200 ? resolve(null) : reject(body.error || rsp.statusText);
+      })
+      .catch(err => reject(err))
+  })
+}
+
 export function logout(): { loading: boolean; error: Error } {
   const { data, error } = useSWR("/api/logout", fetcher);
 

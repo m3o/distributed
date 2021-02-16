@@ -12,7 +12,7 @@ import Layout from '../../../components/layout'
 import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-import { deleteProfile } from '../../../lib/user'
+import { deleteProfile, updateUser, User } from '../../../lib/user'
 
 // Styling
 import styles from './index.module.scss'
@@ -32,8 +32,7 @@ export default function Group(props) {
   const groupLoader = useGroup(props.id)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
-  const [viewSettings, setViewSettings] = useState<boolean>(false)
-  const [viewChatSettings, setViewChatSettings] = useState<boolean>(false)
+  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile'>(undefined)
 
   // todo: improve error handling
   if(groupLoader.error) {
@@ -310,7 +309,7 @@ export default function Group(props) {
 
   function renderSettings(): JSX.Element {
     return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setViewSettings(false)} />
+      <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>Settings</h1>
 
@@ -318,8 +317,8 @@ export default function Group(props) {
           <h2>Group</h2>
           <ul>
             <li onClick={() => router.push('/')}>Switch group</li>
-            <li onClick={() => leaveGroupPopup() && setViewSettings(false)}>Leave group</li>
-            <li onClick={() => renameGroupPopup() && setViewSettings(false)}>Rename group</li>
+            <li onClick={() => leaveGroupPopup() && setSubview(undefined)}>Leave group</li>
+            <li onClick={() => renameGroupPopup() && setSubview(undefined)}>Rename group</li>
             <li>Manage invites<span className={styles.comingSoon}>Coming Soon</span></li>
           </ul>
         </section>
@@ -327,9 +326,9 @@ export default function Group(props) {
         <section>
           <h2>Profile</h2>
           <ul>
-            <li>Edit profile<span className={styles.comingSoon}>Coming Soon</span></li>
-            <li onClick={() => deleteProfilePopup() && setViewSettings(false)}>Delete profile</li>
-            <li onClick={() => logoutPopup() && setViewSettings(false)}>Logout</li>
+            <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
+            <li onClick={() => deleteProfilePopup() && setSubview(undefined)}>Delete profile</li>
+            <li onClick={() => logoutPopup() && setSubview(undefined)}>Logout</li>
           </ul>
         </section>
       </div>
@@ -338,15 +337,15 @@ export default function Group(props) {
 
   function renderChatSettings(): JSX.Element {
     return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setViewChatSettings(false)} />
+      <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
 
         <section>
           <ul>
-            { chat.type === 'thread' ? <li onClick={() => renameThreadPopup() && setViewChatSettings(false)}>Rename room</li> : null }
-            { chat.type === 'thread' ? <li onClick={() => deleteThreadPopup() && setViewChatSettings(false)}>Delete room</li> : null }
-            { chat.type === 'thread' ? null : <li onClick={() => removeUserPopuop() && setViewChatSettings(false)}>Remove user from group</li> }
+            { chat.type === 'thread' ? <li onClick={() => renameThreadPopup() && setSubview(undefined)}>Rename room</li> : null }
+            { chat.type === 'thread' ? <li onClick={() => deleteThreadPopup() && setSubview(undefined)}>Delete room</li> : null }
+            { chat.type === 'thread' ? null : <li onClick={() => removeUserPopuop() && setSubview(undefined)}>Remove user from group</li> }
           </ul>
         </section>
       </div>
@@ -354,17 +353,56 @@ export default function Group(props) {
   }
 
   let initials = '';
-  const user = groupLoader.group?.members?.find(m => m.current_user)
+  const [user, setUser] = useState<User>()
   if(user) {
     initials = user.first_name.slice(0,1) + user.last_name.slice(0,1)
+  } else if (groupLoader.group?.members?.find(m => m.current_user)) {
+    setUser(groupLoader.group?.members?.find(m => m.current_user))
+  }
+
+  function renderEditProfile(): JSX.Element {
+    const onSubmit = (e: React.FormEvent) => {
+      e.preventDefault()
+      setSubview(undefined)
+      updateUser(user).catch(err => alert(`Error updating profile: ${err}`))
+    }
+
+    return <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={() => setSubview(undefined)} />
+      <div className={styles.settings}>
+        <h1>Edit Profile</h1>
+        <form onSubmit={onSubmit}>
+          <input
+            required
+            placeholder='First name' 
+            value={user.first_name}
+            onChange={e => setUser({ ...user, first_name: e.target.value || ""})} />
+
+          <input
+            required
+            placeholder='Last name' 
+            value={user.last_name}
+            onChange={e => setUser({ ...user, last_name: e.target.value || ""})} />
+
+          <input
+            required
+            placeholder='Email' 
+            value={user.email}
+            onChange={e => setUser({ ...user, email: e.target.value || ""})} />
+
+          <input type='submit' value='Save changes' />
+        </form>
+      </div>
+    </div>
   }
 
   return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
-    { viewSettings ? renderSettings() : null }
-    { viewChatSettings ? renderChatSettings() : null }
+    { subview === 'settings' ? renderSettings() : null }
+    { subview === 'chat-settings' ? renderChatSettings() : null }
+    { subview === 'edit-profile' ? renderEditProfile() : null }
 
     <div className={styles.sidebar}>
-      <div className={styles.upper} onClick={() => setViewSettings(true)}>
+      <div className={styles.upper} onClick={() => setSubview('settings')}>
         <h1>{groupLoader.group?.name}</h1>
 
         <div className={styles.initials}>
@@ -405,7 +443,7 @@ export default function Group(props) {
 
     <div className={styles.main}>
       <div className={styles.actionButtons}>
-        <p onClick={() => setViewChatSettings(true)}><span>⚙️</span></p>
+        <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p>
       </div>
       
       { chat ? <ChatUI

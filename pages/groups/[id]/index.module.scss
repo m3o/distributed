@@ -161,6 +161,8 @@
     background-color: white;
     overflow: auto;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
 
     h1 {
       text-align: center;
@@ -206,6 +208,35 @@
             font-size: 8.5pt;
           }
         }
+      }
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      padding-top: 0px;
+      flex-grow: 1;
+
+      input {
+        outline: none;
+        border: none;
+        border-bottom: solid 1px lightgray;
+        margin-bottom: 25px;
+        padding: 5px 0px;
+
+        &:focus {
+          border-bottom-color: #a38b7b;
+        }
+      }
+
+      input[type="submit"] {
+        background-color: #a38b7b;
+        border-radius: 5px;
+        color: white;
+        height: 35px;
+        margin-top: auto;
+        margin-bottom: 0px;
       }
     }
 
