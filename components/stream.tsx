@@ -1,6 +1,6 @@
 // Frameworks
 import { Component, createRef } from 'react'
-import Video from 'twilio-video'
+import Twilio from 'twilio-video'
 
 // Utilities
 import { getVideoProfile } from '../lib/videos'
@@ -25,10 +25,9 @@ interface State {
 }
 
 interface Participant {
-  videoStream?: MediaStream
-  audioStream?: MediaStream
-  user: User
   connectedAt?: number
+  connection: any;
+  user: User
 }
 
 export default class Stream extends Component<Props, State> {
@@ -39,12 +38,8 @@ export default class Stream extends Component<Props, State> {
     this.state = { participants }
 
 		this.roomJoined = this.roomJoined.bind(this)
-		this.addMedia = this.addMedia.bind(this)
-		this.removeMedia = this.addMedia.bind(this)
 		this.attachTracks = this.attachTracks.bind(this)
-		this.detachTracks = this.detachTracks.bind(this)
     this.disconnectRoom = this.disconnectRoom.bind(this)
-		this.detachParticipantTracks = this.detachParticipantTracks.bind(this)
   }
 
   componentDidMount() {
@@ -60,7 +55,8 @@ export default class Stream extends Component<Props, State> {
     window.removeEventListener("beforeunload", this.disconnectRoom)
   }
 
-  componentDidUpdate(prevProps?: Props, prevState?: State) {
+  async componentDidUpdate(prevProps?: Props, prevState?: State) {
+    // update participants
     if(prevProps.participants?.length !== this.props.participants?.length) {
       let participants = {}
       this.props.participants.forEach(p => {
@@ -71,29 +67,61 @@ export default class Stream extends Component<Props, State> {
       return
     }
 
-    const { token, room } = this.state
-    if(!token) return
+    // require a token
+    if(!this.state.token) return;
 
+    // disconnect from the old room if joining a new room
     const { roomID, audio, video } = this.props
-    const audioChanged = audio !== prevProps?.audio
-    const videoChanged = video !== prevProps?.video
-    const roomIDChanged = roomID !== prevProps?.roomID
-    const tokenChanged = token !== prevState?.token
-
-    // don't update without reason
-    if(!audioChanged && !videoChanged && !roomIDChanged && !tokenChanged) return
+    const { room, token } = this.state
+    if(roomID !== prevProps?.roomID && room) this.disconnectRoom()
 
     // todo: find a cleaner way to share this info globally. redux?
     window.audioEnabled = audio;
     window.videoEnabled = video;
-    
-    // disconnect from the old room if joining a new room
-    if(roomIDChanged && room) this.disconnectRoom()
 
-    console.log(`${room ? 'Reconnecting to' : 'Joining'} room ${roomID}`)
-    Video.connect(token, { name: roomID, audio, video }).then(this.roomJoined, error => {
-      alert('Could not connect to Twilio: ' + error.message)
-    })
+    let tracksToAdd = [];
+    if(audio !== prevProps?.audio) {
+      if(audio) {
+        tracksToAdd.push(await Twilio.createLocalAudioTrack())
+      } else if(room) {
+        Array.from(room.localParticipant.audioTracks).map(t => t[1].track).forEach(t => {
+          t.stop()
+          room.localParticipant.unpublishTrack(t)
+        })
+      }
+    }
+
+    if(video !== prevProps?.video) {
+      if(video) {
+        tracksToAdd.push(await Twilio.createLocalVideoTrack())
+      } else if(room) {
+        Array.from(room.localParticipant.videoTracks).map(t => t[1].track).forEach(t => {
+          t.stop()
+          room.localParticipant.unpublishTrack(t)
+        })
+      }
+    }
+
+    if(room) {
+      await tracksToAdd.forEach(t => {
+        room.localParticipant.publishTrack(t)
+      })
+    } else {
+      await Twilio.connect(token, { name: roomID, tracks: tracksToAdd }).then(this.roomJoined, error => {
+        alert('Could not connect to Twilio: ' + error.message)
+      })
+    }
+
+    if(video !== prevProps?.video || audio !== prevProps?.audio) {
+      this.setState({
+        participants: {
+          ...this.state.participants,
+          [this.state.identity]: {
+            ...this.state.participants[this.state.identity],
+          },
+        },
+      })
+    }
   }
   
   disconnectRoom() {
@@ -101,31 +129,6 @@ export default class Stream extends Component<Props, State> {
     console.log(`Leaving room: ${this.props.roomID}...`)
     this.state.room.disconnect()
     this.setState({ room: undefined, participants: {} })
-  }
-
-  addMedia(id: string, track: { attach: Function, kind: 'video' | 'audio' }) {
-    const media = track.attach()
-    media.muted = id === this.state.identity ? true : !this.props.listening
-
-    let participant = { ...this.state.participants[id] }
-    if(track.kind === 'audio') {
-      participant.audioStream = track.attach().srcObject
-    } else {
-      participant.videoStream = track.attach().srcObject
-    }
-
-    this.setState({ participants: { ...this.state.participants, [id]: participant } })
-  }
-
-  removeMedia(id: string, track: { detach: Function, kind: 'video' | 'audio' }) {
-    let participant = { ...this.state.participants[id] }
-    if(track.kind === 'audio') {
-      participant.audioStream = undefined
-    } else {
-      participant.videoStream = undefined
-    }
-
-    this.setState({ participants: { ...this.state.participants, [id]: participant } })
   }
 
 	attachTracks(id: any, trackPubs: any[]) {
@@ -137,26 +140,17 @@ export default class Stream extends Component<Props, State> {
 
       // handle local track which does not get subscribed to
       if(pub.track) {
-        this.addMedia(id, pub.track)
+        pub.track.attach().muted = true
         return
       }
       
       console.log('subscribing to: ', pub.trackName, pub.track)
-      pub.on('subscribed', track => this.addMedia(id, track))
-      pub.on('unsubscribed', track => this.removeMedia(id, track))
+      pub.on('subscribed', track => {
+        debugger
+        track.attach().muted = !this.props.listening
+      })
 		})
   }
-  
-	detachTracks(participant: any, trackPubs) {
-		trackPubs.forEach(pub => {
-      if(pub.track) this.removeMedia(participant.identity, pub.track)
-		})
-	}
-
-	detachParticipantTracks(participant) {
-		var tracks = Array.from(participant.tracks.values())
-		this.detachTracks(participant, tracks)
-	}
 
 	roomJoined(room) {
     this.setState({ room })
@@ -167,11 +161,13 @@ export default class Stream extends Component<Props, State> {
     
     // Attach the tracks of the room's participants.
     var participants = { ...this.state.participants }
+    participants[this.state.identity].connection = room.localParticipant
     participants[this.state.identity].connectedAt = Date.now()
     room.participants.forEach(participant => {
       console.log("Already in Room: '" + participant.identity + "'")
       var trackPubs = Array.from(participant.tracks.values())
       this.attachTracks(participant.identity, trackPubs)
+      participants[participant.identity].connection = participant
       participants[participant.identity].connectedAt = Date.now()
     })
     this.setState({ participants })
@@ -184,7 +180,11 @@ export default class Stream extends Component<Props, State> {
       this.setState({ 
         participants: {
           ...this.state.participants, 
-          [participant.identity]: { ...this.state.participants[participant.identity], connectedAt: Date.now() }, 
+          [participant.identity]: { 
+            ...this.state.participants[participant.identity],
+            connectedAt: Date.now(),
+            connection: participant,
+          },
         },
       })
     })
@@ -195,29 +195,15 @@ export default class Stream extends Component<Props, State> {
       this.attachTracks(participant, [track])
     })
 
-    // Detach participant’s track from DOM when they remove a track.
-    room.on('trackRemoved', (track, participant) => {
-      console.log(participant.identity + ' removed track: ' + track.kind)
-      this.detachTracks(participant, [track])
-    })
-
     // Detach all participant’s track when they leave a room.
     room.on('participantDisconnected', participant => {
       console.log("Participant '" + participant.identity + "' left the room")
-      this.detachParticipantTracks(participant)
       this.setState({ 
         participants: {
           ...this.state.participants, 
           [participant.identity]: { ...this.state.participants[participant.identity], connected: false, connectedAt: undefined }, 
         },
       })  
-    })
-
-    // Once the local participant leaves the room, detach the Tracks
-    // of all other participants, including that of the LocalParticipant.
-    room.on('disconnected', () => {
-      this.detachParticipantTracks(room.localParticipant)
-      room.participants.forEach(this.detachParticipantTracks)
     })
   }
 
@@ -231,38 +217,86 @@ export default class Stream extends Component<Props, State> {
 		return <div className={`${this.props.className} ${styles.container}`}>
       { participants.map(p => {
         const muted = p.user.id === identity ? true : !listening
-        return <ParticipantComponent key={p.user.id} participant={p} muted={muted} videoEnabled={this.props.video} />
+
+        return <ParticipantComponent
+                  key={p.user.id}
+                  participant={p}
+                  muted={muted}
+                  videoEnabled={true} />
       })}
     </div>
   }
 }
 
-class ParticipantComponent extends Component<{ participant: Participant, muted: boolean, videoEnabled: boolean }> {
-  readonly state: { videoStream?: MediaStream, audioStream?: MediaStream, size?: number }
+interface ParticipantProps {
+  muted: boolean
+  participant: Participant
+  videoEnabled: boolean
+}
+
+// const events = [
+//   "disconnected",
+//   "reconnected",
+//   "reconnecting",
+//   "trackDimensionsChanged",
+//   "trackDisabled",
+//   "trackEnabled",
+//   "trackMessage",
+//   "trackPublished",
+//   "trackPublishPriorityChanged",
+//   "trackStarted",
+//   "trackSubscribed",
+//   "trackSubscriptionFailed",
+//   "trackSwitchedOff",
+//   "trackSwitchedOn",
+//   "trackUnpublished",
+//   "trackUnsubscribed",
+//   "trackDisabled",
+//   "trackEnabled",
+//   "trackStopped",
+// ]
+
+class ParticipantComponent extends Component<ParticipantProps> {
+  readonly state: { size?: number, audioEnabled: boolean, videoEnabled: boolean }
   readonly videoRef = createRef<HTMLVideoElement>()
   readonly audioRef = createRef<HTMLAudioElement>()
 
-  constructor(props) {
+  constructor(props: ParticipantProps) {
     super(props)
-    this.state = {
-      size: 0,
-      videoStream: props.participant.videoStream,
-      audioStream: props.participant.audioStream,
-    }
+    this.state = { size: 0, audioEnabled: false, videoEnabled: false }
     this.onClick = this.onClick.bind(this)
+
+    props.participant.connection.on('trackStarted', x => {
+      if(x.kind === 'audio') {
+        this.setState({ audioEnabled: true })
+        this.audioRef.current.srcObject = x.attach().srcObject
+      } else {
+        this.setState({ videoEnabled: true })
+        this.videoRef.current.srcObject = x.attach().srcObject
+      }
+    })
+
+    props.participant.connection.on('trackStopped', x => {
+      if(x.kind === 'audio') {
+        this.audioRef.current.srcObject = undefined
+        this.setState({ audioEnabled: false })
+      } else {
+        this.videoRef.current.srcObject = undefined
+        this.setState({ videoEnabled: false })
+      }
+    })
+
+    props.participant.connection.on('trackUnpublished', x => {
+      if(x.kind === 'audio') {
+        this.audioRef.current.srcObject = undefined
+        this.setState({ audioEnabled: false })
+      } else {
+        this.videoRef.current.srcObject = undefined
+        this.setState({ videoEnabled: false })
+      }
+    })
   }
 
-  componentDidUpdate() {
-    let { videoStream, audioStream } = this.props.participant
-    if(videoStream?.id !== this.state.videoStream?.id) {
-      this.videoRef.current.srcObject = videoStream
-      this.setState({ videoStream })
-    }
-    if(audioStream?.id !== this.state.audioStream?.id) {
-      this.audioRef.current.srcObject = audioStream
-      this.setState({ audioStream })
-    }
-  }
 
   onClick(): void {
     let size = this.state.size + 1
@@ -271,17 +305,25 @@ class ParticipantComponent extends Component<{ participant: Participant, muted: 
   }
 
   render(): JSX.Element {
-    const { muted, participant, videoEnabled } = this.props
-    const { videoStream, audioStream, size } = this.state
+    const { audioEnabled, videoEnabled } = this.state;
+    const { muted, participant } = this.props
+    const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[this.state.size]
 
-    const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[size]
     return (
       <div className={`${styles.participant} ${sizeStyle}`} onClick={this.onClick}>
         <audio muted={muted} autoPlay playsInline ref={this.audioRef} />
-        <video style={videoStream?.active && videoEnabled ? {} : { display: "none" }} muted={muted} autoPlay playsInline ref={this.videoRef} />
-        { videoStream?.active && videoEnabled ? null : <p>{participant.user.first_name}</p> }
-        { videoStream?.active && videoEnabled ? null : <p className={styles.icons}>{audioStream?.active ? <span>🎤</span> : null}{videoStream?.active ? <span>🎥</span> : null}</p> }
+        <video style={videoEnabled && this.props.videoEnabled ? {} : { display: "none" }} muted={muted} autoPlay playsInline ref={this.videoRef} />
+        { videoEnabled && this.props.videoEnabled ? null : <p>{participant.user.first_name}</p> }
+        { videoEnabled && this.props.videoEnabled ? null : <p className={styles.icons}>{audioEnabled ? <span>🎤</span> : null}{videoEnabled ? <span>🎥</span> : null}</p> }
       </div>
     )
+  }
+
+  audioTrack(props: ParticipantProps) {
+    return Array.from(props.participant.connection.audioTracks).map(x => x[1])[0]?.track
+  }
+
+  videoTrack(props: ParticipantProps) {
+    return Array.from(props.participant.connection.videoTracks).map(x => x[1])[0]?.track
   }
 }
