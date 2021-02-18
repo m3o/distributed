@@ -146,7 +146,6 @@ export default class Stream extends Component<Props, State> {
       
       console.log('subscribing to: ', pub.trackName, pub.track)
       pub.on('subscribed', track => {
-        debugger
         track.attach().muted = !this.props.listening
       })
 		})
@@ -297,6 +296,12 @@ class ParticipantComponent extends Component<ParticipantProps> {
     })
   }
 
+  componentDidUpdate(prevProps: ParticipantProps) {
+    if(prevProps.muted !== this.props.muted) {
+      this.audioRef.current.muted = this.props.muted
+      this.videoRef.current.muted = this.props.muted
+    }
+  }
 
   onClick(): void {
     let size = this.state.size + 1
