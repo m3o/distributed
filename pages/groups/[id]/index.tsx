@@ -201,8 +201,9 @@ export default function Group(props) {
     if(!email?.length) return
 
     try {
-      await createInvite(props.id, email)
-      alert(`Invite sent to ${email}`)
+      const invite = await createInvite(props.id, email)
+      const url = `${window.location.protocol}//${window.location.host}/login?code=${invite.code}&email=${encodeURI(invite.email)}`
+      alert(`Invite sent to ${email}. Link to signup: ${url}`)
     } catch (error) {
       alert(`Error sending invite to ${email}: ${error}`)
     }

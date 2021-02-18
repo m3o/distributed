@@ -1,11 +1,16 @@
 import Head from 'next/head'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { login, signup } from '../lib/user'
 import styles from './login.module.scss'
 
-export default function Login() {
-  const [isSignup, setSignup] = useState<boolean>(false)
-  const [email, setEmail] = useState<string>('')
+export async function getServerSideProps(content) {
+  return {props: {...content.query}}
+} 
+
+export default function Login(props: { email?: string, code?: string }) {
+  const [isSignup, setSignup] = useState<boolean>(!!props.code)
+  const [email, setEmail] = useState<string>(props.email || '')
   const [password, setPassword] = useState<string>('')
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
@@ -34,7 +39,7 @@ export default function Login() {
     }
 
     if(isSignup) {
-      signup({ email, password, first_name: firstName, last_name: lastName }).then(onSuccess).catch(onError)
+      signup({ email, password, first_name: firstName, last_name: lastName, code: props.code }).then(onSuccess).catch(onError)
     } else {
       login(email, password).then(onSuccess).catch(onError)
     }
@@ -62,6 +67,7 @@ export default function Login() {
         { isSignup ? <label>First name</label> : null }
         { isSignup ? <input
           required
+          autoFocus
           type='name'
           value={firstName}
           disabled={loading}

@@ -20,6 +20,7 @@ export interface SignupParams {
   last_name: string;
   email: string;
   password: string;
+  code?: string;
 }
 
 const fetcher = (url: string) => fetch(url).then(res => {
