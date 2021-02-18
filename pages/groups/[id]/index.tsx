@@ -316,13 +316,16 @@ export default function Group(props) {
       <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>Settings</h1>
+        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+          <p>🔙</p>
+        </div>
 
         <section>
           <h2>Group</h2>
           <ul>
             <li onClick={() => router.push('/')}>Switch group</li>
-            <li onClick={() => leaveGroupPopup() && setSubview(undefined)}>Leave group</li>
-            <li onClick={() => renameGroupPopup() && setSubview(undefined)}>Rename group</li>
+            <li onClick={() => leaveGroupPopup()}>Leave group</li>
+            <li onClick={() => renameGroupPopup()}>Rename group</li>
             <li onClick={() => setSubview('manage-invites')}>Manage invites</li>
           </ul>
         </section>
@@ -331,8 +334,8 @@ export default function Group(props) {
           <h2>Profile</h2>
           <ul>
             <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
-            <li onClick={() => deleteProfilePopup() && setSubview(undefined)}>Delete profile</li>
-            <li onClick={() => logoutPopup() && setSubview(undefined)}>Logout</li>
+            <li onClick={() => deleteProfilePopup()}>Delete profile</li>
+            <li onClick={() => logoutPopup()}>Logout</li>
           </ul>
         </section>
       </div>
@@ -344,6 +347,9 @@ export default function Group(props) {
       <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
+        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+          <p>🔙</p>
+        </div>
 
         <section>
           <ul>
@@ -370,6 +376,9 @@ export default function Group(props) {
       <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>Manage Invites</h1>
+        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
+          <p>🔙</p>
+        </div>
 
         <section>
           { inviteLoader.invites?.length ? null : <p className={styles.emptyState}>There are no pending invites</p>}
@@ -403,6 +412,10 @@ export default function Group(props) {
       <div className={styles.background} onClick={() => setSubview(undefined)} />
       <div className={styles.settings}>
         <h1>Edit Profile</h1>
+        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
+          <p>🔙</p>
+        </div>
+
         <form onSubmit={onSubmit}>
           <input
             required
@@ -428,6 +441,12 @@ export default function Group(props) {
     </div>
   }
 
+  function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
+    setShowSidebar(false)
+    setSubview(undefined)
+    e.stopPropagation()
+  }
+
   return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
     { subview === 'settings' ? renderSettings() : null }
     { subview === 'chat-settings' ? renderChatSettings() : null }
@@ -435,11 +454,19 @@ export default function Group(props) {
     { subview === 'manage-invites' ? renderInvites() : null }
 
     <div className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}>
-      <div className={styles.upper} onClick={() => { setSubview('settings'); setShowSidebar(false) }}>
+      <div className={styles.upper} onClick={() => setSubview('settings')}>
         <h1>{groupLoader.group?.name}</h1>
 
         <div className={styles.initials}>
           <p>{initials}</p>
+        </div>
+
+        <div className={styles.dismiss} onClick={dismissMenu}>
+          <p>🔙</p>
+        </div>
+
+        <div className={styles.settingsIcon}>
+          <p>⚙️</p>
         </div>
       </div>
 
