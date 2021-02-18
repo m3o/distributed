@@ -262,7 +262,7 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.threads?.filter(t => t.id !== chat.id),
       })
-      clearChatWrapped(undefined)
+      clearChatWrapped()
     } catch (error) {
       alert(`Error deleting room: ${error}`)
     }
@@ -277,7 +277,7 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
       })
-      clearChatWrapped(undefined)
+      clearChatWrapped()
     } catch (error) {
       alert(`Error removing user: ${error}`)
     }
