@@ -45,11 +45,11 @@ export default function Home() {
       </div>
 
       { groupsLoader.groups?.length ? <div>
-        <h2 className={styles.h2}>Groups:</h2>
+        <h2 className={styles.h2}>Your Groups</h2>
         { groupsLoader.groups?.map(g => <div className={styles.group}>
           <p>{g.name}</p>
           <Link href={`/groups/${g.id}`}>
-            <button>View</button>
+            <button>Enter</button>
           </Link>
         </div>) }
       </div> : null }
