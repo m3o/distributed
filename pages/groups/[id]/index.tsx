@@ -162,6 +162,11 @@ export default function Group(props) {
     if(showSidebar) setShowSidebar(false)
   }
 
+  function clearChatWrapped() {
+    localStorage.removeItem(`group/${props.id}/chat`)
+    setChat(undefined)
+  }
+
   // default to the last opened chat, or the first
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
     const chatStr = localStorage.getItem(`group/${props.id}/chat`)
@@ -257,7 +262,7 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.threads?.filter(t => t.id !== chat.id),
       })
-      setChat(undefined)
+      clearChatWrapped(undefined)
     } catch (error) {
       alert(`Error deleting room: ${error}`)
     }
@@ -272,7 +277,7 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
       })
-      setChat(undefined)
+      clearChatWrapped(undefined)
     } catch (error) {
       alert(`Error removing user: ${error}`)
     }

@@ -57,12 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(403).json({ error: "Not a member of this group" })
     return
   }
-  // ensure the user they're removing is a member of the group
-  if(!group.member_ids?.includes(body.id)) {
-    res.status(400).json({ error: "User is not a member of this group" })
-    return
-  }
-
+  
   // remove the user from group
   try {
     await call("/groups/RemoveMember", { group_id: group.id, member_id: body.id })
