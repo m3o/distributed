@@ -36,32 +36,36 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className={styles.titleContainer}>
-        <h1>Welcome {userLoader.user?.first_name}</h1>
-        
-        <Link href='/groups/new'>
-          <button>New Group</button>
-        </Link>
-      </div>
+      <div className={styles.inner}>
+        <div className={styles.titleContainer}>
+          <h1>Welcome {userLoader.user?.first_name}</h1>
+        </div>
 
-      { groupsLoader.groups?.length ? <div>
-        <h2 className={styles.h2}>Your Groups</h2>
-        { groupsLoader.groups?.map(g => <div className={styles.group}>
-          <p>{g.name}</p>
-          <Link href={`/groups/${g.id}`}>
-            <button>Enter</button>
+        <div className={styles.titleContainer}>
+          <Link href='/groups/new'>
+            <button>New Group</button>
           </Link>
-        </div>) }
-      </div> : null }
+        </div>
 
-      { invitesLoader.invites?.length ? <div>
-        <h2 className={styles.h2}>Invites:</h2>
-        { invitesLoader.invites?.map(i => <div className={styles.group}>
-          <p>{i.group.name}</p>
-          <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
-          <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
-        </div>) }
-      </div> : null }
+        { groupsLoader.groups?.length ? <div>
+          <h2 className={styles.h2}>Your Groups</h2>
+          { groupsLoader.groups?.map(g => <div className={styles.group}>
+            <p>{g.name}</p>
+            <Link href={`/groups/${g.id}`}>
+              <button>Enter</button>
+            </Link>
+          </div>) }
+        </div> : null }
+
+        { invitesLoader.invites?.length ? <div>
+          <h2 className={styles.h2}>Invites:</h2>
+          { invitesLoader.invites?.map(i => <div className={styles.group}>
+            <p>{i.group.name}</p>
+            <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
+            <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
+          </div>) }
+        </div> : null }
+      </div>
     </Layout>
   )
 }
