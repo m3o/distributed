@@ -1,7 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
 import { parse } from 'cookie'
-import { group } from 'console';
+import sengrid from '@sendgrid/mail'
+
+sengrid.setApiKey(process.env.SENDGRID_API_KEY);
+const templateId = 'd-cad7d433f25341c9b69616e81c6df09d'
+const from = 'support@m3o.com'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { query: { group_id } } = req;
@@ -76,12 +80,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     
     // create the invite
+    var invite: any
     try {
       const rsp = await call("/invites/Create", { ...body, group_id })
-      res.status(201).json(rsp.invite)
+      invite = rsp.invite
     } catch ({ error, code }) {
       res.status(code).json({ error })
+      return
     }
-    return
+
+    // send the email
+    try {
+      const link = `https://distributed.app/login?code=${invite.code}&email=${body.email}`
+      const dynamicTemplateData = { inviter: user.first_name, group: group.name, link }
+      await sengrid.send({ to: body.email, from, dynamicTemplateData, templateId })
+      res.status(201).json(invite)
+    } catch (error) {
+      console.warn(`Error sending email: ${error}`)
+      res.status(500).json({ error: "Erorr sending code via email" })
+      return
+    }
   }
 }
