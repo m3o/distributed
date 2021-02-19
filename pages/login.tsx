@@ -9,6 +9,7 @@ export async function getServerSideProps(content) {
 } 
 
 export default function Login(props: { email?: string, code?: string }) {
+  const router = useRouter()
   const [isSignup, setSignup] = useState<boolean>(!!props.code)
   const [email, setEmail] = useState<string>(props.email || '')
   const [password, setPassword] = useState<string>('')
@@ -115,6 +116,10 @@ export default function Login(props: { email?: string, code?: string }) {
           disabled={!canSubmit}
           value={isSignup ? 'Signup' : 'Login'} />
       </form>
+
+      <p onClick={() => router.push('/forgotPassword')} className={styles.switch}>
+        Forgot password
+      </p>
 
       <p onClick={toggleSignup} className={styles.switch}>
         { isSignup ? "Already have an account? Click here to login" : "Don't have an account? Click here to sign up" }

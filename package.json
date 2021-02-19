@@ -9,6 +9,7 @@
     "export": "next export"
   },
   "dependencies": {
+    "@sendgrid/mail": "^7.4.2",
     "@types/twilio": "^2.11.0",
     "@types/twilio-video": "^2.7.3",
     "cookie": "^0.4.1",
