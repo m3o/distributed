@@ -47,6 +47,15 @@ export default function Home() {
           </Link>
         </div>
 
+        { invitesLoader.invites?.length ? <div>
+          <h2 className={styles.h2}>Invites:</h2>
+          { invitesLoader.invites?.map(i => <div className={styles.group}>
+            <p>{i.group.name}</p>
+            <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
+            <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
+          </div>) }
+        </div> : null }
+
         { groupsLoader.groups?.length ? <div>
           <h2 className={styles.h2}>Your Groups</h2>
           { groupsLoader.groups?.map(g => <div className={styles.group}>
@@ -57,14 +66,6 @@ export default function Home() {
           </div>) }
         </div> : null }
 
-        { invitesLoader.invites?.length ? <div>
-          <h2 className={styles.h2}>Invites:</h2>
-          { invitesLoader.invites?.map(i => <div className={styles.group}>
-            <p>{i.group.name}</p>
-            <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
-            <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
-          </div>) }
-        </div> : null }
       </div>
     </Layout>
   )
