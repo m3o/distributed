@@ -1,4 +1,5 @@
 .container {
+  background: url("/background.jpg");
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -23,10 +24,10 @@
   background-image: linear-gradient(
     to bottom,
     rgba($color: #f5f3f2, $alpha: 1),
-    rgba($color: #f5f3f2, $alpha: 1),
-    rgba($color: #f5f3f2, $alpha: 1),
-    rgba($color: #f5f3f2, $alpha: 1),
-    rgba($color: #f5f3f2, $alpha: 0)
+    rgba($color: #f5f3f2, $alpha: 0.9),
+    rgba($color: #f5f3f2, $alpha: 0.8),
+    rgba($color: #f5f3f2, $alpha: 0.7),
+    rgba($color: #f5f3f2, $alpha: 0.5)
   );
 
   .streamButtons {
