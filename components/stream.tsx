@@ -296,6 +296,11 @@ class ParticipantComponent extends Component<ParticipantProps> {
     })
   }
 
+  componentDidMount() {
+    this.audioRef.current.muted = this.props.muted
+    this.videoRef.current.muted = this.props.muted
+  }
+
   componentDidUpdate(prevProps: ParticipantProps) {
     if(prevProps.muted !== this.props.muted) {
       this.audioRef.current.muted = this.props.muted
@@ -311,13 +316,15 @@ class ParticipantComponent extends Component<ParticipantProps> {
 
   render(): JSX.Element {
     const { audioEnabled, videoEnabled } = this.state;
-    const { muted, participant } = this.props
+    const { participant } = this.props
     const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[this.state.size]
 
+    // Note: do not set muted when rendering the video / audio components:
+    // https://github.com/facebook/react/issues/10389
     return (
       <div className={`${styles.participant} ${sizeStyle}`} onClick={this.onClick}>
-        <audio muted={muted} autoPlay playsInline ref={this.audioRef} />
-        <video style={videoEnabled && this.props.videoEnabled ? {} : { display: "none" }} muted={muted} autoPlay playsInline ref={this.videoRef} />
+        <audio autoPlay playsInline ref={this.audioRef} />
+        <video style={videoEnabled && this.props.videoEnabled ? {} : { display: "none" }} autoPlay playsInline ref={this.videoRef} />
         { videoEnabled && this.props.videoEnabled ? null : <p>{participant.user.first_name}</p> }
         { videoEnabled && this.props.videoEnabled ? null : <p className={styles.icons}>{audioEnabled ? <span>🎤</span> : null}{videoEnabled ? <span>🎥</span> : null}</p> }
       </div>
