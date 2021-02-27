@@ -1,5 +1,6 @@
 import moment from 'moment'
 import Linkify from 'react-linkify'
+import { TwitterTweetEmbed } from 'react-twitter-embed'
 import { Message as Msg } from '../lib/message'
 import styles from './message.module.scss'
 
@@ -35,6 +36,9 @@ export default function Message({ data }: Props) {
               allowTransparency
               allow="encrypted-media;"
               src={`https://open.spotify.com/embed/${type}/${id}`} />
+  } else if (comps.length === 1 && comps[0].includes("twitter.com")) {
+    const id = comps[0].split("/").pop()
+    inner = <TwitterTweetEmbed tweetId={`${id}`} />
   } else {
     inner = <p className={styles.text}><Linkify componentDecorator={linkifyDecorator}>{ data.text }</Linkify></p>
   }
