@@ -84,7 +84,11 @@
 }
 
 .inner {
-  max-height: calc(100vh - 50px);
-  overflow: scroll;
+  overflow: auto;
   margin: 1em;
+}
+
+.groups {
+  overflow: auto;
+  max-height: 350px;
 }
