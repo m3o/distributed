@@ -7,8 +7,8 @@ function TokenFromReq(req: NextApiRequest): string {
     if(token) return token;
   }
   
-  const auth = req.headers.authorization;
-  if(auth) return auth.replaceAll('Bearer ', '');
+  const auth = req.headers['authorization'];
+  if(auth) return auth.replace('Bearer ', '');
   return '';
 }
 
