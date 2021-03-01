@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   var user: any;
+  var token: any;
   try {
     const rsp = await call("/users/Create", {
       first_name: body.first_name,
@@ -31,6 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       password: body.password,
     })
     user = rsp.user;
+    token = rsp.token;
     res.setHeader('Set-Cookie', serialize('token', rsp.token, { path: '/' }));
   } catch ({ error, code }) {
     res.status(code).json({ error })
@@ -82,7 +84,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         })
       })
     })
-    res.status(200).json({})
+    res.status(200).json({ user, token })
   } catch ({ error, code }) {
     console.error(`Error publishing to stream: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error publishing to stream"})
