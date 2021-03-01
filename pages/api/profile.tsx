@@ -1,11 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../lib/micro';
-import { parse } from 'cookie';
+import TokenFromReq from '../../lib/token';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const cookies = parse(req.headers.cookie || '');
-
-  const token = cookies.token
+  const token = TokenFromReq(req)
   if(!token) {
     res.status(401).json({ error: "No token cookie set" })
     return

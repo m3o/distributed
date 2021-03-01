@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
-import { parse } from 'cookie'
 import sengrid from '@sendgrid/mail'
+import TokenFromReq from '../../../../lib/token';
 
 sengrid.setApiKey(process.env.SENDGRID_API_KEY);
 const templateId = 'd-cad7d433f25341c9b69616e81c6df09d'
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // get the token from cookies
-  const token = parse(req.headers.cookie || '').token
+  const token = TokenFromReq(req)
   if(!token) {
     res.status(401).json({ error: "No token cookie set" })
     return
