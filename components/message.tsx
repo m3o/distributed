@@ -39,6 +39,8 @@ export default function Message({ data }: Props) {
   } else if (comps.length === 1 && comps[0].includes("twitter.com")) {
     const id = comps[0].split("/").pop()
     inner = <TwitterTweetEmbed tweetId={`${id}`} />
+  } else if (comps.length === 1 && comps[0].match(/\.(jpeg|jpg|gif|png)$/)) {
+    inner = <img src={ data.text } width="300" height="auto" />
   } else {
     inner = <p className={styles.text}><Linkify componentDecorator={linkifyDecorator}>{ data.text }</Linkify></p>
   }
