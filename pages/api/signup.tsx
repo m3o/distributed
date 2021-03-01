@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if(!invite) {
-    res.status(200).json({})
+    res.status(200).json({ user, token })
     return
   }
 
