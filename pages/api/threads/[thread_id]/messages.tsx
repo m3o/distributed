@@ -118,7 +118,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // publish the message to the other users in the group
   try {
-    group.member_ids.filter(id => id !== user.id).forEach(async(id: string) => {
+    group.member_ids.forEach(async(id: string) => {
       await call("/streams/Publish", {
         topic: id,
         message: JSON.stringify({
@@ -133,7 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               id: msg.id,
               text: msg.text,
               sent_at: msg.sent_at,
-              author: { ...user },        
+              author: { ...user, current_user: id === user.id },
             },
           },
         })
