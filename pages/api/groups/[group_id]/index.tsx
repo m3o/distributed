@@ -119,25 +119,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // load the recent messages for all members
-  const chatMessages = await group.member_ids.filter(id => user.id !== id)?.reduce(async (res: Record<string,any[]>, id: string) => {
+  var chatMessages: Record<string,any[]> = {}
+  await Promise.all(group.member_ids.filter(id => user.id !== id).map(async (id: string) => {
     var chat_id: any
     try {
       const rsp = await call("/chats/CreateChat", { user_ids: [user.id, id] })
       chat_id = rsp.chat.id
     } catch ({ error, code }) {
       console.error(`Error loading chat: ${error}, code: ${code}`)
-      return res
+      return
     }
 
     try {
       const rsp = await call("/chats/ListMessages", { chat_id })
-      // console.log("CHAT MSGS", id, rsp.messages)
-      return { ...res, [id]: rsp.messages || [] }
+      chatMessages[id] = rsp.messages || []
     } catch ({ error, code }) {
       console.error(`Error loading messages: ${error}, code: ${code}`)
-      return res
     }
-  }, {});
+  }));
 
   // load the details of the users
   var users: any
