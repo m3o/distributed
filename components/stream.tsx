@@ -267,12 +267,20 @@ class ParticipantComponent extends Component<ParticipantProps> {
   }
 
   connectTrack(x: any) {
-    if(x.kind === 'audio') {
-      this.setState({ audioEnabled: true })
-      this.audioRef.current.srcObject = x.track ? x.track.attach().srcObject : x.attach().srcObject
-    } else {
-      this.setState({ videoEnabled: true })
-      this.videoRef.current.srcObject = x.track ? x.track.attach().srcObject : x.attach().srcObject
+    if(!x.track && !x.attach) return;
+
+    try {
+      console.log('connect', x.kind, x.attach().srcObject, this.videoRef.current)
+
+      if(x.kind === 'audio') {
+        this.setState({ audioEnabled: true })
+        this.audioRef.current.srcObject = x.track ? x.track.attach().srcObject : x.attach().srcObject
+      } else {
+        this.setState({ videoEnabled: true })
+        this.videoRef.current.srcObject = x.track ? x.track.attach().srcObject : x.attach().srcObject
+      }
+    } catch (error) {
+      debugger
     }
   }
 
@@ -322,9 +330,9 @@ class ParticipantComponent extends Component<ParticipantProps> {
     return (
       <div className={`${styles.participant} ${sizeStyle}`} onClick={this.onClick}>
         <audio autoPlay playsInline ref={this.audioRef} />
-        <video style={videoEnabled && this.props.videoEnabled ? {} : { display: "none" }} autoPlay playsInline ref={this.videoRef} />
-        { videoEnabled && this.props.videoEnabled ? null : <p>{participant.user.first_name}</p> }
-        { videoEnabled && this.props.videoEnabled ? null : <p className={styles.icons}>{audioEnabled ? <span>🎤</span> : null}{videoEnabled ? <span>🎥</span> : null}</p> }
+        <video style={videoEnabled ? {} : { display: "none" }} autoPlay playsInline ref={this.videoRef} />
+        { videoEnabled ? null : <p>{participant.user.first_name}</p> }
+        { videoEnabled ? null : <p className={styles.icons}>{audioEnabled ? <span>🎤</span> : null}{videoEnabled ? <span>🎥</span> : null}</p> }
       </div>
     )
   }
