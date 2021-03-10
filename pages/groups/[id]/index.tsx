@@ -201,6 +201,10 @@ export default function Group(props) {
     }
   }
 
+  async function createWhiteboard() {
+     // send "whiteboard" message
+  }
+
   async function sendInvite() {
     var email = window.prompt("Enter the email address of the user you want to invite")
     if(!email?.length) return
@@ -510,6 +514,7 @@ export default function Group(props) {
       <div className={styles.actionButtons}>
         <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
         <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p>
+        <p onClick={createWhiteboard}><span>✏️</span></p>
       </div>
       
       { chat ? <ChatUI
