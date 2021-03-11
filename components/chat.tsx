@@ -51,8 +51,30 @@ export default class Chat extends Component<Props, State> {
       onlineUserIDs: [],
       showEmojiPicker: false,
     }
-    this.sendMessage = this.sendMessage.bind(this)
+    this.SendMessage = this.SendMessage.bind(this)
+    this.onSubmit = this.onSubmit.bind(this)
     this.setSeen = this.setSeen.bind(this)
+  }
+
+  SendMessage(text: string) {
+    const resource = { type: this.props.chatType, id: this.props.chatID }
+    const message = { id: uuid(), text }
+    
+    createMessage(resource, message).catch(err => {
+      alert(`Error sending message: ${err}`)
+      this.setState({ messages: this.state.messages.filter(m => m.id !== message.id ) })
+    })
+
+    this.setState({ 
+      messages: [
+        ...this.state.messages,
+        { 
+          ...message,
+          sent_at: Date.now(),
+          author: this.props.participants?.find(p => p.current_user),
+        },
+      ],
+    })
   }
   
   componentDidMount() {
@@ -75,28 +97,10 @@ export default class Chat extends Component<Props, State> {
     }
   }
   
-  sendMessage(e: React.FormEvent<HTMLFormElement>) {
+  onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
-    const resource = { type: this.props.chatType, id: this.props.chatID }
-    const message = { id: uuid(), text: this.state.message }
-    
-    createMessage(resource, message).catch(err => {
-      alert(`Error sending message: ${err}`)
-      this.setState({ messages: this.state.messages.filter(m => m.id !== message.id ) })
-    })
-
-    this.setState({ 
-      message: '',
-      messages: [
-        ...this.state.messages,
-        { 
-          ...message,
-          sent_at: Date.now(),
-          author: this.props.participants?.find(p => p.current_user),
-        },
-      ],
-    })
+    this.SendMessage(this.state.message)
+    this.setState({ message: '' })
   }
 
   render() {
@@ -108,7 +112,7 @@ export default class Chat extends Component<Props, State> {
       </div>
 
       <div className={styles.compose}>
-        <form onSubmit={this.sendMessage}>
+        <form onSubmit={this.onSubmit}>
           <input 
             required
             // ref={r => r?.focus()}

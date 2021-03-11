@@ -1,6 +1,6 @@
 // Frameworks
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { createRef, useState } from 'react'
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
 
@@ -35,6 +35,7 @@ export default function Group(props) {
   const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites'>(undefined)
+  const chatUI = createRef<ChatUI>();
 
   // todo: improve error handling
   if(groupLoader.error || inviteLoader.error) {
@@ -199,6 +200,10 @@ export default function Group(props) {
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
     }
+  }
+
+  function createWhiteboard() {
+    chatUI.current?.SendMessage('whiteboard')
   }
 
   async function sendInvite() {
@@ -510,12 +515,14 @@ export default function Group(props) {
       <div className={styles.actionButtons}>
         <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
         <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p>
+        { chat ? <p onClick={createWhiteboard}><span>✏️</span></p> : null }
       </div>
       
       { chat ? <ChatUI
                   key={chat.id}
                   chatType={chat.type}
                   chatID={chat.id}
+                  ref={chatUI}
                   messages={messages}
                   participants={participants} /> : null }
       </div>
