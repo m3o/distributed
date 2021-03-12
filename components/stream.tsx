@@ -143,12 +143,14 @@ export default class Stream extends Component<Props, State> {
       
       console.log('subscribing to: ', pub.trackName, pub.track)
       pub.on('subscribed', track => {
+        if(track.kind === 'data') return;
         track.attach().muted = !this.props.listening
       })
 		})
   }
 
 	roomJoined(room) {
+    console.log(`Joined room`, room)
     this.setState({ room, connecting: false })
 
 		// Attach LocalParticipant's tracks
@@ -280,7 +282,7 @@ class ParticipantComponent extends Component<ParticipantProps> {
         this.videoRef.current.srcObject = x.track ? x.track.attach().srcObject : x.attach().srcObject
       }
     } catch (error) {
-      debugger
+      console.warn(error)
     }
   }
 
@@ -299,7 +301,7 @@ class ParticipantComponent extends Component<ParticipantProps> {
     this.videoRef.current.muted = this.props.muted
     
     // enable this for awesome debugging:
-    // events.forEach(e => this.props.participant.connection.on(e, x => console.log(e,x)))
+    events.forEach(e => this.props.participant.connection.on(e, x => console.log(e,x)))
 
     this.props.participant.connection.tracks.forEach(this.connectTrack)
     this.props.participant.connection.on('trackStarted', this.connectTrack)
