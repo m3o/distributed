@@ -30,14 +30,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   switch(req.method) {
   case "GET":
     // load the groups
+    var groups = [];
     try {
       const rsp = await call("/groups/List", { member_id: user.id })
-      const groups = rsp.groups?.map(g => ({ id: g.id, name: g.name })) || []
-      res.status(200).json(groups)
+      groups = rsp.groups || []
     } catch ({ error, code }) {
       console.error(`Error loading groups: ${error}. code: ${code}`)
       res.status(500).json({ error })
+      return
     }
+
+    // load the details of the users
+    var users: any
+    try {
+      const user_ids = groups.map(g => g.member_ids).flat();
+      console.log("UserIDS", user_ids, groups)
+      users = (await call("/users/Read", { ids: user_ids })).users
+    } catch ({ error, code }) {
+      console.error(`Error loading users: ${error}, code: ${code}`)
+      res.status(500).json({ error: "Error loading users" })
+      return
+    }
+
+    res.status(200).json(groups.map(g => ({ ...g, users: g.member_ids.map(id => users[id]) })))
     return
   case "POST":
     // create a group
