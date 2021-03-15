@@ -52,7 +52,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return
     }
 
-    res.status(200).json(groups.map(g => ({ ...g, users: g.member_ids.map(id => users[id]) })))
+    res.status(200).json(groups.map(g => ({
+      id: g.id,
+      name: g.name,
+      members: g.member_ids.map(id => users[id]) })
+    ))
     return
   case "POST":
     // create a group
