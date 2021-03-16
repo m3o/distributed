@@ -6,7 +6,6 @@ Distributed is a Next.js based jamstack app for live social chat
 
 Signup to the live demo at [distributed.app](https://distributed.app).
 
-## Screenshot
 
 <img src="screenshot.png" />
 
