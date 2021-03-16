@@ -1,3 +1,5 @@
+## Distributed
+
 Distributed is a Next.js based jamstack app for live social chat
 
 ## Screenshot
