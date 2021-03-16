@@ -135,14 +135,12 @@ export default class Chat extends Component<Props, State> {
     const { listening, joinedAudio, joinedVideo } = this.state
     const toggleAudio = () => this.setState({ joinedAudio: !joinedAudio })
     const toggleVideo = () => this.setState({ joinedVideo: !joinedVideo })
-    const toggleListening = () => this.setState({ listening: !listening })
 
     const roomID = this.props.chatType === 'thread' ? this.props.chatID : this.props.participants.sort((a,b) => a.id > b.id ? 1 : -1).map(a => a.id).join("-")
 
     return(
       <div className={styles.stream}>
         <div className={styles.streamButtons}>
-          {/* <p onClick={toggleListening} className={[styles.button, listening ? styles.buttonActive : ''].join(' ')}>🎧</p> */}
           <p onClick={toggleAudio} className={[styles.button, joinedAudio ? styles.buttonActive : ''].join(' ')}>🎙️</p>
           <p onClick={toggleVideo} className={[styles.button, joinedVideo ? styles.buttonActive : ''].join(' ')}>📹</p>
         </div>
@@ -151,7 +149,6 @@ export default class Chat extends Component<Props, State> {
           roomID={roomID}
           audio={joinedAudio}
           video={joinedVideo}
-          listening={listening}
           className={styles.media}
           participants={this.props.participants} />
       </div>
