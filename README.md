@@ -1,10 +1,17 @@
+## Distributed
+
 Distributed is a Next.js based jamstack app for live social chat
+
+## Live Demo
+
+Signup to the live demo at [distributed.app](https://distributed.app).
+
+
+<img src="screenshot.png" />
 
 ## Usage
 
 Distributed requires the following environment variables before getting started.
-
-<img src="screenshot.png" />
 
 ```
 # The micro API endpoint
