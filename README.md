@@ -19,7 +19,7 @@ TWILIO_ACCOUNT_SID=xxxxxx
 
 Then simply do npm run build and start
 
-````
+```
 # Starts on port 3000
 npm run build && npm start
 ```
