@@ -9,25 +9,40 @@ import { User } from '../lib/user'
 import styles from './stream.module.scss'
 
 interface Props {
+  // the room id is used as the identifier for the twilio video call
   roomID: string
+  // audio indicates if the user has enabled their audio input
   audio?: boolean
+  // video indicates if the user has enabled their video input
   video?: boolean
-  listening: boolean
+  // className which can be optionally provided to add additonal styling to the stream component
   className?: string
+  // the participants in the stream, this is used to add labels to the stream such as user name etc
   participants: User[]
 }
 
 interface State {
+  // the twilio room which contains the connection
   room?: any
+  // the token which must be used to authenticate when connecting to the room
   token?: string
+  // the identity of the current user
   identity?: string
+  // the participants in the stream, grouped by their ID. This is initially populated using the 
+  // participant prop but also contains a reference to the users connection, enabling access to the
+  // video and audio streams.
   participants?: Record<string,Participant>
+  // the connection is being established to twilio, this should only happen once
   connecting: boolean;
 }
 
 interface Participant {
+  // the time at which the user connected to the stream, this is used to sequence the participants
+  // in the user interface, ensuring new users are added to the end of the list
   connectedAt?: number
+  // the connection object containing links to the various media tracks
   connection: any;
+  // the metadata for the user
   user: User
 }
 
@@ -35,17 +50,21 @@ export default class Stream extends Component<Props, State> {
 	constructor(props: Props) {
     super(props)
 
+    // populate the participants object in the state
     const participants = (props.participants || []).reduce((result, user) => ({ ...result, [user.id]: { user } }), {})
     this.state = { participants, connecting: false }
 
+    // these functions require access to the components state and therefore must be bound to it
 		this.roomJoined = this.roomJoined.bind(this)
-		this.attachTracks = this.attachTracks.bind(this)
     this.disconnectRoom = this.disconnectRoom.bind(this)
   }
 
   componentDidMount() {
+    // disconnect from the video stream when the tab is closed, improving the disconnection experience
+    // for other users in the room
     window.addEventListener("beforeunload", this.disconnectRoom)
 
+    // get the token and identity from the API
     getVideoProfile()
       .then(profile => this.setState({ ...profile }))
       .catch(err => alert(`Error loading video credentials: ${err}`))
@@ -57,7 +76,7 @@ export default class Stream extends Component<Props, State> {
   }
 
   async componentDidUpdate(prevProps?: Props, prevState?: State) {
-    // update participants
+    // if the participants is updated (e.g. a user joined or left the group), update the state object
     if(prevProps.participants?.length !== this.props.participants?.length) {
       let participants = {}
       this.props.participants.forEach(p => {
@@ -68,22 +87,29 @@ export default class Stream extends Component<Props, State> {
       return
     }
 
-    // require a token
+    // the rest of this function handles video and audio streams being connected, if there is no token
+    // set, the call to Twilio will fail.
     if(!this.state.token) return;
 
-    // disconnect from the old room if joining a new room
+    // disconnect from the old room if joining a new room. this will happen when switching from one 
+    // room to another if the key prop is not changed.
     const { roomID, audio, video } = this.props
     const { room, token } = this.state
     if(roomID !== prevProps?.roomID && room) this.disconnectRoom()
 
-    // todo: find a cleaner way to share this info globally. redux?
+    // todo: find a cleaner way to share this info globally. this is used in `pages/groups/[id].tsx`
+    // to conditionally warn the user if they try to switch to another room whilst still connected 
+    // to video or audio in the current room.
     window.audioEnabled = audio;
     window.videoEnabled = video;
 
     let tracksToAdd = [];
     if(audio && room && Array.from(room.localParticipant.audioTracks).length === 0) {
+      // if the local audio track is not published, and the user has it enabled, we need to add this
+      // track to the connection
       tracksToAdd.push(await Twilio.createLocalAudioTrack())
     } else if(room && !audio) {
+      // if the user has switched off their audio, we'll unpublish their audio tracks
       Array.from(room.localParticipant.audioTracks).map(t => t[1].track).forEach(t => {
         t.stop()
         room.localParticipant.unpublishTrack(t)
@@ -91,8 +117,11 @@ export default class Stream extends Component<Props, State> {
     }
 
     if(video && room && Array.from(room.localParticipant.videoTracks).length === 0) {
+      // if the local video track is not published, and the user has it enabled, we need to add this
+      // track to the connection
       tracksToAdd.push(await Twilio.createLocalVideoTrack())
     } else if(room && !video) {
+      // if the user has switched off their video, we'll unpublish their video tracks
       Array.from(room.localParticipant.videoTracks).map(t => t[1].track).forEach(t => {
         t.stop()
         room.localParticipant.unpublishTrack(t)
@@ -100,23 +129,15 @@ export default class Stream extends Component<Props, State> {
     }
 
     if(room) {
+      // if we are already connected to a Twilio room, publish new tracks to the existing room
       await Promise.all(tracksToAdd.map(t => room.localParticipant.publishTrack(t)))
     } else if(!this.state.connecting) {
+      // the room has not yet been connected so we can add the tracks whilst connecting to the room
+      // at the same time
       console.log(`Connecting with ${tracksToAdd.length} tracks`)
       this.setState({ connecting: true })
       await Twilio.connect(token, { name: roomID, tracks: tracksToAdd }).then(this.roomJoined, error => {
         alert('Could not connect to Twilio: ' + error.message)
-      })
-    }
-
-    if(video !== prevProps?.video || audio !== prevProps?.audio) {
-      this.setState({
-        participants: {
-          ...this.state.participants,
-          [this.state.identity]: {
-            ...this.state.participants[this.state.identity],
-          },
-        },
       })
     }
   }
@@ -140,12 +161,6 @@ export default class Stream extends Component<Props, State> {
         pub.track.attach().muted = true
         return
       }
-      
-      console.log('subscribing to: ', pub.trackName, pub.track)
-      pub.on('subscribed', track => {
-        if(track.kind === 'data') return;
-        track.attach().muted = !this.props.listening
-      })
 		})
   }
 
@@ -207,19 +222,16 @@ export default class Stream extends Component<Props, State> {
 
 	render() {
     const identity = this.state.identity;
-    const listening = this.props.listening;
     const participants = Object.values(this.state.participants)
                                .filter(p => !!p.connectedAt)
                                .sort((a,b) => a.connectedAt - b.connectedAt)
 
 		return <div className={`${this.props.className} ${styles.container}`}>
       { participants.map(p => {
-        const muted = p.user.id === identity ? true : !listening
-
         return <ParticipantComponent
                   key={p.user.id}
                   participant={p}
-                  muted={muted}
+                  muted={p.user.id === identity}
                   videoEnabled={true} />
       })}
     </div>
@@ -232,28 +244,6 @@ interface ParticipantProps {
   videoEnabled: boolean
 }
 
-const events = [
-  "disconnected",
-  "reconnected",
-  "reconnecting",
-  "trackDimensionsChanged",
-  "trackDisabled",
-  "trackEnabled",
-  "trackMessage",
-  "trackPublished",
-  "trackPublishPriorityChanged",
-  "trackStarted",
-  "trackSubscribed",
-  "trackSubscriptionFailed",
-  "trackSwitchedOff",
-  "trackSwitchedOn",
-  "trackUnpublished",
-  "trackUnsubscribed",
-  "trackDisabled",
-  "trackEnabled",
-  "trackStopped",
-]
-
 class ParticipantComponent extends Component<ParticipantProps> {
   readonly state: { size?: number, audioEnabled: boolean, videoEnabled: boolean }
   readonly videoRef = createRef<HTMLVideoElement>()
@@ -265,9 +255,9 @@ class ParticipantComponent extends Component<ParticipantProps> {
     this.onClick = this.onClick.bind(this)
     this.connectTrack = this.connectTrack.bind(this)
     this.disconnectTrack = this.disconnectTrack.bind(this)
-
   }
 
+  // connect the audio/video source to the participants media track
   connectTrack(x: any) {
     if(!x.track && !x.attach) return;
 
@@ -286,6 +276,7 @@ class ParticipantComponent extends Component<ParticipantProps> {
     }
   }
 
+  // the participant has stopped publishing a track, disconnect from it
   disconnectTrack(x: any) {
     if(x.kind === 'audio') {
       this.audioRef.current.srcObject = undefined
@@ -297,12 +288,10 @@ class ParticipantComponent extends Component<ParticipantProps> {
   }
 
   componentDidMount() {
+    // the local participant should be muted (you don't need to hear yourself)
     this.audioRef.current.muted = this.props.muted
     this.videoRef.current.muted = this.props.muted
     
-    // enable this for awesome debugging:
-    events.forEach(e => this.props.participant.connection.on(e, x => console.log(e,x)))
-
     this.props.participant.connection.tracks.forEach(this.connectTrack)
     this.props.participant.connection.on('trackStarted', this.connectTrack)
     this.props.participant.connection.on('trackStopped', this.disconnectTrack)
@@ -316,6 +305,8 @@ class ParticipantComponent extends Component<ParticipantProps> {
     }
   }
 
+  // make the UI bigger when the participant is clicked. There are 3 sizes: small, medium and large.
+  // when the user clicks on the large UI, it circles back to the small UI.
   onClick(): void {
     let size = this.state.size + 1
     if(size > 2) size = 0
@@ -337,13 +328,5 @@ class ParticipantComponent extends Component<ParticipantProps> {
         { videoEnabled ? null : <p className={styles.icons}>{audioEnabled ? <span>🎤</span> : null}{videoEnabled ? <span>🎥</span> : null}</p> }
       </div>
     )
-  }
-
-  audioTrack(props: ParticipantProps) {
-    return Array.from(props.participant.connection.audioTracks).map(x => x[1])[0]?.track
-  }
-
-  videoTrack(props: ParticipantProps) {
-    return Array.from(props.participant.connection.videoTracks).map(x => x[1])[0]?.track
   }
 }
