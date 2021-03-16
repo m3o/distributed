@@ -4,6 +4,8 @@ Distributed is a Next.js based jamstack app for live social chat
 
 Distributed requires the following environment variables before getting started.
 
+<img src="screenshot.png" />
+
 ```
 # The micro API endpoint
 MICRO_API_ENDPOINT=https://api.m3o.com
