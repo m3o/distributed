@@ -31,6 +31,7 @@ export default function Group(props) {
   const groupLoader = useGroup(props.id)
   const inviteLoader = useInvites(props.id)
   const [chat, setChat] = useState<Chat>()
+  const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites'>(undefined)
   const chatUI = createRef<ChatUI>();
@@ -41,11 +42,8 @@ export default function Group(props) {
     return <div />
   }
 
-  if(groupLoader.group) {
-    connectWebsocket()
-  }
-
-  function connectWebsocket() {
+  if(!connected && groupLoader.group) {
+    setConnected(true)
     const w = groupLoader.group.websocket
     let ws = new WebSocket(w.url)
 
@@ -130,7 +128,7 @@ export default function Group(props) {
     ws.onclose = () => {
       console.log("Websocket closed")
       // reconnect in 5 secs
-      setTimeout(connectWebsocket, 5000)
+      setTimeout(setConnected(false),5000)
     }
 
     ws.onerror = (ev) => {

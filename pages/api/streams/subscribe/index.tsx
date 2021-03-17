@@ -20,6 +20,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     wss.on('close', () => {
       console.log('websocket to client closed')
       connectionClosed = true
+      if (wsToMicro) {
+        wsToMicro.close()
+      }
     })
     wss.on('connection', (wss, req1) => {
       wss.on('message', (data) => {
@@ -38,7 +41,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             wss.close()
           }
         })
-
+        wsToMicro.on('close', () =>  {
+          wss.close()
+        })
         wsToMicro.on('open', () => {
           wsToMicro.send(data)
         })
@@ -49,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
 
     })
+
     wss.handleUpgrade(req, req.socket, req.headers, (wssInput) => {
       wss.emit('connection', wssInput, req)
     })
