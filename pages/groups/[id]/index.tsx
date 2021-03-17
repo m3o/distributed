@@ -127,8 +127,7 @@ export default function Group(props) {
 
     ws.onclose = () => {
       console.log("Websocket closed")
-      // reconnect in 5 secs
-      setTimeout(setConnected(false),5000)
+      setConnected(false)
     }
 
     ws.onerror = (ev) => {
