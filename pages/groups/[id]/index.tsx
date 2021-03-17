@@ -1,7 +1,6 @@
 // Frameworks
 import { useRouter } from 'next/router'
 import { createRef, useState } from 'react'
-import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
 
 // Components
@@ -171,10 +170,11 @@ export default function Group(props) {
   // default to the last opened chat, or the first
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
     const chatStr = localStorage.getItem(`group/${props.id}/chat`)
+
     if(chatStr) {
       const { type, id } = JSON.parse(chatStr)
       setChatWrapped(type, id)
-    } else {
+    } else if (groupLoader.group.threads?.length) {
       setChatWrapped('thread', groupLoader.group.threads[0].id)
     }
   }
@@ -182,10 +182,14 @@ export default function Group(props) {
   let messages = []
   let participants = []
   if(chat?.type === 'thread') {
-    messages = groupLoader?.group?.threads?.find(s => s.id === chat.id)?.messages || []
+    const thread = groupLoader?.group?.threads?.find(s => s.id === chat.id)
+    if(!thread) clearChatWrapped();
+    messages = thread?.messages || []
     participants = groupLoader?.group?.members || []
   } else if(chat?.type === 'chat') {
-    messages = groupLoader?.group?.members?.find(s => s.id === chat.id)?.chat?.messages || []
+    const member = groupLoader?.group?.members?.find(s => s.id === chat.id)
+    if(!member) clearChatWrapped();
+    messages = member?.chat?.messages || []
     participants = groupLoader.group.members.filter(m => m.id === chat.id || m.current_user)
   }
 
@@ -267,7 +271,6 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.threads?.filter(t => t.id !== chat.id),
       })
-      clearChatWrapped()
     } catch (error) {
       alert(`Error deleting room: ${error}`)
     }
@@ -282,7 +285,6 @@ export default function Group(props) {
         ...groupLoader.group,
         threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
       })
-      clearChatWrapped()
     } catch (error) {
       alert(`Error removing user: ${error}`)
     }
@@ -512,9 +514,9 @@ export default function Group(props) {
     </div>
 
     <div className={styles.main}>
-      <div className={styles.actionButtons}>
+    <div className={styles.actionButtons}>
         <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
-        <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p>
+        { chat ? <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p> : null }
         { chat ? <p onClick={createWhiteboard}><span>✏️</span></p> : null }
       </div>
       
