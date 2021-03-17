@@ -99,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // publish the message to the other user and ourselves
   try {
-    await call("/streams/Publish", {
+    await call("/v1/streams/Publish", {
       topic: chatUser.id,
       message: JSON.stringify({
         type: "message.created",
@@ -117,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       })
     })
-    await call("/streams/Publish", {
+    await call("/v1/streams/Publish", {
       topic: user.id,
       message: JSON.stringify({
         type: "message.created",
