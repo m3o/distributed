@@ -14,8 +14,9 @@ Signup to the live demo at [distributed.app](https://distributed.app).
 Distributed requires the following environment variables before getting started.
 
 ```
-# The micro API endpoint
+# The micro API endpoint/key
 MICRO_API_ENDPOINT=https://api.m3o.com
+MICRO_API_KEY=xxxxxxx
 
 # Sendgrid api key for sending invites
 SENDGRID_API_KEY=xxxxxxxx

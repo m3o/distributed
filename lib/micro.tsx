@@ -3,13 +3,22 @@ if(process.env.MICRO_API_ENDPOINT?.length) {
   BaseURL = process.env.MICRO_API_ENDPOINT
 }
 
+export var APIKey = 'NONE'
+if(process.env.MICRO_API_KEY?.length) {
+  APIKey = process.env.MICRO_API_KEY
+}
+
 // call makes HTTP JSON calls to the Micro API. If the request succeeds (200), the response body is 
 // returned, otherwise the error is parsed from the response body and returned in the reject. If no 
 // error is returned in the response body, the response status text is returned.
 export default function call(path: string, params?: any): Promise<any> {
   return new Promise<any>((resolve: any, reject: any) => {
     const body = JSON.stringify(params)
-    const headers = { 'Content-Type': 'application/json' }
+    let headers = { 'Content-Type': 'application/json' } as any
+    if (path.startsWith('/v1/')) {
+      // TODO make this less hacky
+      headers.Authorization = 'Bearer '+APIKey
+    }
     console.log(`Calling Micro API ${path}`)
 
     fetch(BaseURL + path, { method: 'POST', body , headers })

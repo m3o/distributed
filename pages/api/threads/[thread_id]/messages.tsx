@@ -119,7 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // publish the message to the other users in the group
   try {
     group.member_ids.forEach(async(id: string) => {
-      await call("/streams/Publish", {
+      await call("/v1/streams/Publish", {
         topic: id,
         message: JSON.stringify({
           type: "message.created",
