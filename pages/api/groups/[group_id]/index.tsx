@@ -72,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // publish the message to the other users in the group
     try {
       group.member_ids.forEach(async(id: string) => {
-        await call("/v1/streams/Publish", {
+        await call("/streams/Publish", {
           topic: id,
           message: JSON.stringify({
             type: "group.updated",
@@ -173,12 +173,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // generate a token for the websocket
   var websocket: any = { topic: user.id }
   try {
-    websocket.token = (await call("/v1/streams/Token", websocket)).token
-    let protocol = 'ws'
-    if (req.headers.referer && req.headers.referer.startsWith('https:')) {
-      protocol = 'wss'
-    }
-    websocket.url = protocol + '://'+ req.headers.host + "/api/streams/subscribe"
+    websocket.token = (await call("/streams/Token", websocket)).token
+    websocket.url = BaseURL.replace('http', 'ws') + "/streams/Subscribe"
   } catch ({ error, code }) {
     console.error(`Error loading websocket token: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading websocket token"})

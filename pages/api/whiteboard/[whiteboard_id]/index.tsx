@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import Call, { BaseURL, APIKey } from '../../../../lib/micro';
+import Call, { BaseURL } from '../../../../lib/micro';
 import TokenFromReq from '../../../../lib/token';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,12 +14,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if(req.method === 'GET') {
     var websocket: any = { topic: 'whiteboard-' + whiteboard_id }
     try {
-      websocket.token = (await Call("/v1/streams/Token", websocket)).token
-      let protocol = 'ws'
-      if (req.headers.referer && req.headers.referer.startsWith('https:')) {
-        protocol = 'wss'
-      }
-      websocket.url = protocol + '://'+ req.headers.host + "/api/streams/subscribe"
+      websocket.token = (await Call("/streams/Token", websocket)).token
+      websocket.url = BaseURL.replace('http', 'ws') + "/streams/Subscribe"
       res.status(200).json({ websocket })
     } catch ({ error, code }) {
       console.error(`Error loading websocket token: ${error}, code: ${code}`)
@@ -54,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   try {
     console.log("Publishing to topic", 'whiteboard-' + whiteboard_id)
-    await Call("/v1/streams/Publish", {
+    await Call("/streams/Publish", {
       topic: 'whiteboard-' + whiteboard_id,
       message: JSON.stringify(body)
     })
