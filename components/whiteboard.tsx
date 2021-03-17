@@ -54,7 +54,10 @@ export default class Whiteboard extends React.Component<Props, State> {
       }
 
       console.log(`Processing whiteboard event ${payload}`);
-      var ctx = this.canvas.current.getContext('2d');
+      var ctx = this.canvas.current?.getContext('2d');
+      if (!ctx) {
+        return
+      }
       if(payload.status === 'move') {
         ctx.moveTo(payload.x, payload.y);
       } else if(payload.status === 'draw') {
@@ -65,6 +68,7 @@ export default class Whiteboard extends React.Component<Props, State> {
 
     ws.onclose = () => {
       console.log("Whiteboard websocket closed")
+      // reconnect?
     }
     
     ws.onerror = () => {
