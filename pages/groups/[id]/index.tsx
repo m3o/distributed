@@ -44,9 +44,8 @@ export default function Group(props) {
 
   if(!connected && groupLoader.group) {
     setConnected(true)
-
     const w = groupLoader.group.websocket
-    var ws = new WebSocket(w.url)
+    let ws = new WebSocket(w.url)
 
     ws.onopen = function (event) {
       console.log("Websocket opened")
@@ -57,72 +56,72 @@ export default function Group(props) {
       // todo: fix duplicate encoding?!
       const event = JSON.parse(data)
       const message = JSON.parse(JSON.parse(event.message))
-      
+
       if(message.group_id && message.group_id !== props.id) {
         console.log("Ignoring message: ", message)
         return
       }
 
       switch(message.type) {
-      case 'group.updated':
-        console.log("Group updated:", message)
-        groupLoader.mutate({ ...groupLoader.group, ...message })
-        break
-      case 'group.user.left':
-        console.log("User left group:", message)
-        if(message.payload.current_user) {
-          alert("You have been removed from the group")
-          window.location.href = '/'
-          return
-        }
-        groupLoader.mutate({ ...groupLoader.group, members: groupLoader.group.members?.filter(m => m.id !== message.payload.id) }, false)
-        break
-      case 'group.user.joined':
-        console.log("User joined group:", message)
-        groupLoader.mutate({ 
-          ...groupLoader.group, 
-          members: [
-            ...groupLoader.group.members,
-            message.payload,
-          ],
-        })
-        break
-      case 'tread.created':
-        console.log("Thread created: ", message)
-        groupLoader.mutate({ 
-          ...groupLoader.group, 
-          threads: [
-            ...groupLoader.group.threads,
-            message.payload,
-          ],
-        })
-        break
-      case 'thread.updated':
-        console.log("Thread updated: ", message)
-        groupLoader.mutate({
-          ...groupLoader.group, 
-          threads: [
-            ...groupLoader.group.threads.filter(t => t.id !== message.payload.id),
-            { ...groupLoader.group.threads.find(t => t.id === message.payload.id), ...message.payload },
-          ],
-        })
-        break
-      case 'thread.deleted':
-        console.log("Thread deleted: ", message)
-        groupLoader.mutate({ ...groupLoader.group, threads: groupLoader.group.threads?.filter(m => m.id !== message.payload.id) }, false)
-        if(chat?.type === 'thread' && chat?.id === message.payload.id) setChat(undefined)
-        break
-      case 'message.created':
-        console.log("New message: ", message)
-        let group = { ...groupLoader.group }
-        if(message.payload.chat.type === "chat") {
-          group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
-        } else if(message.payload.chat.type === "thread") {
-          const messages = group.threads.find(m => m.id === message.payload.chat.id)?.messages || []
-          group.threads.find(m => m.id === message.payload.chat.id).messages = [...messages, message.payload.message]
-        }
-        groupLoader.mutate(group)
-        break
+        case 'group.updated':
+          console.log("Group updated:", message)
+          groupLoader.mutate({ ...groupLoader.group, ...message })
+          break
+        case 'group.user.left':
+          console.log("User left group:", message)
+          if(message.payload.current_user) {
+            alert("You have been removed from the group")
+            window.location.href = '/'
+            return
+          }
+          groupLoader.mutate({ ...groupLoader.group, members: groupLoader.group.members?.filter(m => m.id !== message.payload.id) }, false)
+          break
+        case 'group.user.joined':
+          console.log("User joined group:", message)
+          groupLoader.mutate({
+            ...groupLoader.group,
+            members: [
+              ...groupLoader.group.members,
+              message.payload,
+            ],
+          })
+          break
+        case 'tread.created':
+          console.log("Thread created: ", message)
+          groupLoader.mutate({
+            ...groupLoader.group,
+            threads: [
+              ...groupLoader.group.threads,
+              message.payload,
+            ],
+          })
+          break
+        case 'thread.updated':
+          console.log("Thread updated: ", message)
+          groupLoader.mutate({
+            ...groupLoader.group,
+            threads: [
+              ...groupLoader.group.threads.filter(t => t.id !== message.payload.id),
+              { ...groupLoader.group.threads.find(t => t.id === message.payload.id), ...message.payload },
+            ],
+          })
+          break
+        case 'thread.deleted':
+          console.log("Thread deleted: ", message)
+          groupLoader.mutate({ ...groupLoader.group, threads: groupLoader.group.threads?.filter(m => m.id !== message.payload.id) }, false)
+          if(chat?.type === 'thread' && chat?.id === message.payload.id) setChat(undefined)
+          break
+        case 'message.created':
+          console.log("New message: ", message)
+          let group = { ...groupLoader.group }
+          if(message.payload.chat.type === "chat") {
+            group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
+          } else if(message.payload.chat.type === "thread") {
+            const messages = group.threads.find(m => m.id === message.payload.chat.id)?.messages || []
+            group.threads.find(m => m.id === message.payload.chat.id).messages = [...messages, message.payload.message]
+          }
+          groupLoader.mutate(group)
+          break
       }
     }
 
@@ -130,10 +129,9 @@ export default function Group(props) {
       console.log("Websocket closed")
       setConnected(false)
     }
-    
-    ws.onerror = () => {
-      console.log("Websocket errored")
-      setConnected(false)
+
+    ws.onerror = (ev) => {
+      console.log("Websocket errored "+JSON.stringify(ev))
     }
   }
 
