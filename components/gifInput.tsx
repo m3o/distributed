@@ -1,18 +1,21 @@
 import React from 'react';
-import 'reactjs-popup/dist/index.css';
 import { GifsResult, GiphyFetch } from '@giphy/js-fetch-api'
 import popupStyles from '../pages/groups/[id]/index.module.scss';
 import styles from './gifInput.module.scss';
+import 'reactjs-popup/dist/index.css';
+import { stripePromise } from '../pages';
 
 interface GifInputProps {
   dismiss: Function;
-  onSelect: (url: string) => void;
+  groupID: string;
+  threadID: string;
 }
 
 interface GifInputState {
   query: string;
   result?: GifsResult;
   selectedSlug?: string;
+  loading?: boolean;
 }
 
 const gf = new GiphyFetch('lXFRs8N90qpxZlL2NtA1RJQBbdoZDNbp');
@@ -37,10 +40,23 @@ export default class GifInput extends React.Component<GifInputProps, GifInputSta
     gf.search(query).then(result => this.setState({ result }))
   }
 
-  onSend() {
+  async onSend() {
     const image = this.state.result?.data?.find(i => i.slug === this.state.selectedSlug);
     if(!image) return;
-    this.props.onSelect(image.images.original.url);
+
+    this.setState({ loading: true })
+
+    const body = JSON.stringify({ groupID: this.props.groupID, imageURL: image.images.original.url, threadID: this.props.threadID })
+    const rsp = await fetch("/api/payments/checkoutSession", { method: "POST", body })
+    const { id } = await rsp.json()
+
+    const stripe = await stripePromise;
+    const result = await stripe.redirectToCheckout({ sessionId: id });
+
+    if(result.error) {
+      alert(`Error creating payment: ${result.error.message}`)
+      this.setState({ loading: false })
+    }
   }
 
   render() {
@@ -66,7 +82,7 @@ export default class GifInput extends React.Component<GifInputProps, GifInputSta
             </div>
           </div>
 
-          { this.state.selectedSlug ? <button onClick={this.onSend}>Send gif</button> : null }
+          { this.state.selectedSlug ? <button disabled={this.state.loading} onClick={this.onSend}>Send gif</button> : null }
         </section>
       </div>
     </div>

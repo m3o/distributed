@@ -44,7 +44,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     var users: any
     try {
       const user_ids = groups.map(g => g.member_ids).flat();
-      console.log("UserIDS", user_ids, groups)
       users = (await call("/users/Read", { ids: user_ids })).users
     } catch ({ error, code }) {
       console.error(`Error loading users: ${error}, code: ${code}`)

@@ -11,8 +11,8 @@ import GifInput from '../../../components/gifInput';
 // Utilities
 import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite, Invite, revokeInvite, useInvites } from '../../../lib/invites'
-import { Message } from '../../../lib/message'
 import { deleteProfile, updateUser, User } from '../../../lib/user'
+import { Message } from '../../../lib/message'
 
 // Styling
 import styles from './index.module.scss'
@@ -412,7 +412,10 @@ export default function Group(props) {
       setSubview(undefined);
     }
 
-    return <GifInput onSelect={onSelect} dismiss={() => setSubview(undefined) } />
+    return <GifInput
+              threadID={chat.id}
+              groupID={groupLoader.group.id}
+              dismiss={() => setSubview(undefined) } />
   }
 
   let initials = '';
@@ -529,7 +532,7 @@ export default function Group(props) {
         <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
         { chat ? <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p> : null }
         { chat ? <p onClick={createWhiteboard}><span>✏️</span></p> : null }
-        { chat ? <p onClick={() => setSubview('gif')}><span>🤪</span></p> : null }
+        { chat?.type === 'thread' ? <p onClick={() => setSubview('gif')}><span>🤪</span></p> : null }
       </div>
       
       { chat ? <ChatUI
