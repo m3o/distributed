@@ -32,12 +32,17 @@ export default class GifInput extends React.Component<GifInputProps, GifInputSta
   onQueryChange(e: React.ChangeEvent<HTMLInputElement>) {
     const query = e.target.value || '';
     if (!query?.length) {
-      this.setState({ query })
+      this.setState({ query, result: undefined })
+      gf.trending().then(result => this.setState({ result }))
       return
     }
 
     this.setState({ query })
     gf.search(query).then(result => this.setState({ result }))
+  }
+
+  componentDidMount() {
+    gf.trending().then(result => this.setState({ result }))
   }
 
   async onSend() {
