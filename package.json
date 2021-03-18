@@ -9,6 +9,8 @@
     "export": "next export"
   },
   "dependencies": {
+    "@giphy/js-fetch-api": "^2.4.0",
+    "@giphy/react-components": "^2.3.2-alpha.1",
     "@sendgrid/mail": "^7.4.2",
     "@types/twilio": "^2.11.0",
     "@types/twilio-video": "^2.7.3",
