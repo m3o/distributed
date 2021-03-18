@@ -56,6 +56,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     wss.handleUpgrade(req, req.socket, req.headers, (wssInput) => {
+      wssInput.on('error', (error) => {
+        console.error('connection error on upgraded socket ' + JSON.stringify(error))
+        if (wsToMicro) {
+          wsToMicro.close()
+        }
+        if (wss) {
+          wss.close()
+        }
+      })
       wss.emit('connection', wssInput, req)
     })
 
