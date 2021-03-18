@@ -9,7 +9,10 @@
     "export": "next export"
   },
   "dependencies": {
+    "@giphy/js-fetch-api": "^2.4.0",
+    "@giphy/react-components": "^2.3.2-alpha.1",
     "@sendgrid/mail": "^7.4.2",
+    "@stripe/stripe-js": "^1.13.1",
     "@types/twilio": "^2.11.0",
     "@types/twilio-video": "^2.7.3",
     "cookie": "^0.4.1",
@@ -29,6 +32,7 @@
     "remark-html": "^13.0.1",
     "sass": "^1.32.4",
     "sendgrid": "^5.2.3",
+    "stripe": "^8.138.0",
     "swr": "^0.4.0",
     "twilio": "^3.55.1",
     "twilio-video": "^2.11.0",

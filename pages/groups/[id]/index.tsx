@@ -1,17 +1,18 @@
 // Frameworks
-import { useRouter } from 'next/router'
-import { createRef, useState } from 'react'
-import 'reactjs-popup/dist/index.css';
+import React from 'react';
+import { useRouter } from 'next/router';
+import { createRef, useState } from 'react';
 
 // Components
 import ChatUI from '../../../components/chat'
 import Layout from '../../../components/layout'
+import GifInput from '../../../components/gifInput';
 
 // Utilities
 import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
 import { createInvite, Invite, revokeInvite, useInvites } from '../../../lib/invites'
-import { Message } from '../../../lib/message'
 import { deleteProfile, updateUser, User } from '../../../lib/user'
+import { Message } from '../../../lib/message'
 
 // Styling
 import styles from './index.module.scss'
@@ -33,7 +34,7 @@ export default function Group(props) {
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
-  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites'>(undefined)
+  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'>(undefined)
   const chatUI = createRef<ChatUI>();
 
   // todo: improve error handling
@@ -403,6 +404,18 @@ export default function Group(props) {
     </div>
   }
 
+  function renderGifInput(): JSX.Element {
+    const onSelect = (url: string) => {
+      chatUI.current?.SendMessage(url);
+      setSubview(undefined);
+    }
+
+    return <GifInput
+              threadID={chat.id}
+              groupID={groupLoader.group.id}
+              dismiss={() => setSubview(undefined) } />
+  }
+
   let initials = '';
   const [user, setUser] = useState<User>()
   if(user) {
@@ -462,6 +475,7 @@ export default function Group(props) {
     { subview === 'chat-settings' ? renderChatSettings() : null }
     { subview === 'edit-profile' ? renderEditProfile() : null }
     { subview === 'manage-invites' ? renderInvites() : null }
+    { subview === 'gif' ? renderGifInput() : null }
 
     <div className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}>
       <div className={styles.upper} onClick={() => setSubview('settings')}>
@@ -516,6 +530,7 @@ export default function Group(props) {
         <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
         { chat ? <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p> : null }
         { chat ? <p onClick={createWhiteboard}><span>✏️</span></p> : null }
+        { chat?.type === 'thread' ? <p onClick={() => setSubview('gif')}><span>🤪</span></p> : null }
       </div>
       
       { chat ? <ChatUI
