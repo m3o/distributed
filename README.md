@@ -25,6 +25,9 @@ SENDGRID_API_KEY=xxxxxxxx
 TWILIO_API_KEY=xxxxxxx
 TWILIO_API_SECRET=xxxxx
 TWILIO_ACCOUNT_SID=xxxxxx
+
+# Stripe api key to pay for gifs
+STRIPE_PUBLIC_KEY=xxxxxx
 ```
 
 Then simply do npm run build and start
