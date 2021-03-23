@@ -13,7 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   var user: any;
   try {
-    const rsp = await call("/users/ReadByEmail", { emails: [body.email] })
+    const rsp = await call("/v1/users/readbyemail", { emails: [body.email] })
     user = rsp.users ? rsp.users[body.email?.toLowerCase()] : null
   } catch ({ error, code }) {
     console.error(`Error reading users: ${error}`)
@@ -34,14 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    await call("/users/Update", { id: user.id, password: body.password })
+    await call("/v1/users/update", { id: user.id, password: body.password })
   } catch ({ error, code }) {
     res.status(code).json({ error })
     return
   }
 
   try {
-    const rsp = await call("/users/Login", { email: user.email, password: body.password })
+    const rsp = await call("/v1/users/login", { email: user.email, password: body.password })
     res.setHeader('Set-Cookie', serialize('token', rsp.token, { path: '/' }));
     res.status(200).json(rsp);
   } catch ({ error, code }) {

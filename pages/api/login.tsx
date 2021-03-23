@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const params: RequestBody = JSON.parse(req.body)
 
   try {
-    const rsp = await call("/users/Login", params)
+    const rsp = await call("/v1/users/login", params)
     res.setHeader('Set-Cookie', serialize('token', rsp.token, { path: '/' }));
     res.status(200).json(rsp);
   } catch ({ error, code }) {

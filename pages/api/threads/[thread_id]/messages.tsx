@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // authenticate the request
   var user: any
   try {
-    const rsp = await call("/users/Validate", { token })
+    const rsp = await call("/v1/users/validate", { token })
     user = rsp.user
   } catch ({ error, code }) {
     if(code === 400) code = 401
@@ -77,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     var users = {}
     try {
-      const rsp = await call("/users/Read", { ids: messages.map(m => m.author_id)} )
+      const rsp = await call("/v1/users/read", { ids: messages.map(m => m.author_id)} )
       users = rsp.users || {}
     } catch ({ error, code }) {
       console.error(`Error loading users: ${error}, code: ${code}`)

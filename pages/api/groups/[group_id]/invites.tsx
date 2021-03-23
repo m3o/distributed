@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // authenticate the request
   var user: any
   try {
-    const rsp = await call("/users/Validate", { token })
+    const rsp = await call("/v1/users/validate", { token })
     user = rsp.user
   } catch ({ error, code }) {
     if(code === 400) code = 401
