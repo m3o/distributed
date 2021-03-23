@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   var user: any
   try {
-    const rsp = await call("/v1/users/readbyemail", { emails: [body.email] })
+    const rsp = await call("/v1/users/ReadByEmail", { emails: [body.email] })
     user = rsp.users ? rsp.users[body.email?.toLowerCase()] : null
   } catch ({ error, code }) {
     console.error(`Error reading users: ${error}`)
