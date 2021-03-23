@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // determine which user is making the logout request
   var userID: string;
   try {
-    const rsp = await call("/users/Validate", { token })
+    const rsp = await call("/v1/users/validate", { token })
     userID = rsp.user.id
   } catch ({ error, code }) {
     res.status(200).json({})
@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // logout the user, deactiving the token
   try {
-    await call("/users/Logout", { id: userID })
+    await call("/v1/users/logout", { id: userID })
     res.status(200).json({})
   } catch ({ error, code }) {
     res.status(code).json({ error })

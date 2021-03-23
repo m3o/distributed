@@ -145,13 +145,24 @@ export default function Group(props) {
 
     if(chat?.type === 'thread') {
       let threads = [...groupLoader.group.threads]
-      threads.find(t => t.id === chat.id).last_seen = Date.now().toString()
+      if (!threads) {
+        console.log('No threads loaded')
+        return
+      }
+      let thr = threads.find(t => t.id === chat.id)
+      if (thr) {
+        thr.last_seen = Date.now().toString()
+      }
+
       groupLoader.mutate({ ...group, threads }, false)
     } else if(chat?.type === 'chat') {
       let members = [...group.members]
-      members.find(t => t.id === chat.id).chat = { 
-        ...(members.find(t => t.id === chat.id).chat || {}),
-        last_seen: Date.now().toString(),
+      let thr = members.find(t => t.id === chat.id)
+      if (thr) {
+        thr.chat = {
+          ...(members.find(t => t.id === chat.id).chat || {}),
+          last_seen: Date.now().toString(),
+        }
       }
       groupLoader.mutate({ ...group, members }, false)
     }

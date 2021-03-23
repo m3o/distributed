@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   var user: any;
   var token: any;
   try {
-    const rsp = await call("/users/Create", {
+    const rsp = await call("/v1/users/create", {
       first_name: body.first_name,
       last_name: body.last_name,
       email: body.email,

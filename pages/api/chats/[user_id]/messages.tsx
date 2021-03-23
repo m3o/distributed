@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // authenticate the request
   var user: any
   try {
-    const rsp = await call("/users/Validate", { token })
+    const rsp = await call("/v1/users/validate", { token })
     user = rsp.user
   } catch ({ error, code }) {
     if(code === 400) code = 401
@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the user they are opening the chat with
   var chatUser: any
   try {
-    const rsp = await call("/users/Read", { ids: [user_id] })
+    const rsp = await call("/v1/users/read", { ids: [user_id] })
     chatUser = rsp.users[user_id as string]
   } catch ({ error, code }) {
     res.status(code).json({ error })

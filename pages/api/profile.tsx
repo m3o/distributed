@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   var user: any;
   try {
-    const rsp = await call("/users/Validate", { token })
+    const rsp = await call("/v1/users/validate", { token })
     user = rsp.user
   } catch ({ error, code }) {
     if(code === 400) code = 401
@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      await call ("/users/Update", { ...body, id: user.id })
+      await call ("/v1/users/update", { ...body, id: user.id })
       res.status(200).json({})
     } catch ({ error, code }) {
       console.error(`Error updating user: ${error}`)
@@ -68,6 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // delete the user
-  await call("/users/Delete", { id: user.id })
+  await call("/v1/users/delete", { id: user.id })
   res.status(200).json({})
 }
