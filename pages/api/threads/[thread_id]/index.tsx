@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the thread
   var thread: any
   try {
-    const rsp = await call("/threads/ReadConversation", { id: thread_id })
+    const rsp = await call("/v1/threads/ReadConversation", { id: thread_id })
     thread = rsp.conversation
   } catch ({ error, code }) {
     console.error(`Error loading conversation: ${error}, code: ${code}`)
@@ -63,7 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // delete the thread
   if(req.method === 'DELETE') {
     try {
-      await call("/threads/DeleteConversation", { id: thread.id })
+      await call("/v1/threads/DeleteConversation", { id: thread.id })
     } catch ({ error, code }) {
       res.status(code).json({ error })
       return
@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      await call("/threads/UpdateConversation", { id: thread.id, topic: body.topic })
+      await call("/v1/threads/UpdateConversation", { id: thread.id, topic: body.topic })
     } catch ({ error, code }) {
       res.status(code).json({ error })
       return
