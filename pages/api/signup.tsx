@@ -47,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group to get the members
   var group: any
   try {
-    group = (await call("/groups/Read", { ids: [invite.group_id] })).groups[invite.group_id]
+    group = (await call("/v1/groups/Read", { ids: [invite.group_id] })).groups[invite.group_id]
   } catch ({ error, code }) {
     console.error(`Error reading group: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error reading group" })
@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // add the user as a member of the group
   try {
-    await call("/groups/AddMember", { group_id: invite.group_id, member_id: user.id })
+    await call("/v1/groups/AddMember", { group_id: invite.group_id, member_id: user.id })
   } catch ({ error, code }) {
     console.error(`Error adding member to group: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error accepting invitation" })

@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group
   var group: any
   try {
-    const rsp = await call("/groups/Read", { ids: [group_id] })
+    const rsp = await call("/v1/groups/Read", { ids: [group_id] })
     group = rsp.groups[group_id as string]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -62,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      await call("/groups/Update", { id: group.id, name: body.name })
+      await call("/v1/groups/Update", { id: group.id, name: body.name })
     } catch ({ error, code }) {
       console.error(`Error updating group: ${error}, code: ${code}`)
       res.status(500).json({ error: "Error updating group" })

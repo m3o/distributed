@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // check the user is part of the group
   var group: any
   try {
-    const rsp = await call("/groups/List", { member_id: user.id })
+    const rsp = await call("/v1/groups/List", { member_id: user.id })
     group = rsp.groups?.find(g => g.id === invite.group_id)
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}. code: ${code}`)
