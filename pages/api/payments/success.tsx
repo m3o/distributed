@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       author_id: user.id,
       text: imageURL,
     }
-    msg = (await call("/threads/CreateMessage", params)).message
+    msg = (await call("/v1/threads/CreateMessage", params)).message
   } catch ({ error, code }) {
     res.status(500).json({ error: "Error creating message" })
     return

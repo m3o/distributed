@@ -54,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // create the thread
   var conversation: any;
   try {
-    const rsp = await call("/threads/CreateConversation", { group_id, topic: body.topic })
+    const rsp = await call("/v1/threads/CreateConversation", { group_id, topic: body.topic })
     conversation = rsp.conversation
   } catch ({ error, code }) {
     res.status(code).json({ error })
