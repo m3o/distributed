@@ -123,7 +123,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await Promise.all(group.member_ids.filter(id => user.id !== id).map(async (id: string) => {
     var chat_id: any
     try {
-      const rsp = await call("/chats/CreateChat", { user_ids: [user.id, id] })
+      const rsp = await call("/v1/chats/CreateChat", { user_ids: [user.id, id] })
       chat_id = rsp.chat.id
     } catch ({ error, code }) {
       console.error(`Error loading chat: ${error}, code: ${code}`)
@@ -131,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      const rsp = await call("/chats/ListMessages", { chat_id })
+      const rsp = await call("/v1/chats/ListMessages", { chat_id })
       chatMessages[id] = rsp.messages || []
     } catch ({ error, code }) {
       console.error(`Error loading messages: ${error}, code: ${code}`)
