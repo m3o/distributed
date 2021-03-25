@@ -42,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group
   var group: any
   try {
-    const rsp = await call("/groups/Read", { ids: [thread.group_id] })
+    const rsp = await call("/v1/groups/Read", { ids: [thread.group_id] })
     group = rsp.groups[thread.group_id]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)

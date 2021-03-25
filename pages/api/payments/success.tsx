@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group
   var group: any
   try {
-    const rsp = await call("/groups/Read", { ids: [groupID] })
+    const rsp = await call("/v1/groups/Read", { ids: [groupID] })
     group = rsp.groups[groupID];
   } catch ({ error, code }) {
     res.status(500).json({ error: "Error finding group" })

@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // load the groups
     var groups = [];
     try {
-      const rsp = await call("/groups/List", { member_id: user.id })
+      const rsp = await call("/v1/groups/List", { member_id: user.id })
       groups = rsp.groups || []
     } catch ({ error, code }) {
       console.error(`Error loading groups: ${error}. code: ${code}`)
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // create a group
     var group: any
     try {
-      const rsp = await call("/groups/Create", JSON.parse(req.body))
+      const rsp = await call("/v1/groups/Create", JSON.parse(req.body))
       group = rsp.group
     } catch ({ error, code }) {
       res.status(code).json({ error })
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // join the group
     try {
-      await call("/groups/AddMember", { group_id: group.id, member_id: user.id })
+      await call("/v1/groups/AddMember", { group_id: group.id, member_id: user.id })
       res.status(201).json({ group })
     } catch ({ error, code }) {
       res.status(code).json({ error })

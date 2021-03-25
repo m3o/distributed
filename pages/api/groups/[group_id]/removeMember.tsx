@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group
   var group: any
   try {
-    const rsp = await call("/groups/Read", { ids: [group_id] })
+    const rsp = await call("/v1/groups/Read", { ids: [group_id] })
     group = rsp.groups[group_id as string]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -60,7 +60,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   // remove the user from group
   try {
-    await call("/groups/RemoveMember", { group_id: group.id, member_id: body.id })
+    await call("/v1/groups/RemoveMember", { group_id: group.id, member_id: body.id })
   } catch ({ error, code }) {
     console.error(`Error removing user from group: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error removing user from group" })

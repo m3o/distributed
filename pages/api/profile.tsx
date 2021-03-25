@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the groups
   var groups = [];
   try {
-    const rsp = await call("/groups/List", { member_id: user.id })
+    const rsp = await call("/v1/groups/List", { member_id: user.id })
     groups = rsp.groups
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}. code: ${code}`)
@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   // leave each group
   try {
-    await groups.forEach(async (g) => await call("/groups/RemoveMember", { group_id: g.id, member_id: user.id }))
+    await groups.forEach(async (g) => await call("/v1/groups/RemoveMember", { group_id: g.id, member_id: user.id }))
   } catch ({ error, code }) {
     res.status(500).json({ error })
     return
