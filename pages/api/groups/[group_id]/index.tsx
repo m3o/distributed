@@ -153,7 +153,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (threads.length > 0) {
     try {
       const req = { user_id: user.id, resource_type: "thread", resource_ids: threads.map(s => s.id) }
-      threadLastSeens = (await call("/seen/Read", req)).timestamps || {}
+      threadLastSeens = (await call("/v1/seen/Read", req)).timestamps || {}
     } catch ({ error, code }) {
       console.error(`Error loading last seen: ${error}, code: ${code}`)
       res.status(500).json({ error: "Error loading last seen times"})
@@ -163,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   var chatLastSeens = {}
   try {
     const req = { user_id: user.id, resource_type: "chat", resource_ids: Object.keys(users) }
-    chatLastSeens = (await call("/seen/Read", req)).timestamps || {}
+    chatLastSeens = (await call("/v1/seen/Read", req)).timestamps || {}
   } catch ({ error, code }) {
     console.error(`Error loading last seen: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error loading last seen times"})
