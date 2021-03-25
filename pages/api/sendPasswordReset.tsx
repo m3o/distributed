@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   var code: string
   try {
-    const rsp = await call("/codes/Create", { identity: user.email })
+    const rsp = await call("/v1/codes/Create", { identity: user.email })
     code = rsp.code
   } catch ({ error, code }) {
     console.error(`Error creating code: ${error}`)

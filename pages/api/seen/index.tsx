@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // update the last seen time
   try {
-    await call("/seen/Set", { user_id: user.id, ...body })
+    await call("/v1/seen/Set", { user_id: user.id, ...body })
     res.status(200).json({})
   } catch ({ error, code }) {
     console.error(`Error updating last seen: ${error}, code: ${code}`)
