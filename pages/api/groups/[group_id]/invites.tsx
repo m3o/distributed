@@ -52,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the invites
   let invites = [];
   try {
-    const rsp = await call("/invites/List", { group_id })
+    const rsp = await call("/v1/invites/List", { group_id })
     invites = rsp.invites || []
   } catch ({ error, code }) {
     console.error(`Error loading invites: ${error}, code: ${code}`)
@@ -82,7 +82,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // create the invite
     var invite: any
     try {
-      const rsp = await call("/invites/Create", { ...body, group_id })
+      const rsp = await call("/v1/invites/Create", { ...body, group_id })
       invite = rsp.invite
     } catch ({ error, code }) {
       res.status(code).json({ error })

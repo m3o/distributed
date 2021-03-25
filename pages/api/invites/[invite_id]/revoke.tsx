@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the invite
   var invite: any
   try {
-    const rsp = await call("/invites/Read", { id: invite_id })
+    const rsp = await call("/v1/invites/Read", { id: invite_id })
     invite = rsp.invite
   } catch ({ error, code }) {
     console.error(`Error loading invite: ${error}, code: ${code}`)
@@ -56,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // delete the invitation
   try {
-    await call("/invites/Delete", { id: invite.id })
+    await call("/v1/invites/Delete", { id: invite.id })
   } catch ({ error, code }) {
     console.error(`Error deleting invite: ${error}, code: ${code}`)
     res.status(500).json({ error: "Error accepting invitation" })

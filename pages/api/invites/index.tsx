@@ -31,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the invites
   var invites: any
   try {
-    const rsp = await call("/invites/List", { email: user.email })
+    const rsp = await call("/v1/invites/List", { email: user.email })
     invites = rsp.invites || []
   } catch ({ error, code }) {
     console.error(`Error loading invites: ${error}, code: ${code}`)
