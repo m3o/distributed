@@ -52,16 +52,16 @@ export default class GifInput extends React.Component<GifInputProps, GifInputSta
     this.setState({ loading: true })
 
     const body = JSON.stringify({ groupID: this.props.groupID, imageURL: image.images.original.url, threadID: this.props.threadID })
-    const rsp = await fetch("/api/payments/checkoutSession", { method: "POST", body })
-    const { id } = await rsp.json()
+    //const rsp = await fetch("/api/payments/checkoutSession", { method: "POST", body })
+    //const { id } = await rsp.json()
 
-    const stripe = await stripePromise;
-    const result = await stripe.redirectToCheckout({ sessionId: id });
+    //const stripe = await stripePromise;
+    //const result = await stripe.redirectToCheckout({ sessionId: id });
 
-    if(result.error) {
-      alert(`Error creating payment: ${result.error.message}`)
-      this.setState({ loading: false })
-    }
+    //if(result.error) {
+    //  alert(`Error creating payment: ${result.error.message}`)
+    //  this.setState({ loading: false })
+    //}
   }
 
   render() {
