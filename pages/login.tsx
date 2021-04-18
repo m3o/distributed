@@ -18,14 +18,14 @@ export default function Login() {
   const queryCode = router.query.code
   const code = Array.isArray(queryCode)
     ? queryCode[0]
-    : !!queryCode
+    : queryCode
     ? queryCode
     : ''
 
   useEffect(() => {
     const queryEmail = router.query.email
     setEmail(
-      Array.isArray(queryEmail) ? queryEmail[0] : !!queryEmail ? queryEmail : ''
+      Array.isArray(queryEmail) ? queryEmail[0] : queryEmail ? queryEmail : ''
     )
   }, [router.query.email])
 

@@ -185,7 +185,7 @@ export default class Stream extends Component<Props, State> {
   }
 
   roomJoined(room) {
-    console.log(`Joined room`, room)
+    console.log('Joined room', room)
     this.setState({ room, connecting: false })
 
     // Attach LocalParticipant's tracks

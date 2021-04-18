@@ -14,7 +14,7 @@ export function useInvites(
   groupID?: string
 ): { invites?: Invite[]; loading: boolean; error: Error; mutate: Function } {
   const { data, error, mutate } = useSWR(
-    groupID ? `/api/groups/${groupID}/invites` : `/api/invites`,
+    groupID ? `/api/groups/${groupID}/invites` : '/api/invites',
     fetcher
   )
 

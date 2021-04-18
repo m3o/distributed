@@ -46,15 +46,15 @@ export default async function handler(
     return
   }
   if (!body.x || !body.y) {
-    res.status(400).json({ error: `Missing X or Y value` })
+    res.status(400).json({ error: 'Missing X or Y value' })
     return
   }
   if (!body.status) {
-    res.status(400).json({ error: `Missing status` })
+    res.status(400).json({ error: 'Missing status' })
     return
   }
   if (!body.id) {
-    res.status(400).json({ error: `Missing ID` })
+    res.status(400).json({ error: 'Missing ID' })
     return
   }
 
@@ -66,6 +66,6 @@ export default async function handler(
     })
     res.status(201).json({})
   } catch (error) {
-    res.status(500).json({ error: `Error connecting to Micro` })
+    res.status(500).json({ error: 'Error connecting to Micro' })
   }
 }
