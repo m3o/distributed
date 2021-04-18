@@ -7,8 +7,7 @@ import styles from './login.module.scss'
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState<string>('');
-  const [code, setCode] = useState<string>('');
-  const [alreadySignedUp, setAlreadySignedUp] = useState<boolean>(false)
+  const [isSignup, setIsSignup] = useState<boolean>(false)
   const [password, setPassword] = useState<string>('')
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
@@ -16,14 +15,30 @@ export default function Login() {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>(null)
 
-  const isSignup: boolean = !!code && !alreadySignedUp;
+  const queryCode = router.query.code
+  const code = Array.isArray(queryCode)
+    ? queryCode[0]
+    : !!queryCode
+    ? queryCode
+    : ''
 
   useEffect(() => {
-    const queryEmail: string = (router.query?.email || '').toString()
-    const queryCode: string = (router.query?.code || '').toString()
-    setEmail(queryEmail)
-    setCode(queryCode)
-  }, [router.query])
+    const queryEmail = router.query.email
+    setEmail(
+      Array.isArray(queryEmail)
+        ? queryEmail[0]
+        : !!queryEmail
+        ? queryEmail
+        : ''
+    )
+  }, [router.query.email])
+
+  useEffect(() => {
+    const queryCode = router.query.code
+    if (queryCode?.length > 0) {
+      setIsSignup(true)
+    }
+  }, [router.query.code])
 
   function onSubmit(e: React.FormEvent): void {
     e.preventDefault()
@@ -54,7 +69,7 @@ export default function Login() {
 
   function toggleSignup(e: React.MouseEvent<HTMLParagraphElement>) {
     if(loading) return
-    setAlreadySignedUp(true)
+    setIsSignup(prev => !prev)
     setError(null)
   }
   
