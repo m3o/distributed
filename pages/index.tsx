@@ -53,22 +53,26 @@ export default function Home() {
 
         { invitesLoader.invites?.length ? <div>
           <h2 className={styles.h2}>Invites:</h2>
-          { invitesLoader.invites?.map(i => <div className={styles.group}>
-            <p>{i.group.name}</p>
-            <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
-            <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
-          </div>) }
+          {invitesLoader.invites?.map(i => (
+            <div key={i.id} className={styles.group}>
+              <p>{i.group.name}</p>
+              <button onClick={() => accept(i)} className={styles.accept}>Accept</button>
+              <button onClick={() => reject(i)} className={styles.reject}>Reject</button>
+            </div>
+          ))}
         </div> : null }
 
         { groupsLoader.groups?.length ? <div>
           <h2 className={styles.h2}>Your Groups</h2>
           <div className={styles.groups}>
-            { groupsLoader.groups?.map(g => <div className={styles.group}>
-              <p>{g.name}</p>
-              <Link href={`/groups/${g.id}`}>
-                <button>Enter</button>
-              </Link>
-            </div>) }
+            {groupsLoader.groups?.map(g => (
+              <div key={g.id} className={styles.group}>
+                <p>{g.name}</p>
+                <Link href={`/groups/${g.id}`}>
+                  <button>Enter</button>
+                </Link>
+              </div>
+            ))}
           </div>
         </div> : null }
 

@@ -401,10 +401,12 @@ export default function Group() {
         <section>
           { inviteLoader.invites?.length ? null : <p className={styles.emptyState}>There are no pending invites</p>}
           <ul>
-            { inviteLoader.invites?.map(i => <li onClick={() => deleteInvite(i)}>
-              <p>{i.email}</p>
-              <p>Click to delete</p>
-            </li>)}            
+            {inviteLoader.invites?.map(i => (
+              <li key={i.id} onClick={() => deleteInvite(i)}>
+                <p>{i.email}</p>
+                <p>Click to delete</p>
+              </li>
+            ))}
           </ul>
         </section>
       </div>
