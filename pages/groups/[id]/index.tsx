@@ -45,6 +45,7 @@ export default function Group() {
   const [subview, setSubview] = useState<
     'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'
   >(undefined)
+  const [user, setUser] = useState<User>()
   const chatUI = createRef<ChatUI>()
 
   // todo: improve error handling
@@ -532,7 +533,6 @@ export default function Group() {
   }
 
   let initials = ''
-  const [user, setUser] = useState<User>()
   if (user) {
     initials = user.first_name.slice(0, 1) + user.last_name.slice(0, 1)
   } else if (groupLoader.group?.members?.find((m) => m.current_user)) {

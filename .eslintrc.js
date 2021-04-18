@@ -12,6 +12,7 @@ module.exports = {
     // TODO: uncomment and fix
     // 'plugin:jsx-a11y/recommended',
     'plugin:react/recommended',
+    'plugin:react-hooks/recommended',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -21,7 +22,7 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['import', 'jsx-a11y', 'react', '@typescript-eslint'],
+  plugins: ['import', 'jsx-a11y', 'react', 'react-hooks', '@typescript-eslint'],
   settings: {
     react: {
       version: 'detect',

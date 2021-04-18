@@ -74,12 +74,12 @@ export function updateUser(user: User): Promise<null> {
   })
 }
 
-export function logout(): { loading: boolean; error: Error } {
-  const { data, error } = useSWR('/api/logout', fetcher)
-
-  return {
-    loading: !error && !data,
-    error: error,
+export async function logout(): Promise<{ loading: boolean; error: Error }> {
+  try {
+    await fetcher('/api/logout')
+    return { loading: false, error: null }
+  } catch (e) {
+    return { loading: false, error: e }
   }
 }
 
