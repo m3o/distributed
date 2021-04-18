@@ -22,15 +22,11 @@ interface Chat {
   id: string
 }
 
-export async function getServerSideProps(content) {
-  const id = content.query.id
-  return {props: { id }}
-} 
-
-export default function Group(props) {
+export default function Group() {
   const router = useRouter()
-  const groupLoader = useGroup(props.id)
-  const inviteLoader = useInvites(props.id)
+  const groupId: string = (router.query?.id || '').toString();
+  const groupLoader = useGroup(groupId)
+  const inviteLoader = useInvites(groupId)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
@@ -58,7 +54,7 @@ export default function Group(props) {
       const event = JSON.parse(data)
       const message = JSON.parse(JSON.parse(event.message))
 
-      if(message.group_id && message.group_id !== props.id) {
+      if(message.group_id && message.group_id !== groupId) {
         console.log("Ignoring message: ", message)
         return
       }
@@ -167,19 +163,19 @@ export default function Group(props) {
       groupLoader.mutate({ ...group, members }, false)
     }
 
-    localStorage.setItem(`group/${props.id}/chat`, JSON.stringify({ type, id }))
+    localStorage.setItem(`group/${groupId}/chat`, JSON.stringify({ type, id }))
     setChat({ type, id })
     if(showSidebar) setShowSidebar(false)
   }
 
   function clearChatWrapped() {
-    localStorage.removeItem(`group/${props.id}/chat`)
+    localStorage.removeItem(`group/${groupId}/chat`)
     setChat(undefined)
   }
 
   // default to the last opened chat, or the first
   if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
-    const chatStr = localStorage.getItem(`group/${props.id}/chat`)
+    const chatStr = localStorage.getItem(`group/${groupId}/chat`)
 
     if(chatStr) {
       const { type, id } = JSON.parse(chatStr)
@@ -208,7 +204,7 @@ export default function Group(props) {
     if(!channel?.length) return
 
     try {
-      const thread = await createThread(props.id, channel)
+      const thread = await createThread(groupId, channel)
       groupLoader.mutate({ ...groupLoader.group!, threads: [...groupLoader.group!.threads, thread] })
       setChat({ type: 'thread', id: thread.id })
     } catch (error) {
@@ -225,7 +221,7 @@ export default function Group(props) {
     if(!email?.length) return
 
     try {
-      const invite = await createInvite(props.id, email)
+      const invite = await createInvite(groupId, email)
       const url = `${window.location.protocol}//${window.location.host}/login?code=${invite.code}&email=${encodeURI(invite.email)}`
       alert(`Invite sent to ${email}. Link to signup: ${url}`)
     } catch (error) {
@@ -238,7 +234,7 @@ export default function Group(props) {
     if(!name?.length) return
 
     try {
-      await renameGroup(props.id, name)
+      await renameGroup(groupId, name)
       groupLoader.mutate({ ...groupLoader.group, name })
     } catch (error) {
       alert(`Error renaming group: ${error}`)
@@ -265,7 +261,7 @@ export default function Group(props) {
     if(!window.confirm("Are you sure you want to leave this group")) return
 
     try {
-      await leaveGroup(props.id)
+      await leaveGroup(groupId)
       window.location.href = '/'
     } catch (error) {
       alert(`Error leaving group: ${error}`)
@@ -290,7 +286,7 @@ export default function Group(props) {
     if(!window.confirm("Are you sure you want to remove this user from the group?")) return
 
     try {
-      await removeMember(props.id, chat.id)
+      await removeMember(groupId, chat.id)
       groupLoader.mutate({ 
         ...groupLoader.group,
         threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
