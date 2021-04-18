@@ -30,7 +30,7 @@ module.exports = {
       version: 'detect',
     },
   },
-  ignorePatterns: ['/public/**'],
+  ignorePatterns: ['/public/**', '/.next/**'],
   rules: {
     semi: ['error', 'never'],
     'import/order': [
