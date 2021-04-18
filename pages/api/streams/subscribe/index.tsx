@@ -1,13 +1,15 @@
-import {NextApiRequest, NextApiResponse} from 'next'
-import {BaseURL, APIKey} from '../../../../lib/micro'
-import WebSocket from 'ws';
+import { NextApiRequest, NextApiResponse } from 'next'
+import { BaseURL, APIKey } from '../../../../lib/micro'
+import WebSocket from 'ws'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-
-  return new Promise(resolve => {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  return new Promise((resolve) => {
     var wsToMicro = null
     let connectionClosed = false
-    const wss = new WebSocket.Server({noServer: true});
+    const wss = new WebSocket.Server({ noServer: true })
     wss.on('error', (error) => {
       console.error('connection error to client ' + JSON.stringify(error))
       if (wsToMicro) {
@@ -27,12 +29,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     wss.on('connection', (wss, req1) => {
       wss.on('message', (data) => {
         // set up connection to micro
-        wsToMicro = new WebSocket(BaseURL.replace('http', 'ws') + '/v1/streams/subscribe', [], {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + APIKey
+        wsToMicro = new WebSocket(
+          BaseURL.replace('http', 'ws') + '/v1/streams/subscribe',
+          [],
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer ' + APIKey,
+            },
           }
-        })
+        )
         wsToMicro.on('error', (error) => {
           console.error('connection error to micro ' + JSON.stringify(error))
           if (wsToMicro) {
@@ -42,24 +48,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             wss.close()
           }
         })
-        wsToMicro.on('close', () =>  {
+        wsToMicro.on('close', () => {
           wss.close()
         })
         wsToMicro.on('open', () => {
           try {
             wsToMicro.send(data)
           } catch (e) {
-            console.error('Error while sending data to micro '+JSON.stringify(e))
+            console.error(
+              'Error while sending data to micro ' + JSON.stringify(e)
+            )
           }
         })
         wsToMicro.on('message', (data) => {
           try {
             wss.send(data)
           } catch (e) {
-            console.error('Error while sending data to client '+JSON.stringify(e))
+            console.error(
+              'Error while sending data to client ' + JSON.stringify(e)
+            )
           }
         })
-
       })
       wss.on('close', () => {
         console.log('upgraded websocket to client closed')
@@ -68,13 +77,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           wsToMicro.close()
         }
       })
-
-
     })
 
     wss.handleUpgrade(req, req.socket, req.headers, (wssInput) => {
       wssInput.on('error', (error) => {
-        console.error('connection error on upgraded socket ' + JSON.stringify(error))
+        console.error(
+          'connection error on upgraded socket ' + JSON.stringify(error)
+        )
         if (wsToMicro) {
           wsToMicro.close()
         }
@@ -90,7 +99,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         resolve(null)
         return
       }
-      setTimeout(checkClosed,5000)
+      setTimeout(checkClosed, 5000)
     }
     checkClosed()
   })

@@ -2,8 +2,8 @@ import Layout from '../../../../components/layout'
 import { useRouter } from 'next/router'
 import { useGroups, createGroup, useGroup } from '../../../../lib/group'
 import { useState } from 'react'
-import styles from './new.module.scss';
-import { createInvite } from '../../../../lib/invites';
+import styles from './new.module.scss'
+import { createInvite } from '../../../../lib/invites'
 
 export default function Home() {
   const router = useRouter()
@@ -13,7 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false)
 
   // todo: improve error handling
-  if(groupLoader.error) {
+  if (groupLoader.error) {
     router.push('/error')
     return <div />
   }
@@ -31,25 +31,29 @@ export default function Home() {
     }
   }
 
-   return (
+  return (
     <Layout className={styles.container} loading={groupLoader.loading}>
-      <h1 className={styles.title}>Invite someone to {groupLoader.group?.name}</h1>
-      
+      <h1 className={styles.title}>
+        Invite someone to {groupLoader.group?.name}
+      </h1>
+
       <form onSubmit={onSubmit}>
         <label>Email</label>
         <input
           required
-          type='text'
+          type="text"
           value={email}
           minLength={1}
           maxLength={100}
-          disabled={loading} 
-          onChange={e => setEmail(e.target.value || '')} />
-        
+          disabled={loading}
+          onChange={(e) => setEmail(e.target.value || '')}
+        />
+
         <input
-          type='submit'
-          value='Send invite' 
-          disabled={loading || email.length === 0} />
+          type="submit"
+          value="Send invite"
+          disabled={loading || email.length === 0}
+        />
       </form>
     </Layout>
   )

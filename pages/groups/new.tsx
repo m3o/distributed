@@ -2,7 +2,7 @@ import Layout from '../../components/layout'
 import { useRouter } from 'next/router'
 import { useGroups, createGroup } from '../../lib/group'
 import { useState } from 'react'
-import styles from './new.module.scss';
+import styles from './new.module.scss'
 
 export default function Home() {
   const router = useRouter()
@@ -12,7 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(false)
 
   // todo: improve error handling
-  if(groupsLoader.error) {
+  if (groupsLoader.error) {
     router.push('/error')
     return <div />
   }
@@ -30,25 +30,31 @@ export default function Home() {
     }
   }
 
-   return (
+  return (
     <Layout className={styles.container} loading={groupsLoader.loading}>
-      <h1 className={styles.title}>{ groupsLoader.groups?.length ? 'Create a group' : 'Create your first group' }</h1>
-      
+      <h1 className={styles.title}>
+        {groupsLoader.groups?.length
+          ? 'Create a group'
+          : 'Create your first group'}
+      </h1>
+
       <form onSubmit={onSubmit}>
         <label>Name</label>
         <input
           required
-          type='text'
+          type="text"
           value={name}
           minLength={1}
           maxLength={100}
-          disabled={loading} 
-          onChange={e => setName(e.target.value || '')} />
-        
+          disabled={loading}
+          onChange={(e) => setName(e.target.value || '')}
+        />
+
         <input
-          type='submit'
-          value='Create group' 
-          disabled={loading || name.length === 0} />
+          type="submit"
+          value="Create group"
+          disabled={loading || name.length === 0}
+        />
       </form>
     </Layout>
   )

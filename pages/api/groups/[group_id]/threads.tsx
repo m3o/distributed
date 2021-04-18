@@ -1,29 +1,34 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
-import TokenFromReq from '../../../../lib/token';
+import TokenFromReq from '../../../../lib/token'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { query: { group_id } } = req;
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const {
+    query: { group_id },
+  } = req
 
-  if(req.method !== 'POST') {
+  if (req.method !== 'POST') {
     res.status(405).json({})
     return
   }
-  
+
   // get the token from cookies
   const token = TokenFromReq(req)
-  if(!token) {
-    res.status(401).json({ error: "No token cookie set" })
+  if (!token) {
+    res.status(401).json({ error: 'No token cookie set' })
     return
   }
 
   // authenticate the request
   var user: any
   try {
-    const rsp = await call("/v1/users/validate", { token })
+    const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
-    if(code === 400) code = 401
+    if (code === 400) code = 401
     res.status(code).json({ error })
     return
   }
@@ -31,30 +36,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the groups the user is a part of
   var group: any
   try {
-    const rsp = await call("/v1/groups/List", { member_id: user.id })
-    group = rsp.groups?.find(g => g.id === group_id)
-    if(!group) {
-      res.status(403).json({ error: "Not a member of this group" })
+    const rsp = await call('/v1/groups/List', { member_id: user.id })
+    group = rsp.groups?.find((g) => g.id === group_id)
+    if (!group) {
+      res.status(403).json({ error: 'Not a member of this group' })
       return
     }
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error loading groups" })
+    res.status(500).json({ error: 'Error loading groups' })
     return
   }
 
   // parse the request
-  var body: any;
+  var body: any
   try {
     body = JSON.parse(req.body)
   } catch {
     body = {}
   }
-  
+
   // create the thread
-  var conversation: any;
+  var conversation: any
   try {
-    const rsp = await call("/v1/threads/CreateConversation", { group_id, topic: body.topic })
+    const rsp = await call('/v1/threads/CreateConversation', {
+      group_id,
+      topic: body.topic,
+    })
     conversation = rsp.conversation
   } catch ({ error, code }) {
     res.status(code).json({ error })
@@ -62,20 +70,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // publish the message to the users in the group
   try {
-    group.member_ids.forEach(async(id: string) => {
-      await call("/v1/streams/Publish", {
+    group.member_ids.forEach(async (id: string) => {
+      await call('/v1/streams/Publish', {
         topic: id,
         message: JSON.stringify({
-          type: "tread.created",
+          type: 'tread.created',
           group_id: group.id,
           payload: conversation,
-        })
+        }),
       })
     })
     res.status(201).json(conversation)
   } catch ({ error, code }) {
     console.error(`Error publishing to stream: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error publishing to stream"})
+    res.status(500).json({ error: 'Error publishing to stream' })
     return
   }
 }

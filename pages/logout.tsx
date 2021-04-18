@@ -5,8 +5,8 @@ import { logout } from '../lib/user'
 export default function Logout() {
   const router = useRouter()
 
-  const { loading } = logout();
-  if(!loading) {
+  const { loading } = logout()
+  if (!loading) {
     router.push('/login')
   }
 

@@ -1,20 +1,23 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call from '../../lib/micro';
-import { serialize } from 'cookie';
+import call from '../../lib/micro'
+import { serialize } from 'cookie'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  var body: any;
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  var body: any
   try {
-    body = JSON.parse(req.body)  
+    body = JSON.parse(req.body)
   } catch (error) {
-    res.status(400).json({ error: "Error parsing request body" })
+    res.status(400).json({ error: 'Error parsing request body' })
     return
   }
 
-  var invite: any;
-  if(body.code?.length) {
+  var invite: any
+  if (body.code?.length) {
     try {
-      const rsp = await call("/v1/invites/Read", { code: body.code })
+      const rsp = await call('/v1/invites/Read', { code: body.code })
       invite = rsp.invite
     } catch ({ code, error }) {
       res.status(code).json({ error })
@@ -22,24 +25,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  var user: any;
-  var token: any;
+  var user: any
+  var token: any
   try {
-    const rsp = await call("/v1/users/create", {
+    const rsp = await call('/v1/users/create', {
       first_name: body.first_name,
       last_name: body.last_name,
       email: body.email,
       password: body.password,
     })
-    user = rsp.user;
-    token = rsp.token;
-    res.setHeader('Set-Cookie', serialize('token', rsp.token, { path: '/' }));
+    user = rsp.user
+    token = rsp.token
+    res.setHeader('Set-Cookie', serialize('token', rsp.token, { path: '/' }))
   } catch ({ error, code }) {
     res.status(code).json({ error })
     return
   }
 
-  if(!invite) {
+  if (!invite) {
     res.status(200).json({ user, token })
     return
   }
@@ -47,46 +50,51 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // load the group to get the members
   var group: any
   try {
-    group = (await call("/v1/groups/Read", { ids: [invite.group_id] })).groups[invite.group_id]
+    group = (await call('/v1/groups/Read', { ids: [invite.group_id] })).groups[
+      invite.group_id
+    ]
   } catch ({ error, code }) {
     console.error(`Error reading group: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error reading group" })
+    res.status(500).json({ error: 'Error reading group' })
     return
   }
 
   // add the user as a member of the group
   try {
-    await call("/v1/groups/AddMember", { group_id: invite.group_id, member_id: user.id })
+    await call('/v1/groups/AddMember', {
+      group_id: invite.group_id,
+      member_id: user.id,
+    })
   } catch ({ error, code }) {
     console.error(`Error adding member to group: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error accepting invitation" })
+    res.status(500).json({ error: 'Error accepting invitation' })
     return
   }
 
   // delete the invitation
   try {
-    await call("/v1/invites/Delete", { id: invite.id })
+    await call('/v1/invites/Delete', { id: invite.id })
   } catch ({ error, code }) {
     console.error(`Error deleting invite: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error accepting invitation" })
+    res.status(500).json({ error: 'Error accepting invitation' })
     return
   }
 
   // publish the message to the users in the group
   try {
-    group.member_ids.forEach(async(id: string) => {
-      await call("/v1/streams/Publish", {
+    group.member_ids.forEach(async (id: string) => {
+      await call('/v1/streams/Publish', {
         topic: id,
         message: JSON.stringify({
-          type: "group.user.joined",
+          type: 'group.user.joined',
           group_id: group.id,
           payload: user,
-        })
+        }),
       })
     })
     res.status(200).json({ user, token })
   } catch ({ error, code }) {
     console.error(`Error publishing to stream: ${error}, code: ${code}`)
-    res.status(500).json({ error: "Error publishing to stream"})
+    res.status(500).json({ error: 'Error publishing to stream' })
   }
 }
