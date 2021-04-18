@@ -1,5 +1,4 @@
 // Frameworks
-import React from 'react'
 import { useRouter } from 'next/router'
 import { createRef, useState } from 'react'
 
