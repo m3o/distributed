@@ -1,23 +1,44 @@
 import Head from 'next/head'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { login, signup } from '../lib/user'
 import styles from './login.module.scss'
 
-export async function getServerSideProps(content) {
-  return {props: {...content.query}}
-} 
-
-export default function Login(props: { email?: string, code?: string }) {
+export default function Login() {
   const router = useRouter()
-  const [isSignup, setSignup] = useState<boolean>(!!props.code)
-  const [email, setEmail] = useState<string>(props.email || '')
+  const [email, setEmail] = useState<string>('');
+  const [isSignup, setIsSignup] = useState<boolean>(false)
   const [password, setPassword] = useState<string>('')
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>('')
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>(null)
+
+  const queryCode = router.query.code
+  const code = Array.isArray(queryCode)
+    ? queryCode[0]
+    : !!queryCode
+    ? queryCode
+    : ''
+
+  useEffect(() => {
+    const queryEmail = router.query.email
+    setEmail(
+      Array.isArray(queryEmail)
+        ? queryEmail[0]
+        : !!queryEmail
+        ? queryEmail
+        : ''
+    )
+  }, [router.query.email])
+
+  useEffect(() => {
+    const queryCode = router.query.code
+    if (queryCode?.length > 0) {
+      setIsSignup(true)
+    }
+  }, [router.query.code])
 
   function onSubmit(e: React.FormEvent): void {
     e.preventDefault()
@@ -40,7 +61,7 @@ export default function Login(props: { email?: string, code?: string }) {
     }
 
     if(isSignup) {
-      signup({ email, password, first_name: firstName, last_name: lastName, code: props.code }).then(onSuccess).catch(onError)
+      signup({ email, password, first_name: firstName, last_name: lastName, code }).then(onSuccess).catch(onError)
     } else {
       login(email, password).then(onSuccess).catch(onError)
     }
@@ -48,7 +69,7 @@ export default function Login(props: { email?: string, code?: string }) {
 
   function toggleSignup(e: React.MouseEvent<HTMLParagraphElement>) {
     if(loading) return
-    setSignup(!isSignup)
+    setIsSignup(prev => !prev)
     setError(null)
   }
   

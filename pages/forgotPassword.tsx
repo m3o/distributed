@@ -5,10 +5,6 @@ import { login, sendPasswordReset, signup, verifyPasswordReset } from '../lib/us
 import styles from './login.module.scss'
 import { verify } from 'crypto'
 
-export async function getServerSideProps(content) {
-  return {props: {...content.query}}
-} 
-
 export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState<string>('')
