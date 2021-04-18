@@ -18,6 +18,13 @@ fi
 printf "%b>>>%b Checking Typescript types...\n" "$GREEN" "$NO_COLOR"
 npm run tsc
 
+printf "%b>>>%b Checking ESlint rules...\n" "$GREEN" "$NO_COLOR"
+if ! npm run eslint; then
+  printf '\n'
+  printf '* To automatically correct some lint failures run: %bnpm run eslint:fix%b\n' "$BLUE" "$NO_COLOR"
+  exit 1
+fi
+
 printf "%b>>>%b Checking code formatting...\n" "$GREEN" "$NO_COLOR"
 if ! npm run prettier; then
   printf '\n'
