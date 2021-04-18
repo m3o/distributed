@@ -9,6 +9,8 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:import/typescript',
+    // TODO: uncomment and fix
+    // 'plugin:jsx-a11y/recommended',
     'plugin:react/recommended',
   ],
   parser: '@typescript-eslint/parser',
@@ -19,7 +21,7 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['import', 'react', '@typescript-eslint'],
+  plugins: ['import', 'jsx-a11y', 'react', '@typescript-eslint'],
   settings: {
     react: {
       version: 'detect',
