@@ -31,9 +31,9 @@ export default async function handler(
   }
 
   switch (req.method) {
-    case 'GET':
+    case 'GET': {
       // load the groups
-      var groups = []
+      let groups = []
       try {
         const rsp = await call('/v1/groups/List', { member_id: user.id })
         groups = rsp.groups || []
@@ -44,7 +44,7 @@ export default async function handler(
       }
 
       // load the details of the users
-      var users: any
+      let users: any
       try {
         const user_ids = groups.map((g) => g.member_ids).flat()
         users = (await call('/v1/users/read', { ids: user_ids })).users
@@ -62,9 +62,10 @@ export default async function handler(
         }))
       )
       return
-    case 'POST':
+    }
+    case 'POST': {
       // create a group
-      var group: any
+      let group: any
       try {
         const rsp = await call('/v1/groups/Create', JSON.parse(req.body))
         group = rsp.group
@@ -83,5 +84,6 @@ export default async function handler(
       } catch ({ error, code }) {
         res.status(code).json({ error })
       }
+    }
   }
 }

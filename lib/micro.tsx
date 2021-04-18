@@ -1,9 +1,9 @@
-export var BaseURL = 'http://localhost:8080'
+export let BaseURL = 'http://localhost:8080'
 if (process.env.MICRO_API_ENDPOINT?.length) {
   BaseURL = process.env.MICRO_API_ENDPOINT
 }
 
-export var APIKey = 'NONE'
+export let APIKey = 'NONE'
 if (process.env.MICRO_API_KEY?.length) {
   APIKey = process.env.MICRO_API_KEY
 }

@@ -69,7 +69,7 @@ export default async function handler(
     case 'GET':
       res.status(200).json(invites)
       return
-    case 'POST':
+    case 'POST': {
       // limit group sizes to 24
       if (group.member_ids.length + invites.length >= 24) {
         res.status(400).json({
@@ -80,7 +80,7 @@ export default async function handler(
       }
 
       // parse the request
-      var body: any
+      let body: any
       try {
         body = JSON.parse(req.body)
       } catch {
@@ -88,7 +88,7 @@ export default async function handler(
       }
 
       // create the invite
-      var invite: any
+      let invite: any
       try {
         const rsp = await call('/v1/invites/Create', { ...body, group_id })
         invite = rsp.invite
@@ -117,5 +117,6 @@ export default async function handler(
         res.status(500).json({ error: 'Erorr sending code via email' })
         return
       }
+    }
   }
 }
