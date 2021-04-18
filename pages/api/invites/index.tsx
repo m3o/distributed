@@ -19,7 +19,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -30,7 +30,7 @@ export default async function handler(
   }
 
   // load the invites
-  var invites: any
+  let invites: any
   try {
     const rsp = await call('/v1/invites/List', { email: user.email })
     invites = rsp.invites || []
@@ -45,7 +45,7 @@ export default async function handler(
   }
 
   // load the details for the groups
-  var groups: any
+  let groups: any
   try {
     const rsp = await call('/v1/groups/Read', {
       ids: invites.map((i) => i.group_id),

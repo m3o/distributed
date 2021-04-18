@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the groups the user is a part of
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/List', { member_id: user.id })
     group = rsp.groups?.find((g) => g.id === group_id)
@@ -49,7 +49,7 @@ export default async function handler(
   }
 
   // parse the request
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch {
@@ -57,7 +57,7 @@ export default async function handler(
   }
 
   // create the thread
-  var conversation: any
+  let conversation: any
   try {
     const rsp = await call('/v1/threads/CreateConversation', {
       group_id,

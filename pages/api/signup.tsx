@@ -6,7 +6,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch (error) {
@@ -14,7 +14,7 @@ export default async function handler(
     return
   }
 
-  var invite: any
+  let invite: any
   if (body.code?.length) {
     try {
       const rsp = await call('/v1/invites/Read', { code: body.code })
@@ -25,8 +25,8 @@ export default async function handler(
     }
   }
 
-  var user: any
-  var token: any
+  let user: any
+  let token: any
   try {
     const rsp = await call('/v1/users/create', {
       first_name: body.first_name,
@@ -48,7 +48,7 @@ export default async function handler(
   }
 
   // load the group to get the members
-  var group: any
+  let group: any
   try {
     group = (await call('/v1/groups/Read', { ids: [invite.group_id] })).groups[
       invite.group_id

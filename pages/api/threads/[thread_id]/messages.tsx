@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the thread
-  var thread: any
+  let thread: any
   try {
     const rsp = await call('/v1/threads/ReadConversation', { id: thread_id })
     thread = rsp.conversation
@@ -45,7 +45,7 @@ export default async function handler(
   }
 
   // load the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/Read', { ids: [thread.group_id] })
     group = rsp.groups[thread.group_id]
@@ -67,7 +67,7 @@ export default async function handler(
 
   // if a get request, load the messages in the thread
   if (req.method === 'GET') {
-    var messages = []
+    let messages = []
     try {
       const rsp = await call('/v1/threads/ListMessages', {
         conversation_id: thread.id,
@@ -82,7 +82,7 @@ export default async function handler(
       return
     }
 
-    var users = {}
+    let users = {}
     try {
       const rsp = await call('/v1/users/read', {
         ids: messages.map((m) => m.author_id),
@@ -108,7 +108,7 @@ export default async function handler(
   }
 
   // parse the request
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch {
@@ -116,7 +116,7 @@ export default async function handler(
   }
 
   // create the message
-  var msg: any
+  let msg: any
   try {
     const params = {
       id: body.id,

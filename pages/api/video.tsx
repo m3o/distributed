@@ -13,7 +13,7 @@ export default async function handler(
     return
   }
 
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user

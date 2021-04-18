@@ -16,7 +16,7 @@ export default async function handler(
   }
 
   // parse the request body
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch (error) {
@@ -32,7 +32,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -43,7 +43,7 @@ export default async function handler(
   }
 
   // load the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/Read', { ids: [group_id] })
     group = rsp.groups[group_id as string]

@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the thread
-  var thread: any
+  let thread: any
   try {
     const rsp = await call('/v1/threads/ReadConversation', { id: thread_id })
     thread = rsp.conversation
@@ -45,7 +45,7 @@ export default async function handler(
   }
 
   // load the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/Read', { ids: [thread.group_id] })
     group = rsp.groups[thread.group_id]
@@ -89,7 +89,7 @@ export default async function handler(
     return
   }
   if (req.method === 'PATCH') {
-    var body: any
+    let body: any
     try {
       body = JSON.parse(req.body)
     } catch (error) {

@@ -12,7 +12,7 @@ export default async function handler(
     return
   }
 
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -28,7 +28,7 @@ export default async function handler(
   }
 
   if (req.method === 'PATCH') {
-    var body = {}
+    let body = {}
     try {
       body = JSON.parse(req.body)
     } catch {
@@ -52,7 +52,7 @@ export default async function handler(
   }
 
   // load the groups
-  var groups = []
+  let groups = []
   try {
     const rsp = await call('/v1/groups/List', { member_id: user.id })
     groups = rsp.groups

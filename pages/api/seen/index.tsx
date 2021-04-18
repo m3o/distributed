@@ -20,7 +20,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -31,7 +31,7 @@ export default async function handler(
   }
 
   // parse the request body
-  var body = {}
+  let body = {}
   try {
     body = JSON.parse(req.body)
   } catch (error) {

@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the user they are opening the chat with
-  var chatUser: any
+  let chatUser: any
   try {
     const rsp = await call('/v1/users/read', { ids: [user_id] })
     chatUser = rsp.users[user_id as string]
@@ -44,7 +44,7 @@ export default async function handler(
   }
 
   // load the thread
-  var chat_id: any
+  let chat_id: any
   try {
     const rsp = await call('/v1/chats/CreateChat', {
       user_ids: [user.id, user_id],
@@ -58,7 +58,7 @@ export default async function handler(
 
   // if a get request, load the messages in the chat
   if (req.method === 'GET') {
-    var messages = []
+    let messages = []
     try {
       const rsp = await call('/v1/chats/ListMessages', { chat_id })
       messages = rsp.messages || []
@@ -71,7 +71,7 @@ export default async function handler(
       return
     }
 
-    var users = {
+    const users = {
       [user.id]: { ...user, current_user: true },
       [chatUser.id]: chatUser,
     }
@@ -87,7 +87,7 @@ export default async function handler(
   }
 
   // parse the request
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch {
@@ -95,7 +95,7 @@ export default async function handler(
   }
 
   // create the message
-  var msg: any
+  let msg: any
   try {
     const params = {
       id: body.id,

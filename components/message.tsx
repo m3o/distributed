@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function Message({ data }: Props) {
-  var inner: JSX.Element
+  let inner: JSX.Element
   const comps = data.text.split(' ')
   if (comps.length === 1 && comps[0].includes('youtube.com/watch?')) {
     // embed YouTube videos
@@ -85,13 +85,13 @@ export default function Message({ data }: Props) {
 }
 
 function parseQuery(queryString) {
-  var query = {}
-  var pairs = (queryString[0] === '?'
+  const query = {}
+  const pairs = (queryString[0] === '?'
     ? queryString.substr(1)
     : queryString
   ).split('&')
-  for (var i = 0; i < pairs.length; i++) {
-    var pair = pairs[i].split('=')
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i].split('=')
     query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '')
   }
   return query

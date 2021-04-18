@@ -81,7 +81,7 @@ export default class Stream extends Component<Props, State> {
   async componentDidUpdate(prevProps?: Props) {
     // if the participants is updated (e.g. a user joined or left the group), update the state object
     if (prevProps.participants?.length !== this.props.participants?.length) {
-      let participants = {}
+      const participants = {}
       this.props.participants.forEach((p) => {
         const e = this.state.participants[p.id]
         participants[p.id] = e || { user: p }
@@ -106,7 +106,7 @@ export default class Stream extends Component<Props, State> {
     window.audioEnabled = audio
     window.videoEnabled = video
 
-    let tracksToAdd = []
+    const tracksToAdd = []
     if (
       audio &&
       room &&
@@ -189,16 +189,16 @@ export default class Stream extends Component<Props, State> {
     this.setState({ room, connecting: false })
 
     // Attach LocalParticipant's tracks
-    var trackPubs = Array.from(room.localParticipant.tracks.values())
+    const trackPubs = Array.from(room.localParticipant.tracks.values())
     this.attachTracks(trackPubs)
 
     // Attach the tracks of the room's participants.
-    var participants = { ...this.state.participants }
+    const participants = { ...this.state.participants }
     participants[this.state.identity].connection = room.localParticipant
     participants[this.state.identity].connectedAt = Date.now()
     room.participants.forEach((participant) => {
       console.log("Already in Room: '" + participant.identity + "'")
-      var trackPubs = Array.from(participant.tracks.values())
+      const trackPubs = Array.from(participant.tracks.values())
       this.attachTracks(trackPubs)
       participants[participant.identity].connection = participant
       participants[participant.identity].connectedAt = Date.now()
@@ -208,7 +208,7 @@ export default class Stream extends Component<Props, State> {
     // Participant joining room
     room.on('participantConnected', (participant) => {
       console.log("Joining: '" + participant.identity + "'")
-      var trackPubs = Array.from(participant.tracks.values())
+      const trackPubs = Array.from(participant.tracks.values())
       this.attachTracks(trackPubs)
       this.setState({
         participants: {

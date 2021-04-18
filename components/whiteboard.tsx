@@ -36,7 +36,7 @@ export default class Whiteboard extends React.Component<Props, State> {
     })
     const data = await rsp.json()
 
-    var ws = new WebSocket(data.websocket.url)
+    const ws = new WebSocket(data.websocket.url)
 
     ws.onopen = () => {
       console.log('Whiteboard websocket opened')
@@ -63,7 +63,7 @@ export default class Whiteboard extends React.Component<Props, State> {
       }
 
       console.log(`Processing whiteboard event ${payload}`)
-      var ctx = this.canvas.current?.getContext('2d')
+      const ctx = this.canvas.current?.getContext('2d')
       if (!ctx) {
         return
       }
@@ -86,7 +86,7 @@ export default class Whiteboard extends React.Component<Props, State> {
   }
 
   setupCanvas() {
-    var ctx = this.canvas.current.getContext('2d')
+    const ctx = this.canvas.current.getContext('2d')
     ctx.strokeStyle = 'red'
     ctx.beginPath()
 

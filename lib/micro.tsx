@@ -14,7 +14,7 @@ if (process.env.MICRO_API_KEY?.length) {
 export default function call(path: string, params?: any): Promise<any> {
   return new Promise<any>((resolve: any, reject: any) => {
     const body = JSON.stringify(params)
-    let headers = { 'Content-Type': 'application/json' } as any
+    const headers = { 'Content-Type': 'application/json' } as any
     if (path.startsWith('/v1/')) {
       // TODO make this less hacky
       headers.Authorization = 'Bearer ' + APIKey

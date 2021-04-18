@@ -18,7 +18,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/Validate', { token })
     user = rsp.user
@@ -43,7 +43,7 @@ export default async function handler(
   const { groupID, threadID, imageURL } = session.metadata
 
   // load the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/Read', { ids: [groupID] })
     group = rsp.groups[groupID]
@@ -53,7 +53,7 @@ export default async function handler(
   }
 
   // create the message
-  var msg: any
+  let msg: any
   try {
     const params = {
       id: uuid(),

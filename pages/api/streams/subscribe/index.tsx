@@ -4,7 +4,7 @@ import WebSocket from 'ws'
 
 export default async function handler(req: NextApiRequest) {
   return new Promise((resolve) => {
-    var wsToMicro = null
+    let wsToMicro = null
     let connectionClosed = false
     const wss = new WebSocket.Server({ noServer: true })
     wss.on('error', (error) => {

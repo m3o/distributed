@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the invite
-  var invite: any
+  let invite: any
   try {
     const rsp = await call('/v1/invites/Read', { id: invite_id })
     invite = rsp.invite
@@ -45,7 +45,7 @@ export default async function handler(
   }
 
   // check the user is part of the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/List', { member_id: user.id })
     group = rsp.groups?.find((g) => g.id === invite.group_id)

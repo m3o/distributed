@@ -18,7 +18,7 @@ export default async function handler(
   res.setHeader('Set-Cookie', serialize('token', '', { maxAge: -1, path: '/' }))
 
   // determine which user is making the logout request
-  var userID: string
+  let userID: string
   try {
     const rsp = await call('/v1/users/validate', { token })
     userID = rsp.user.id

@@ -10,7 +10,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  var body: any
+  let body: any
   try {
     body = JSON.parse(req.body)
   } catch (error) {
@@ -18,7 +18,7 @@ export default async function handler(
     return
   }
 
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/ReadByEmail', { emails: [body.email] })
     user = rsp.users ? rsp.users[body.email?.toLowerCase()] : null
@@ -32,7 +32,7 @@ export default async function handler(
     return
   }
 
-  var code: string
+  let code: string
   try {
     const rsp = await call('/v1/codes/Create', { identity: user.email })
     code = rsp.code

@@ -57,7 +57,7 @@ export default function Group() {
   if (!connected && groupLoader.group) {
     setConnected(true)
     const w = groupLoader.group.websocket
-    let ws = new WebSocket(w.url)
+    const ws = new WebSocket(w.url)
 
     ws.onopen = function () {
       console.log('Websocket opened')
@@ -143,7 +143,7 @@ export default function Group() {
           break
         case 'message.created': {
           console.log('New message: ', message)
-          let group = { ...groupLoader.group }
+          const group = { ...groupLoader.group }
           if (message.payload.chat.type === 'chat') {
             group.members
               .find((m) => m.id === message.payload.chat.id)
@@ -173,7 +173,7 @@ export default function Group() {
   }
 
   function setChatWrapped(type: string, id: string) {
-    var group = { ...groupLoader.group }
+    const group = { ...groupLoader.group }
 
     if (
       chat &&
@@ -189,20 +189,20 @@ export default function Group() {
     }
 
     if (chat?.type === 'thread') {
-      let threads = [...groupLoader.group.threads]
+      const threads = [...groupLoader.group.threads]
       if (!threads) {
         console.log('No threads loaded')
         return
       }
-      let thr = threads.find((t) => t.id === chat.id)
+      const thr = threads.find((t) => t.id === chat.id)
       if (thr) {
         thr.last_seen = Date.now().toString()
       }
 
       groupLoader.mutate({ ...group, threads }, false)
     } else if (chat?.type === 'chat') {
-      let members = [...group.members]
-      let thr = members.find((t) => t.id === chat.id)
+      const members = [...group.members]
+      const thr = members.find((t) => t.id === chat.id)
       if (thr) {
         thr.chat = {
           ...(members.find((t) => t.id === chat.id).chat || {}),
@@ -251,7 +251,7 @@ export default function Group() {
   }
 
   async function createChannel() {
-    var channel = window.prompt('Enter a new room name')
+    const channel = window.prompt('Enter a new room name')
     if (!channel?.length) return
 
     try {
@@ -271,7 +271,7 @@ export default function Group() {
   }
 
   async function sendInvite() {
-    var email = window.prompt(
+    const email = window.prompt(
       'Enter the email address of the user you want to invite'
     )
     if (!email?.length) return
@@ -288,7 +288,7 @@ export default function Group() {
   }
 
   async function renameGroupPopup() {
-    var name = window.prompt('Enter the new name of the group')
+    const name = window.prompt('Enter the new name of the group')
     if (!name?.length) return
 
     try {
@@ -360,7 +360,7 @@ export default function Group() {
   }
 
   async function renameThreadPopup() {
-    var name = window.prompt('Enter the new name of the room')
+    const name = window.prompt('Enter the new name of the room')
     if (!name?.length) return
 
     try {

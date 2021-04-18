@@ -4,7 +4,7 @@ import styles from './layout.module.scss'
 
 interface Props {
   children?: any
-  loading?: Boolean
+  loading?: boolean
   className?: string
   overrideClassName?: string
 }

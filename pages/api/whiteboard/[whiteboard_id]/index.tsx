@@ -17,7 +17,7 @@ export default async function handler(
   }
 
   if (req.method === 'GET') {
-    var websocket: any = { topic: 'whiteboard-' + whiteboard_id }
+    const websocket: any = { topic: 'whiteboard-' + whiteboard_id }
     try {
       websocket.token = (await Call('/v1/streams/Token', websocket)).token
       let protocol = 'ws'
@@ -38,7 +38,7 @@ export default async function handler(
     return
   }
 
-  var body: { x?: number; y?: number; status?: string; id?: string }
+  let body: { x?: number; y?: number; status?: string; id?: string }
   try {
     body = JSON.parse(req.body)
   } catch (error) {

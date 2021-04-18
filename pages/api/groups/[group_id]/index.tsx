@@ -23,7 +23,7 @@ export default async function handler(
   }
 
   // authenticate the request
-  var user: any
+  let user: any
   try {
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
@@ -34,7 +34,7 @@ export default async function handler(
   }
 
   // load the group
-  var group: any
+  let group: any
   try {
     const rsp = await call('/v1/groups/Read', { ids: [group_id] })
     group = rsp.groups[group_id as string]
@@ -56,7 +56,7 @@ export default async function handler(
 
   // update the groups name
   if (req.method === 'PATCH') {
-    var body: { name?: string } = {}
+    let body: { name?: string } = {}
     try {
       body = JSON.parse(req.body)
     } catch (error) {
@@ -96,7 +96,7 @@ export default async function handler(
   }
 
   // load the conversations and the recent messages within them
-  var threads: any
+  let threads: any
   try {
     const rsp = await call('/v1/threads/ListConversations', { group_id })
     threads = rsp.conversations || []
@@ -105,8 +105,8 @@ export default async function handler(
     res.status(500).json({ error: 'Error loading conversations' })
     return
   }
-  var messages: any = {}
-  var user_ids: any = [...(group.member_ids || [])]
+  let messages: any = {}
+  const user_ids: any = [...(group.member_ids || [])]
   if (threads.length > 0) {
     try {
       const rsp = await call('/v1/threads/RecentMessages', {
@@ -129,12 +129,12 @@ export default async function handler(
   }
 
   // load the recent messages for all members
-  var chatMessages: Record<string, any[]> = {}
+  const chatMessages: Record<string, any[]> = {}
   await Promise.all(
     group.member_ids
       .filter((id) => user.id !== id)
       .map(async (id: string) => {
-        var chat_id: any
+        let chat_id: any
         try {
           const rsp = await call('/v1/chats/CreateChat', {
             user_ids: [user.id, id],
@@ -155,7 +155,7 @@ export default async function handler(
   )
 
   // load the details of the users
-  var users: any
+  let users: any
   try {
     users = (await call('/v1/users/read', { ids: user_ids })).users
   } catch ({ error, code }) {
@@ -165,7 +165,7 @@ export default async function handler(
   }
 
   // load the last time each thread and chat was seen
-  var threadLastSeens = {}
+  let threadLastSeens = {}
   if (threads.length > 0) {
     try {
       const req = {
@@ -180,7 +180,7 @@ export default async function handler(
       return
     }
   }
-  var chatLastSeens = {}
+  let chatLastSeens = {}
   try {
     const req = {
       user_id: user.id,
@@ -195,7 +195,7 @@ export default async function handler(
   }
 
   // generate a token for the websocket
-  var websocket: any = { topic: user.id }
+  const websocket: any = { topic: user.id }
   try {
     websocket.token = (await call('/v1/streams/Token', websocket)).token
     let protocol = 'ws'
