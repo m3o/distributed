@@ -1,12 +1,12 @@
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { login, signup } from '../lib/user'
 import styles from './login.module.scss'
 
 export default function Login() {
   const router = useRouter()
-  const [email, setEmail] = useState<string>('');
+  const [email, setEmail] = useState<string>('')
   const [isSignup, setIsSignup] = useState<boolean>(false)
   const [password, setPassword] = useState<string>('')
   const [passwordConfirmation, setPasswordConfirmation] = useState<string>('')
@@ -18,18 +18,14 @@ export default function Login() {
   const queryCode = router.query.code
   const code = Array.isArray(queryCode)
     ? queryCode[0]
-    : !!queryCode
+    : queryCode
     ? queryCode
     : ''
 
   useEffect(() => {
     const queryEmail = router.query.email
     setEmail(
-      Array.isArray(queryEmail)
-        ? queryEmail[0]
-        : !!queryEmail
-        ? queryEmail
-        : ''
+      Array.isArray(queryEmail) ? queryEmail[0] : queryEmail ? queryEmail : ''
     )
   }, [router.query.email])
 
@@ -43,8 +39,8 @@ export default function Login() {
   function onSubmit(e: React.FormEvent): void {
     e.preventDefault()
 
-    if(isSignup && passwordConfirmation !== password) {
-      setError("Passwords do not match")
+    if (isSignup && passwordConfirmation !== password) {
+      setError('Passwords do not match')
       return
     }
 
@@ -60,92 +56,123 @@ export default function Login() {
       setLoading(false)
     }
 
-    if(isSignup) {
-      signup({ email, password, first_name: firstName, last_name: lastName, code }).then(onSuccess).catch(onError)
+    if (isSignup) {
+      signup({
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+        code,
+      })
+        .then(onSuccess)
+        .catch(onError)
     } else {
       login(email, password).then(onSuccess).catch(onError)
     }
   }
 
-  function toggleSignup(e: React.MouseEvent<HTMLParagraphElement>) {
-    if(loading) return
-    setIsSignup(prev => !prev)
+  function toggleSignup() {
+    if (loading) return
+    setIsSignup((prev) => !prev)
     setError(null)
   }
-  
-  const canSubmit = email.length && password.length && (isSignup ? firstName.length && lastName.length : true);
 
-  return <div className={styles.container}>
-    <Head>
-      <title>Distributed - Login</title>
-    </Head>
+  const canSubmit =
+    email.length &&
+    password.length &&
+    (isSignup ? firstName.length && lastName.length : true)
 
-    <div className={styles.inner}>
-      <img className={styles.logo} src='/logo.svg' alt='Distributed Logo' />
-      <h1 className={styles.title}>Distributed</h1>
-      { error ? <p className={styles.error}>{error}</p> : null }
+  return (
+    <div className={styles.container}>
+      <Head>
+        <title>Distributed - Login</title>
+      </Head>
 
-      <form className={styles.form} onSubmit={onSubmit}>
-        { isSignup ? <label>First name</label> : null }
-        { isSignup ? <input
-          required
-          autoFocus
-          type='name'
-          value={firstName}
-          disabled={loading}
-          placeholder='John'
-          onChange={e => setFirstName(e.target.value || '')} /> : null }
-        
-        { isSignup ? <label>Last name</label> : null }
-        { isSignup ? <input
-          required
-          type='name'
-          value={lastName}
-          disabled={loading}
-          placeholder='Doe'
-          onChange={e => setLastName(e.target.value || '')} /> : null }
+      <div className={styles.inner}>
+        <img className={styles.logo} src="/logo.svg" alt="Distributed Logo" />
+        <h1 className={styles.title}>Distributed</h1>
+        {error ? (
+          <p className={styles.error}>{JSON.stringify(error, null, 2)}</p>
+        ) : null}
 
-        <label>Email address</label>
-        <input
-          required
-          type='email'
-          value={email}
-          disabled={loading}
-          placeholder='johndoe@distributed.app'
-          onChange={e => setEmail(e.target.value || '')} />
+        <form className={styles.form} onSubmit={onSubmit}>
+          {isSignup ? <label>First name</label> : null}
+          {isSignup ? (
+            <input
+              required
+              autoFocus
+              type="name"
+              value={firstName}
+              disabled={loading}
+              placeholder="John"
+              onChange={(e) => setFirstName(e.target.value || '')}
+            />
+          ) : null}
 
-        <label>Password</label>
-        <input
-          required
-          type='password'
-          value={password}
-          disabled={loading}
-          placeholder='Password'
-          onChange={e => setPassword(e.target.value || '')} />
+          {isSignup ? <label>Last name</label> : null}
+          {isSignup ? (
+            <input
+              required
+              type="name"
+              value={lastName}
+              disabled={loading}
+              placeholder="Doe"
+              onChange={(e) => setLastName(e.target.value || '')}
+            />
+          ) : null}
 
-        { isSignup ? <label>Password Confirmation</label> : null }
-        { isSignup ? <input
-          required
-          type='password'
-          value={passwordConfirmation}
-          disabled={loading}
-          placeholder='Password Confirmation'
-          onChange={e => setPasswordConfirmation(e.target.value || '')} />  : null }
+          <label>Email address</label>
+          <input
+            required
+            type="email"
+            value={email}
+            disabled={loading}
+            placeholder="johndoe@distributed.app"
+            onChange={(e) => setEmail(e.target.value || '')}
+          />
 
-        <input
-          type="submit"
-          disabled={!canSubmit}
-          value={isSignup ? 'Signup' : 'Login'} />
-      </form>
+          <label>Password</label>
+          <input
+            required
+            type="password"
+            value={password}
+            disabled={loading}
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value || '')}
+          />
 
-      <p onClick={() => router.push('/forgotPassword')} className={styles.switch}>
-        Forgot password
-      </p>
+          {isSignup ? <label>Password Confirmation</label> : null}
+          {isSignup ? (
+            <input
+              required
+              type="password"
+              value={passwordConfirmation}
+              disabled={loading}
+              placeholder="Password Confirmation"
+              onChange={(e) => setPasswordConfirmation(e.target.value || '')}
+            />
+          ) : null}
 
-      <p onClick={toggleSignup} className={styles.switch}>
-        { isSignup ? "Already have an account? Click here to login" : "Don't have an account? Click here to sign up" }
-      </p>
+          <input
+            type="submit"
+            disabled={!canSubmit}
+            value={isSignup ? 'Signup' : 'Login'}
+          />
+        </form>
+
+        <p
+          onClick={() => router.push('/forgotPassword')}
+          className={styles.switch}
+        >
+          Forgot password
+        </p>
+
+        <p onClick={toggleSignup} className={styles.switch}>
+          {isSignup
+            ? 'Already have an account? Click here to login'
+            : "Don't have an account? Click here to sign up"}
+        </p>
+      </div>
     </div>
-  </div>
+  )
 }
-

@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NO_COLOR='\033[0m'
+
+if [ ! -f "$(dirname "$0")/_/husky.sh" ]; then
+  printf "%bERROR%b: Pre-commit hooks not configured...\n" "$RED" "$NO_COLOR"
+  printf '* To install pre-commit hooks run:  %bnpm install%b\n' "$BLUE" "$NO_COLOR"
+  printf '* To commit without pre-commit run: %bgit commit --no-verify%b\n' "$BLUE" "$NO_COLOR"
+  printf '\n'
+fi
+
+# shellcheck source=./_/husky.sh
+. "$(dirname "$0")/_/husky.sh"
+
+printf "%b>>>%b Checking Typescript types...\n" "$GREEN" "$NO_COLOR"
+npm run tsc
+
+printf "%b>>>%b Checking ESlint rules...\n" "$GREEN" "$NO_COLOR"
+if ! npm run eslint; then
+  printf '\n'
+  printf '* To automatically correct some lint failures run: %bnpm run eslint:fix%b\n' "$BLUE" "$NO_COLOR"
+  exit 1
+fi
+
+printf "%b>>>%b Checking code formatting...\n" "$GREEN" "$NO_COLOR"
+if ! npm run prettier; then
+  printf '\n'
+  printf '* To automatically format code run: %bnpm run prettier:write%b\n' "$BLUE" "$NO_COLOR"
+  exit 1
+fi

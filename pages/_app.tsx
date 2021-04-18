@@ -1,9 +1,10 @@
 import '../styles/global.css'
 
 declare global {
+  // eslint-disable-next-line no-unused-vars
   interface Window {
-    videoEnabled?: Boolean
-    audioEnabled?: Boolean
+    videoEnabled?: boolean
+    audioEnabled?: boolean
   }
 }
 

@@ -1,20 +1,25 @@
-// Frameworks
-import React from 'react';
-import { useRouter } from 'next/router';
-import { createRef, useState } from 'react';
-
-// Components
+import { useRouter } from 'next/router'
+import { createRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
+import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
-import GifInput from '../../../components/gifInput';
-
-// Utilities
-import { createThread, deleteThread, leaveGroup, removeMember, renameGroup, updateThread, useGroup } from '../../../lib/group'
-import { createInvite, Invite, revokeInvite, useInvites } from '../../../lib/invites'
-import { deleteProfile, updateUser, User } from '../../../lib/user'
+import {
+  createThread,
+  deleteThread,
+  leaveGroup,
+  removeMember,
+  renameGroup,
+  updateThread,
+  useGroup,
+} from '../../../lib/group'
+import {
+  createInvite,
+  Invite,
+  revokeInvite,
+  useInvites,
+} from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-
-// Styling
+import { deleteProfile, updateUser, User } from '../../../lib/user'
 import styles from './index.module.scss'
 
 interface Chat {
@@ -24,28 +29,31 @@ interface Chat {
 
 export default function Group() {
   const router = useRouter()
-  const groupId: string = (router.query?.id || '').toString();
+  const groupId: string = (router.query?.id || '').toString()
   const groupLoader = useGroup(groupId)
   const inviteLoader = useInvites(groupId)
   const [chat, setChat] = useState<Chat>()
   const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
-  const [subview, setSubview] = useState<'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'>(undefined)
-  const chatUI = createRef<ChatUI>();
+  const [subview, setSubview] = useState<
+    'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'
+  >(undefined)
+  const [user, setUser] = useState<User>()
+  const chatUI = createRef<ChatUI>()
 
   // todo: improve error handling
-  if(groupLoader.error || inviteLoader.error) {
+  if (groupLoader.error || inviteLoader.error) {
     router.push('/error')
     return <div />
   }
 
-  if(!connected && groupLoader.group) {
+  if (!connected && groupLoader.group) {
     setConnected(true)
     const w = groupLoader.group.websocket
-    let ws = new WebSocket(w.url)
+    const ws = new WebSocket(w.url)
 
-    ws.onopen = function (event) {
-      console.log("Websocket opened")
+    ws.onopen = function () {
+      console.log('Websocket opened')
       ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
     }
 
@@ -54,109 +62,143 @@ export default function Group() {
       const event = JSON.parse(data)
       const message = JSON.parse(JSON.parse(event.message))
 
-      if(message.group_id && message.group_id !== groupId) {
-        console.log("Ignoring message: ", message)
+      if (message.group_id && message.group_id !== groupId) {
+        console.log('Ignoring message: ', message)
         return
       }
 
-      switch(message.type) {
+      switch (message.type) {
         case 'group.updated':
-          console.log("Group updated:", message)
+          console.log('Group updated:', message)
           groupLoader.mutate({ ...groupLoader.group, ...message })
           break
         case 'group.user.left':
-          console.log("User left group:", message)
-          if(message.payload.current_user) {
-            alert("You have been removed from the group")
+          console.log('User left group:', message)
+          if (message.payload.current_user) {
+            alert('You have been removed from the group')
             window.location.href = '/'
             return
           }
-          groupLoader.mutate({ ...groupLoader.group, members: groupLoader.group.members?.filter(m => m.id !== message.payload.id) }, false)
+          groupLoader.mutate(
+            {
+              ...groupLoader.group,
+              members: groupLoader.group.members?.filter(
+                (m) => m.id !== message.payload.id
+              ),
+            },
+            false
+          )
           break
         case 'group.user.joined':
-          console.log("User joined group:", message)
+          console.log('User joined group:', message)
           groupLoader.mutate({
             ...groupLoader.group,
-            members: [
-              ...groupLoader.group.members,
-              message.payload,
-            ],
+            members: [...groupLoader.group.members, message.payload],
           })
           break
         case 'tread.created':
-          console.log("Thread created: ", message)
+          console.log('Thread created: ', message)
           groupLoader.mutate({
             ...groupLoader.group,
-            threads: [
-              ...groupLoader.group.threads,
-              message.payload,
-            ],
+            threads: [...groupLoader.group.threads, message.payload],
           })
           break
         case 'thread.updated':
-          console.log("Thread updated: ", message)
+          console.log('Thread updated: ', message)
           groupLoader.mutate({
             ...groupLoader.group,
             threads: [
-              ...groupLoader.group.threads.filter(t => t.id !== message.payload.id),
-              { ...groupLoader.group.threads.find(t => t.id === message.payload.id), ...message.payload },
+              ...groupLoader.group.threads.filter(
+                (t) => t.id !== message.payload.id
+              ),
+              {
+                ...groupLoader.group.threads.find(
+                  (t) => t.id === message.payload.id
+                ),
+                ...message.payload,
+              },
             ],
           })
           break
         case 'thread.deleted':
-          console.log("Thread deleted: ", message)
-          groupLoader.mutate({ ...groupLoader.group, threads: groupLoader.group.threads?.filter(m => m.id !== message.payload.id) }, false)
-          if(chat?.type === 'thread' && chat?.id === message.payload.id) setChat(undefined)
+          console.log('Thread deleted: ', message)
+          groupLoader.mutate(
+            {
+              ...groupLoader.group,
+              threads: groupLoader.group.threads?.filter(
+                (m) => m.id !== message.payload.id
+              ),
+            },
+            false
+          )
+          if (chat?.type === 'thread' && chat?.id === message.payload.id)
+            setChat(undefined)
           break
-        case 'message.created':
-          console.log("New message: ", message)
-          let group = { ...groupLoader.group }
-          if(message.payload.chat.type === "chat") {
-            group.members.find(m => m.id === message.payload.chat.id).chat.messages.push(message.payload.message)
-          } else if(message.payload.chat.type === "thread") {
-            const messages = group.threads.find(m => m.id === message.payload.chat.id)?.messages || []
-            group.threads.find(m => m.id === message.payload.chat.id).messages = [...messages, message.payload.message]
+        case 'message.created': {
+          console.log('New message: ', message)
+          const group = { ...groupLoader.group }
+          if (message.payload.chat.type === 'chat') {
+            group.members
+              .find((m) => m.id === message.payload.chat.id)
+              .chat.messages.push(message.payload.message)
+          } else if (message.payload.chat.type === 'thread') {
+            const messages =
+              group.threads.find((m) => m.id === message.payload.chat.id)
+                ?.messages || []
+            group.threads.find(
+              (m) => m.id === message.payload.chat.id
+            ).messages = [...messages, message.payload.message]
           }
           groupLoader.mutate(group)
           break
+        }
       }
     }
 
     ws.onclose = () => {
-      console.log("Websocket closed")
+      console.log('Websocket closed')
       setConnected(false)
     }
 
     ws.onerror = (ev) => {
-      console.log("Websocket errored "+JSON.stringify(ev))
+      console.log('Websocket errored ' + JSON.stringify(ev))
     }
   }
 
   function setChatWrapped(type: string, id: string) {
-    var group = { ...groupLoader.group }
+    const group = { ...groupLoader.group }
 
-    if(chat && (chat.type !== type || chat.id !== id) && (window.audioEnabled || window.videoEnabled)) {
-      if(!confirm("Are you sure you want to switch rooms? You will be disconnected from audio and video")) return
+    if (
+      chat &&
+      (chat.type !== type || chat.id !== id) &&
+      (window.audioEnabled || window.videoEnabled)
+    ) {
+      if (
+        !confirm(
+          'Are you sure you want to switch rooms? You will be disconnected from audio and video'
+        )
+      )
+        return
     }
 
-    if(chat?.type === 'thread') {
-      let threads = [...groupLoader.group.threads]
+    if (chat?.type === 'thread') {
+      const threads = [...groupLoader.group.threads]
       if (!threads) {
         console.log('No threads loaded')
         return
       }
-      let thr = threads.find(t => t.id === chat.id)
+      const thr = threads.find((t) => t.id === chat.id)
       if (thr) {
         thr.last_seen = Date.now().toString()
       }
 
       groupLoader.mutate({ ...group, threads }, false)
-    } else if(chat?.type === 'chat') {
-      let members = [...group.members]
-      let thr = members.find(t => t.id === chat.id)
+    } else if (chat?.type === 'chat') {
+      const members = [...group.members]
+      const thr = members.find((t) => t.id === chat.id)
       if (thr) {
         thr.chat = {
-          ...(members.find(t => t.id === chat.id).chat || {}),
+          ...(members.find((t) => t.id === chat.id).chat || {}),
           last_seen: Date.now().toString(),
         }
       }
@@ -165,7 +207,7 @@ export default function Group() {
 
     localStorage.setItem(`group/${groupId}/chat`, JSON.stringify({ type, id }))
     setChat({ type, id })
-    if(showSidebar) setShowSidebar(false)
+    if (showSidebar) setShowSidebar(false)
   }
 
   function clearChatWrapped() {
@@ -174,10 +216,10 @@ export default function Group() {
   }
 
   // default to the last opened chat, or the first
-  if(chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
+  if (chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
     const chatStr = localStorage.getItem(`group/${groupId}/chat`)
 
-    if(chatStr) {
+    if (chatStr) {
       const { type, id } = JSON.parse(chatStr)
       setChatWrapped(type, id)
     } else if (groupLoader.group.threads?.length) {
@@ -187,25 +229,30 @@ export default function Group() {
 
   let messages = []
   let participants = []
-  if(chat?.type === 'thread') {
-    const thread = groupLoader?.group?.threads?.find(s => s.id === chat.id)
-    if(!thread) clearChatWrapped();
+  if (chat?.type === 'thread') {
+    const thread = groupLoader?.group?.threads?.find((s) => s.id === chat.id)
+    if (!thread) clearChatWrapped()
     messages = thread?.messages || []
     participants = groupLoader?.group?.members || []
-  } else if(chat?.type === 'chat') {
-    const member = groupLoader?.group?.members?.find(s => s.id === chat.id)
-    if(!member) clearChatWrapped();
+  } else if (chat?.type === 'chat') {
+    const member = groupLoader?.group?.members?.find((s) => s.id === chat.id)
+    if (!member) clearChatWrapped()
     messages = member?.chat?.messages || []
-    participants = groupLoader.group.members.filter(m => m.id === chat.id || m.current_user)
+    participants = groupLoader.group.members.filter(
+      (m) => m.id === chat.id || m.current_user
+    )
   }
 
   async function createChannel() {
-    var channel = window.prompt("Enter a new room name")
-    if(!channel?.length) return
+    const channel = window.prompt('Enter a new room name')
+    if (!channel?.length) return
 
     try {
       const thread = await createThread(groupId, channel)
-      groupLoader.mutate({ ...groupLoader.group!, threads: [...groupLoader.group!.threads, thread] })
+      groupLoader.mutate({
+        ...groupLoader.group!,
+        threads: [...groupLoader.group!.threads, thread],
+      })
       setChat({ type: 'thread', id: thread.id })
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
@@ -217,12 +264,16 @@ export default function Group() {
   }
 
   async function sendInvite() {
-    var email = window.prompt("Enter the email address of the user you want to invite")
-    if(!email?.length) return
+    const email = window.prompt(
+      'Enter the email address of the user you want to invite'
+    )
+    if (!email?.length) return
 
     try {
       const invite = await createInvite(groupId, email)
-      const url = `${window.location.protocol}//${window.location.host}/login?code=${invite.code}&email=${encodeURI(invite.email)}`
+      const url = `${window.location.protocol}//${
+        window.location.host
+      }/login?code=${invite.code}&email=${encodeURI(invite.email)}`
       alert(`Invite sent to ${email}. Link to signup: ${url}`)
     } catch (error) {
       alert(`Error sending invite to ${email}: ${error}`)
@@ -230,8 +281,8 @@ export default function Group() {
   }
 
   async function renameGroupPopup() {
-    var name = window.prompt("Enter the new name of the group")
-    if(!name?.length) return
+    const name = window.prompt('Enter the new name of the group')
+    if (!name?.length) return
 
     try {
       await renameGroup(groupId, name)
@@ -242,12 +293,12 @@ export default function Group() {
   }
 
   async function logoutPopup() {
-    if(!window.confirm("Are you sure you want to logout?")) return
+    if (!window.confirm('Are you sure you want to logout?')) return
     router.push('/logout')
   }
 
   async function deleteProfilePopup() {
-    if(!window.confirm("Are you sure you want to delete your profile?")) return
+    if (!window.confirm('Are you sure you want to delete your profile?')) return
 
     try {
       await deleteProfile()
@@ -258,7 +309,7 @@ export default function Group() {
   }
 
   async function leaveGroupPopup() {
-    if(!window.confirm("Are you sure you want to leave this group")) return
+    if (!window.confirm('Are you sure you want to leave this group')) return
 
     try {
       await leaveGroup(groupId)
@@ -269,13 +320,13 @@ export default function Group() {
   }
 
   async function deleteThreadPopup() {
-    if(!window.confirm("Are you sure you want to delete this room")) return
+    if (!window.confirm('Are you sure you want to delete this room')) return
 
     try {
       await deleteThread(chat.id)
-      groupLoader.mutate({ 
+      groupLoader.mutate({
         ...groupLoader.group,
-        threads: groupLoader.group.threads?.filter(t => t.id !== chat.id),
+        threads: groupLoader.group.threads?.filter((t) => t.id !== chat.id),
       })
     } catch (error) {
       alert(`Error deleting room: ${error}`)
@@ -283,13 +334,18 @@ export default function Group() {
   }
 
   async function removeUserPopuop() {
-    if(!window.confirm("Are you sure you want to remove this user from the group?")) return
+    if (
+      !window.confirm(
+        'Are you sure you want to remove this user from the group?'
+      )
+    )
+      return
 
     try {
       await removeMember(groupId, chat.id)
-      groupLoader.mutate({ 
+      groupLoader.mutate({
         ...groupLoader.group,
-        threads: groupLoader.group.members?.filter(t => t.id !== chat.id),
+        threads: groupLoader.group.members?.filter((t) => t.id !== chat.id),
       })
     } catch (error) {
       alert(`Error removing user: ${error}`)
@@ -297,8 +353,8 @@ export default function Group() {
   }
 
   async function renameThreadPopup() {
-    var name = window.prompt("Enter the new name of the room")
-    if(!name?.length) return
+    const name = window.prompt('Enter the new name of the room')
+    if (!name?.length) return
 
     try {
       await updateThread(chat.id, name)
@@ -308,167 +364,229 @@ export default function Group() {
   }
 
   function showMsgIndicator(type: string, id: string): boolean {
-    let resource: { messages?: Message[], last_seen?: string | number }
+    let resource: { messages?: Message[]; last_seen?: string | number }
 
-    if(type === 'chat') {
-      resource = groupLoader.group.members.find(t => t.id === id)?.chat
-    } else if(type === 'thread') {
-      resource = groupLoader.group.threads.find(t => t.id === id)
+    if (type === 'chat') {
+      resource = groupLoader.group.members.find((t) => t.id === id)?.chat
+    } else if (type === 'thread') {
+      resource = groupLoader.group.threads.find((t) => t.id === id)
     }
 
-    if(chat?.type === type && chat?.id === id) return false
-    if(!resource?.messages?.length) return false
-    if(!resource.last_seen) return true
+    if (chat?.type === type && chat?.id === id) return false
+    if (!resource?.messages?.length) return false
+    if (!resource.last_seen) return true
 
     const lastSeen = Date.parse(resource.last_seen as string)
     let showIndicator = false
-    resource.messages.filter(m => !m.author?.current_user).forEach(msg => {
-      const sentAt = Date.parse(msg.sent_at as string)
-      if(sentAt > lastSeen) showIndicator = true
-    })
+    resource.messages
+      .filter((m) => !m.author?.current_user)
+      .forEach((msg) => {
+        const sentAt = Date.parse(msg.sent_at as string)
+        if (sentAt > lastSeen) showIndicator = true
+      })
     return showIndicator
   }
 
   function renderSettings(): JSX.Element {
-    return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setSubview(undefined)} />
-      <div className={styles.settings}>
-        <h1>Settings</h1>
-        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
-          <p>🔙</p>
+    return (
+      <div className={styles.settingsContainer}>
+        <div
+          className={styles.background}
+          onClick={() => setSubview(undefined)}
+        />
+        <div className={styles.settings}>
+          <h1>Settings</h1>
+          <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+            <p>🔙</p>
+          </div>
+
+          <section>
+            <h2>Group</h2>
+            <ul>
+              <li onClick={() => router.push('/')}>Switch group</li>
+              <li onClick={() => leaveGroupPopup()}>Leave group</li>
+              <li onClick={() => renameGroupPopup()}>Rename group</li>
+              <li onClick={() => setSubview('manage-invites')}>
+                Manage invites
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Profile</h2>
+            <ul>
+              <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
+              <li onClick={() => deleteProfilePopup()}>Delete profile</li>
+              <li onClick={() => logoutPopup()}>Logout</li>
+            </ul>
+          </section>
         </div>
-
-        <section>
-          <h2>Group</h2>
-          <ul>
-            <li onClick={() => router.push('/')}>Switch group</li>
-            <li onClick={() => leaveGroupPopup()}>Leave group</li>
-            <li onClick={() => renameGroupPopup()}>Rename group</li>
-            <li onClick={() => setSubview('manage-invites')}>Manage invites</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>Profile</h2>
-          <ul>
-            <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
-            <li onClick={() => deleteProfilePopup()}>Delete profile</li>
-            <li onClick={() => logoutPopup()}>Logout</li>
-          </ul>
-        </section>
       </div>
-    </div>
+    )
   }
 
   function renderChatSettings(): JSX.Element {
-    return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setSubview(undefined)} />
-      <div className={styles.settings}>
-        <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
-        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
-          <p>🔙</p>
-        </div>
+    return (
+      <div className={styles.settingsContainer}>
+        <div
+          className={styles.background}
+          onClick={() => setSubview(undefined)}
+        />
+        <div className={styles.settings}>
+          <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
+          <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+            <p>🔙</p>
+          </div>
 
-        <section>
-          <ul>
-            { chat.type === 'thread' ? <li onClick={() => renameThreadPopup() && setSubview(undefined)}>Rename room</li> : null }
-            { chat.type === 'thread' ? <li onClick={() => deleteThreadPopup() && setSubview(undefined)}>Delete room</li> : null }
-            { chat.type === 'thread' ? null : <li onClick={() => removeUserPopuop() && setSubview(undefined)}>Remove user from group</li> }
-          </ul>
-        </section>
+          <section>
+            <ul>
+              {chat.type === 'thread' ? (
+                <li
+                  onClick={() => renameThreadPopup() && setSubview(undefined)}
+                >
+                  Rename room
+                </li>
+              ) : null}
+              {chat.type === 'thread' ? (
+                <li
+                  onClick={() => deleteThreadPopup() && setSubview(undefined)}
+                >
+                  Delete room
+                </li>
+              ) : null}
+              {chat.type === 'thread' ? null : (
+                <li onClick={() => removeUserPopuop() && setSubview(undefined)}>
+                  Remove user from group
+                </li>
+              )}
+            </ul>
+          </section>
+        </div>
       </div>
-    </div>
+    )
   }
 
   function deleteInvite(i: Invite) {
     const invites = [...inviteLoader.invites]
-    if(!confirm(`Are you sure you want to delete the invite for ${i.email}?`)) return;
+    if (!confirm(`Are you sure you want to delete the invite for ${i.email}?`))
+      return
 
     revokeInvite(i.id)
-      .then(() => inviteLoader.mutate(invites.filter(x => i.id !== x.id)))
-      .catch(err => alert(`Erorr revoking invite: ${err}`))
+      .then(() => inviteLoader.mutate(invites.filter((x) => i.id !== x.id)))
+      .catch((err) => alert(`Erorr revoking invite: ${err}`))
   }
 
   function renderInvites(): JSX.Element {
-    return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setSubview(undefined)} />
-      <div className={styles.settings}>
-        <h1>Manage Invites</h1>
-        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
-          <p>🔙</p>
-        </div>
+    return (
+      <div className={styles.settingsContainer}>
+        <div
+          className={styles.background}
+          onClick={() => setSubview(undefined)}
+        />
+        <div className={styles.settings}>
+          <h1>Manage Invites</h1>
+          <div
+            className={styles.dismiss}
+            onClick={() => setSubview('settings')}
+          >
+            <p>🔙</p>
+          </div>
 
-        <section>
-          { inviteLoader.invites?.length ? null : <p className={styles.emptyState}>There are no pending invites</p>}
-          <ul>
-            { inviteLoader.invites?.map(i => <li onClick={() => deleteInvite(i)}>
-              <p>{i.email}</p>
-              <p>Click to delete</p>
-            </li>)}            
-          </ul>
-        </section>
+          <section>
+            {inviteLoader.invites?.length ? null : (
+              <p className={styles.emptyState}>There are no pending invites</p>
+            )}
+            <ul>
+              {inviteLoader.invites?.map((i) => (
+                <li key={i.id} onClick={() => deleteInvite(i)}>
+                  <p>{i.email}</p>
+                  <p>Click to delete</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       </div>
-    </div>
+    )
   }
 
   function renderGifInput(): JSX.Element {
-    const onSelect = (url: string) => {
-      chatUI.current?.SendMessage(url);
-      setSubview(undefined);
-    }
+    // const onSelect = (url: string) => {
+    //   chatUI.current?.SendMessage(url)
+    //   setSubview(undefined)
+    // }
 
-    return <GifInput
-              threadID={chat.id}
-              groupID={groupLoader.group.id}
-              dismiss={() => setSubview(undefined) } />
+    return (
+      <GifInput
+        threadID={chat.id}
+        groupID={groupLoader.group.id}
+        dismiss={() => setSubview(undefined)}
+      />
+    )
   }
 
-  let initials = '';
-  const [user, setUser] = useState<User>()
-  if(user) {
-    initials = user.first_name.slice(0,1) + user.last_name.slice(0,1)
-  } else if (groupLoader.group?.members?.find(m => m.current_user)) {
-    setUser(groupLoader.group?.members?.find(m => m.current_user))
+  let initials = ''
+  if (user) {
+    initials = user.first_name.slice(0, 1) + user.last_name.slice(0, 1)
+  } else if (groupLoader.group?.members?.find((m) => m.current_user)) {
+    setUser(groupLoader.group?.members?.find((m) => m.current_user))
   }
 
   function renderEditProfile(): JSX.Element {
     const onSubmit = (e: React.FormEvent) => {
       e.preventDefault()
       setSubview(undefined)
-      updateUser(user).catch(err => alert(`Error updating profile: ${err}`))
+      updateUser(user).catch((err) => alert(`Error updating profile: ${err}`))
     }
 
-    return <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={() => setSubview(undefined)} />
-      <div className={styles.settings}>
-        <h1>Edit Profile</h1>
-        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
-          <p>🔙</p>
+    return (
+      <div className={styles.settingsContainer}>
+        <div
+          className={styles.background}
+          onClick={() => setSubview(undefined)}
+        />
+        <div className={styles.settings}>
+          <h1>Edit Profile</h1>
+          <div
+            className={styles.dismiss}
+            onClick={() => setSubview('settings')}
+          >
+            <p>🔙</p>
+          </div>
+
+          <form onSubmit={onSubmit}>
+            <input
+              required
+              placeholder="First name"
+              value={user.first_name}
+              onChange={(e) =>
+                setUser({ ...user, first_name: e.target.value || '' })
+              }
+            />
+
+            <input
+              required
+              placeholder="Last name"
+              value={user.last_name}
+              onChange={(e) =>
+                setUser({ ...user, last_name: e.target.value || '' })
+              }
+            />
+
+            <input
+              required
+              placeholder="Email"
+              value={user.email}
+              onChange={(e) =>
+                setUser({ ...user, email: e.target.value || '' })
+              }
+            />
+
+            <input type="submit" value="Save changes" />
+          </form>
         </div>
-
-        <form onSubmit={onSubmit}>
-          <input
-            required
-            placeholder='First name' 
-            value={user.first_name}
-            onChange={e => setUser({ ...user, first_name: e.target.value || ""})} />
-
-          <input
-            required
-            placeholder='Last name' 
-            value={user.last_name}
-            onChange={e => setUser({ ...user, last_name: e.target.value || ""})} />
-
-          <input
-            required
-            placeholder='Email' 
-            value={user.email}
-            onChange={e => setUser({ ...user, email: e.target.value || ""})} />
-
-          <input type='submit' value='Save changes' />
-        </form>
       </div>
-    </div>
+    )
   }
 
   function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
@@ -477,80 +595,132 @@ export default function Group() {
     e.stopPropagation()
   }
 
-  return <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
-    { subview === 'settings' ? renderSettings() : null }
-    { subview === 'chat-settings' ? renderChatSettings() : null }
-    { subview === 'edit-profile' ? renderEditProfile() : null }
-    { subview === 'manage-invites' ? renderInvites() : null }
-    { subview === 'gif' ? renderGifInput() : null }
+  return (
+    <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
+      {subview === 'settings' ? renderSettings() : null}
+      {subview === 'chat-settings' ? renderChatSettings() : null}
+      {subview === 'edit-profile' ? renderEditProfile() : null}
+      {subview === 'manage-invites' ? renderInvites() : null}
+      {subview === 'gif' ? renderGifInput() : null}
 
-    <div className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}>
-      <div className={styles.upper} onClick={() => setSubview('settings')}>
-        <h1>{groupLoader.group?.name}</h1>
+      <div
+        className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}
+      >
+        <div className={styles.upper} onClick={() => setSubview('settings')}>
+          <h1>{groupLoader.group?.name}</h1>
 
-        <div className={styles.initials}>
-          <p>{initials}</p>
+          <div className={styles.initials}>
+            <p>{initials}</p>
+          </div>
+
+          <div className={styles.dismiss} onClick={dismissMenu}>
+            <p>🔙</p>
+          </div>
+
+          <div className={styles.settingsIcon}>
+            <p>⚙️</p>
+          </div>
         </div>
 
-        <div className={styles.dismiss} onClick={dismissMenu}>
-          <p>🔙</p>
-        </div>
-
-        <div className={styles.settingsIcon}>
-          <p>⚙️</p>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <h3><span>🛋️</span> Rooms</h3>
-        <ul>
-          { uniqueByID(groupLoader.group?.threads || []).map(s => {
-            const onClick = () => setChatWrapped('thread', s.id)
-            const className = chat?.type === 'thread' && chat?.id === s.id ? styles.linkActive : null
-            return <li className={className} onClick={onClick} key={s.id}>
-              <p>{s.topic}</p>
-              { showMsgIndicator('thread', s.id) ? <div className={styles.msgIndicator} /> : null }
+        <div className={styles.section}>
+          <h3>
+            <span>🛋️</span> Rooms
+          </h3>
+          <ul>
+            {uniqueByID(groupLoader.group?.threads || []).map((s) => {
+              const onClick = () => setChatWrapped('thread', s.id)
+              const className =
+                chat?.type === 'thread' && chat?.id === s.id
+                  ? styles.linkActive
+                  : null
+              return (
+                <li className={className} onClick={onClick} key={s.id}>
+                  <p>{s.topic}</p>
+                  {showMsgIndicator('thread', s.id) ? (
+                    <div className={styles.msgIndicator} />
+                  ) : null}
+                </li>
+              )
+            })}
+            <li className={styles.gray} key="room" onClick={createChannel}>
+              New Room
             </li>
-          })}
-          <li className={styles.gray} key='room' onClick={createChannel}>New Room</li>
-        </ul>
-      </div>
+          </ul>
+        </div>
 
-      <div className={styles.section}>
-        <h3><span>👨‍👩‍👦</span> People</h3>
-        <ul>
-          { groupLoader.group?.members?.filter(u => !u.current_user)?.map(m => {
-            const onClick = () => setChatWrapped('chat', m.id)
-            const className = chat?.type === 'chat' && chat?.id === m.id ? styles.linkActive : null            
-            return <li key={m.id} className={className} onClick={onClick}>
-              <p>{m.first_name} {m.last_name}</p>
-              { showMsgIndicator('chat', m.id) ? <div className={styles.msgIndicator} /> : null }
+        <div className={styles.section}>
+          <h3>
+            <span>👨‍👩‍👦</span> People
+          </h3>
+          <ul>
+            {groupLoader.group?.members
+              ?.filter((u) => !u.current_user)
+              ?.map((m) => {
+                const onClick = () => setChatWrapped('chat', m.id)
+                const className =
+                  chat?.type === 'chat' && chat?.id === m.id
+                    ? styles.linkActive
+                    : null
+                return (
+                  <li key={m.id} className={className} onClick={onClick}>
+                    <p>
+                      {m.first_name} {m.last_name}
+                    </p>
+                    {showMsgIndicator('chat', m.id) ? (
+                      <div className={styles.msgIndicator} />
+                    ) : null}
+                  </li>
+                )
+              })}
+            <li className={styles.gray} key="invite" onClick={sendInvite}>
+              Send Invite
             </li>
-          })}
-          <li className={styles.gray} key='invite' onClick={sendInvite}>Send Invite</li>
-        </ul>
+          </ul>
+        </div>
       </div>
-    </div>
 
-    <div className={styles.main}>
-    <div className={styles.actionButtons}>
-        <p className={styles.burgerIcon} onClick={() => setShowSidebar(!showSidebar)}><span>🍔</span></p>
-        { chat ? <p onClick={() => setSubview('chat-settings')}><span>⚙️</span></p> : null }
-        { chat ? <p onClick={createWhiteboard}><span>✏️</span></p> : null }
-        { chat?.type === 'thread' ? <p onClick={() => setSubview('gif')}><span>🤪</span></p> : null }
+      <div className={styles.main}>
+        <div className={styles.actionButtons}>
+          <p
+            className={styles.burgerIcon}
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            <span>🍔</span>
+          </p>
+          {chat ? (
+            <p onClick={() => setSubview('chat-settings')}>
+              <span>⚙️</span>
+            </p>
+          ) : null}
+          {chat ? (
+            <p onClick={createWhiteboard}>
+              <span>✏️</span>
+            </p>
+          ) : null}
+          {chat?.type === 'thread' ? (
+            <p onClick={() => setSubview('gif')}>
+              <span>🤪</span>
+            </p>
+          ) : null}
+        </div>
+
+        {chat ? (
+          <ChatUI
+            key={chat.id}
+            chatType={chat.type}
+            chatID={chat.id}
+            ref={chatUI}
+            messages={messages}
+            participants={participants}
+          />
+        ) : null}
       </div>
-      
-      { chat ? <ChatUI
-                  key={chat.id}
-                  chatType={chat.type}
-                  chatID={chat.id}
-                  ref={chatUI}
-                  messages={messages}
-                  participants={participants} /> : null }
-      </div>
- </Layout> 
+    </Layout>
+  )
 }
 
 function uniqueByID(array) {
-  return array.filter((x, xi) => !array.slice(xi + 1).some(y => y.id === x.id));
+  return array.filter(
+    (x, xi) => !array.slice(xi + 1).some((y) => y.id === x.id)
+  )
 }
