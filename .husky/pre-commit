@@ -9,7 +9,7 @@ if [ ! -f "$(dirname "$0")/_/husky.sh" ]; then
   printf "%bERROR%b: Pre-commit hooks not configured...\n" "$RED" "$NO_COLOR"
   printf '* To install pre-commit hooks run:  %bnpm install%b\n' "$BLUE" "$NO_COLOR"
   printf '* To commit without pre-commit run: %bgit commit --no-verify%b\n' "$BLUE" "$NO_COLOR"
-  printf "\n"
+  printf '\n'
 fi
 
 # shellcheck source=./_/husky.sh
@@ -17,3 +17,10 @@ fi
 
 printf "%b>>>%b Checking Typescript types...\n" "$GREEN" "$NO_COLOR"
 npm run tsc
+
+printf "%b>>>%b Checking code formatting...\n" "$GREEN" "$NO_COLOR"
+if ! npm run prettier; then
+  printf '\n'
+  printf '* To automatically format code run: %bnpm run prettier:write%b\n' "$BLUE" "$NO_COLOR"
+  exit 1
+fi
