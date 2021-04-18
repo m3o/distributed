@@ -1,6 +1,6 @@
+import { serialize } from 'cookie'
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../lib/micro'
-import { serialize } from 'cookie'
 
 export default async function handler(
   req: NextApiRequest,

@@ -33,6 +33,23 @@ module.exports = {
   ignorePatterns: ['/public/**'],
   rules: {
     semi: ['error', 'never'],
+    'import/order': [
+      'error',
+      {
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+        groups: [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index',
+        ],
+      },
+    ],
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
     // TODO: remove rule suppression and fix

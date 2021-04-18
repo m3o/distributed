@@ -1,6 +1,6 @@
 import useSWR from 'swr'
-import { User } from './user'
 import { Message } from './message'
+import { User } from './user'
 
 export interface Group {
   id: string

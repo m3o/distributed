@@ -1,7 +1,7 @@
-import Layout from '../../components/layout'
 import { useRouter } from 'next/router'
-import { useGroups, createGroup } from '../../lib/group'
 import { useState } from 'react'
+import Layout from '../../components/layout'
+import { useGroups, createGroup } from '../../lib/group'
 import styles from './new.module.scss'
 
 export default function Home() {

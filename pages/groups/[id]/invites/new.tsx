@@ -1,9 +1,9 @@
-import Layout from '../../../../components/layout'
 import { useRouter } from 'next/router'
-import { useGroup } from '../../../../lib/group'
 import { useState } from 'react'
-import styles from './new.module.scss'
+import Layout from '../../../../components/layout'
+import { useGroup } from '../../../../lib/group'
 import { createInvite } from '../../../../lib/invites'
+import styles from './new.module.scss'
 
 export default function Home() {
   const router = useRouter()

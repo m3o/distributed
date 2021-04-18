@@ -1,6 +1,6 @@
+import sengrid from '@sendgrid/mail'
 import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../../../lib/micro'
-import sengrid from '@sendgrid/mail'
 import TokenFromReq from '../../../../lib/token'
 
 sengrid.setApiKey(process.env.SENDGRID_API_KEY)

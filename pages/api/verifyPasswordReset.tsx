@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from 'next'
 import { serialize } from 'cookie'
+import { NextApiRequest, NextApiResponse } from 'next'
 import call from '../../lib/micro'
 
 export default async function handler(

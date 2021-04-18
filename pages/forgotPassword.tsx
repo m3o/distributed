@@ -1,6 +1,6 @@
 import Head from 'next/head'
-import { useState } from 'react'
 import { useRouter } from 'next/router'
+import { useState } from 'react'
 import { sendPasswordReset, verifyPasswordReset } from '../lib/user'
 import styles from './login.module.scss'
 

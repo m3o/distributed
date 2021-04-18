@@ -1,10 +1,10 @@
-import Layout from '../components/layout'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useUser } from '../lib/user'
+import Layout from '../components/layout'
 import { useGroups } from '../lib/group'
-import styles from './index.module.scss'
 import { acceptInvite, rejectInvite, Invite, useInvites } from '../lib/invites'
+import { useUser } from '../lib/user'
+import styles from './index.module.scss'
 
 export default function Home() {
   const router = useRouter()

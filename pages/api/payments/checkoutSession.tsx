@@ -1,5 +1,5 @@
-import Stripe from 'stripe'
 import { NextApiRequest, NextApiResponse } from 'next'
+import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY, null)
 

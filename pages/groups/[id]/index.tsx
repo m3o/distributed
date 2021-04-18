@@ -1,13 +1,8 @@
-// Frameworks
 import { useRouter } from 'next/router'
 import { createRef, useState } from 'react'
-
-// Components
 import ChatUI from '../../../components/chat'
-import Layout from '../../../components/layout'
 import GifInput from '../../../components/gifInput'
-
-// Utilities
+import Layout from '../../../components/layout'
 import {
   createThread,
   deleteThread,
@@ -23,10 +18,8 @@ import {
   revokeInvite,
   useInvites,
 } from '../../../lib/invites'
-import { deleteProfile, updateUser, User } from '../../../lib/user'
 import { Message } from '../../../lib/message'
-
-// Styling
+import { deleteProfile, updateUser, User } from '../../../lib/user'
 import styles from './index.module.scss'
 
 interface Chat {

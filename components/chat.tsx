@@ -1,21 +1,14 @@
-// Frameworks
-import { Component } from 'react'
 import { Picker } from 'emoji-mart'
-import moment from 'moment'
-
-// Components
-import Message from './message'
-import Stream from '../components/stream'
-
-// Utilities
-import { createMessage, Message as Msg } from '../lib/message'
-
-// Styling
-import styles from './chat.module.scss'
-import { User } from '../lib/user'
-import { setSeen } from '../lib/seen'
-import { v4 as uuid } from 'uuid'
 import 'emoji-mart/css/emoji-mart.css'
+import moment from 'moment'
+import { Component } from 'react'
+import { v4 as uuid } from 'uuid'
+import Stream from '../components/stream'
+import { createMessage, Message as Msg } from '../lib/message'
+import { setSeen } from '../lib/seen'
+import { User } from '../lib/user'
+import styles from './chat.module.scss'
+import Message from './message'
 
 interface Props {
   // chatType, e.g. 'thread' or 'chat'

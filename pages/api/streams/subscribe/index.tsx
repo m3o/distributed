@@ -1,6 +1,6 @@
 import { NextApiRequest } from 'next'
-import { BaseURL, APIKey } from '../../../../lib/micro'
 import WebSocket from 'ws'
+import { APIKey, BaseURL } from '../../../../lib/micro'
 
 export default async function handler(req: NextApiRequest) {
   return new Promise((resolve) => {

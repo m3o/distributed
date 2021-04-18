@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
 import { NextApiRequest, NextApiResponse } from 'next'
+import Stripe from 'stripe'
 import { v4 as uuid } from 'uuid'
-import TokenFromReq from '../../../lib/token'
 import call from '../../../lib/micro'
+import TokenFromReq from '../../../lib/token'
 
 const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY, null)
 

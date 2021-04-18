@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call from '../../lib/micro'
 import twilio from 'twilio'
+import call from '../../lib/micro'
 import TokenFromReq from '../../lib/token'
 
 export default async function handler(

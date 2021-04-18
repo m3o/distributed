@@ -1,11 +1,7 @@
-// Frameworks
 import { Component, createRef } from 'react'
 import Twilio from 'twilio-video'
-
-// Utilities
-import { getVideoProfile } from '../lib/videos'
 import { User } from '../lib/user'
-
+import { getVideoProfile } from '../lib/videos'
 import styles from './stream.module.scss'
 
 interface Props {

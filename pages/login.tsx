@@ -1,6 +1,6 @@
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { login, signup } from '../lib/user'
 import styles from './login.module.scss'
 

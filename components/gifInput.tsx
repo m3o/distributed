@@ -1,9 +1,9 @@
-import React from 'react'
 import { GifsResult, GiphyFetch } from '@giphy/js-fetch-api'
-import popupStyles from '../pages/groups/[id]/index.module.scss'
-import styles from './gifInput.module.scss'
+import React from 'react'
 import 'reactjs-popup/dist/index.css'
 import { getStripe } from '../lib/stripe'
+import popupStyles from '../pages/groups/[id]/index.module.scss'
+import styles from './gifInput.module.scss'
 
 interface GifInputProps {
   dismiss: Function
