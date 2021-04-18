@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import { parse, serialize } from 'cookie'
+import { serialize } from 'cookie'
 import call from '../../lib/micro'
 import TokenFromReq from '../../lib/token'
 

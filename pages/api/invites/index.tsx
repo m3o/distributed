@@ -6,10 +6,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const {
-    query: { group_id },
-  } = req
-
   if (req.method !== 'GET') {
     res.status(405)
     return
@@ -28,8 +24,8 @@ export default async function handler(
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
-    if (code === 400) code = 401
-    res.status(code).json({ error })
+    const statusCode = code === 400 ? 401 : code
+    res.status(statusCode).json({ error })
     return
   }
 

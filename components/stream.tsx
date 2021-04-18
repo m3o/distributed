@@ -78,7 +78,7 @@ export default class Stream extends Component<Props, State> {
     window.removeEventListener('beforeunload', this.disconnectRoom)
   }
 
-  async componentDidUpdate(prevProps?: Props, prevState?: State) {
+  async componentDidUpdate(prevProps?: Props) {
     // if the participants is updated (e.g. a user joined or left the group), update the state object
     if (prevProps.participants?.length !== this.props.participants?.length) {
       let participants = {}

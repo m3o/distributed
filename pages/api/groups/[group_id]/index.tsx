@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import call, { BaseURL } from '../../../../lib/micro'
+import call from '../../../../lib/micro'
 import TokenFromReq from '../../../../lib/token'
 
 export default async function handler(
@@ -28,8 +28,8 @@ export default async function handler(
     const rsp = await call('/v1/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
-    if (code === 400) code = 401
-    res.status(code).json({ error })
+    const statusCode = code === 400 ? 401 : code
+    res.status(statusCode).json({ error })
     return
   }
 

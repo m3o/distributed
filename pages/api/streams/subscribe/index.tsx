@@ -1,11 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiRequest } from 'next'
 import { BaseURL, APIKey } from '../../../../lib/micro'
 import WebSocket from 'ws'
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest) {
   return new Promise((resolve) => {
     var wsToMicro = null
     let connectionClosed = false
@@ -26,7 +23,7 @@ export default async function handler(
         wsToMicro.close()
       }
     })
-    wss.on('connection', (wss, req1) => {
+    wss.on('connection', (wss) => {
       wss.on('message', (data) => {
         // set up connection to micro
         wsToMicro = new WebSocket(

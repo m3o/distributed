@@ -59,7 +59,7 @@ export default function Group() {
     const w = groupLoader.group.websocket
     let ws = new WebSocket(w.url)
 
-    ws.onopen = function (event) {
+    ws.onopen = function () {
       console.log('Websocket opened')
       ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
     }
@@ -141,7 +141,7 @@ export default function Group() {
           if (chat?.type === 'thread' && chat?.id === message.payload.id)
             setChat(undefined)
           break
-        case 'message.created':
+        case 'message.created': {
           console.log('New message: ', message)
           let group = { ...groupLoader.group }
           if (message.payload.chat.type === 'chat') {
@@ -158,6 +158,7 @@ export default function Group() {
           }
           groupLoader.mutate(group)
           break
+        }
       }
     }
 
@@ -517,10 +518,10 @@ export default function Group() {
   }
 
   function renderGifInput(): JSX.Element {
-    const onSelect = (url: string) => {
-      chatUI.current?.SendMessage(url)
-      setSubview(undefined)
-    }
+    // const onSelect = (url: string) => {
+    //   chatUI.current?.SendMessage(url)
+    //   setSubview(undefined)
+    // }
 
     return (
       <GifInput

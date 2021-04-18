@@ -1,6 +1,6 @@
 import Layout from '../../../../components/layout'
 import { useRouter } from 'next/router'
-import { useGroups, createGroup, useGroup } from '../../../../lib/group'
+import { useGroup } from '../../../../lib/group'
 import { useState } from 'react'
 import styles from './new.module.scss'
 import { createInvite } from '../../../../lib/invites'

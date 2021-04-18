@@ -129,7 +129,7 @@ export default class Whiteboard extends React.Component<Props, State> {
     })
   }
 
-  onMouseUp(e: React.MouseEvent<HTMLCanvasElement>) {
+  onMouseUp() {
     this.setState({ isDrawing: false })
   }
 

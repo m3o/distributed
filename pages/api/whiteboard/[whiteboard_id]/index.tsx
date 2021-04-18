@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import Call, { BaseURL, APIKey } from '../../../../lib/micro'
+import Call from '../../../../lib/micro'
 import TokenFromReq from '../../../../lib/token'
 
 export default async function handler(

@@ -1,5 +1,3 @@
-import { rejects } from 'assert'
-import { da } from 'date-fns/locale'
 import useSWR from 'swr'
 import { Message } from './message'
 

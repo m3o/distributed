@@ -1,14 +1,8 @@
 import Head from 'next/head'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import {
-  login,
-  sendPasswordReset,
-  signup,
-  verifyPasswordReset,
-} from '../lib/user'
+import { sendPasswordReset, verifyPasswordReset } from '../lib/user'
 import styles from './login.module.scss'
-import { verify } from 'crypto'
 
 export default function Login() {
   const router = useRouter()

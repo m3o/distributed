@@ -71,7 +71,7 @@ export default function Login() {
     }
   }
 
-  function toggleSignup(e: React.MouseEvent<HTMLParagraphElement>) {
+  function toggleSignup() {
     if (loading) return
     setIsSignup((prev) => !prev)
     setError(null)
