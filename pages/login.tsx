@@ -91,7 +91,9 @@ export default function Login() {
       <div className={styles.inner}>
         <img className={styles.logo} src="/logo.svg" alt="Distributed Logo" />
         <h1 className={styles.title}>Distributed</h1>
-        {error ? <p className={styles.error}>{error}</p> : null}
+        {error ? (
+          <p className={styles.error}>{JSON.stringify(error, null, 2)}</p>
+        ) : null}
 
         <form className={styles.form} onSubmit={onSubmit}>
           {isSignup ? <label>First name</label> : null}
