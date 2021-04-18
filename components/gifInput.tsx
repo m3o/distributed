@@ -3,7 +3,7 @@ import { GifsResult, GiphyFetch } from '@giphy/js-fetch-api'
 import popupStyles from '../pages/groups/[id]/index.module.scss';
 import styles from './gifInput.module.scss';
 import 'reactjs-popup/dist/index.css';
-import { stripePromise } from '../pages';
+import { getStripe } from '../lib/stripe';
 
 interface GifInputProps {
   dismiss: Function;
@@ -55,7 +55,7 @@ export default class GifInput extends React.Component<GifInputProps, GifInputSta
     const rsp = await fetch("/api/payments/checkoutSession", { method: "POST", body })
     const { id } = await rsp.json()
 
-    const stripe = await stripePromise;
+    const stripe = await getStripe();
     const result = await stripe.redirectToCheckout({ sessionId: id });
 
     if(result.error) {
