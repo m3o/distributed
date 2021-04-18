@@ -1,17 +1,20 @@
-## Distributed
+# Distributed
 
-Distributed is a Next.js based jamstack app for live social chat
+Distributed is a Next.js based Jamstack app for live social chat.
+
 
 ## Live Demo
 
 Signup to the live demo at [distributed.app](https://distributed.app).
 
-
 <img src="screenshot.png" />
 
-## Usage
 
-Distributed requires the following environment variables before getting started.
+## Running demo locally
+
+Distributed is configured via environment variables. Set the environment
+variables by creating `.env.local` file in the root of the repo with the
+following content:
 
 ```
 # The micro API endpoint/key
@@ -30,13 +33,15 @@ TWILIO_ACCOUNT_SID=xxxxxx
 STRIPE_PUBLIC_KEY=xxxxxx
 ```
 
-Then simply do npm run build and start
+Install application dependencies and start the application:
 
 ```
-# Starts on port 3000
-npm run build && npm start
+npm install && npm run dev
 ```
+
+The application is accessible on http://localhost:3000
+
 
 ## License
 
-Distributed is licensed as Polyform Strict
+Distributed is licensed as [Polyform Strict](https://polyformproject.org/licenses/strict/1.0.0/).
