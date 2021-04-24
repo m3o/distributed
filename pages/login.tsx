@@ -47,8 +47,7 @@ export default function Login() {
     setLoading(true)
 
     function onSuccess() {
-      // push to homepage, temp hack to fix stale errors in homepage
-      window.location.href = '/'
+      router.push('/')
     }
 
     function onError(err: any) {
@@ -129,6 +128,7 @@ export default function Login() {
             disabled={loading}
             placeholder="johndoe@distributed.app"
             onChange={(e) => setEmail(e.target.value || '')}
+            autoComplete="username"
           />
 
           <label>Password</label>
@@ -139,6 +139,7 @@ export default function Login() {
             disabled={loading}
             placeholder="Password"
             onChange={(e) => setPassword(e.target.value || '')}
+            autoComplete="current-password"
           />
 
           {isSignup ? <label>Password Confirmation</label> : null}

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Layout from '../components/layout'
 import { useGroups } from '../lib/group'
-import { acceptInvite, rejectInvite, Invite, useInvites } from '../lib/invites'
+import { acceptInvite, Invite, rejectInvite, useInvites } from '../lib/invites'
 import { useUser } from '../lib/user'
 import styles from './index.module.scss'
 
@@ -11,10 +11,6 @@ export default function Home() {
   const userLoader = useUser()
   const groupsLoader = useGroups()
   const invitesLoader = useInvites()
-
-  process.on('uncaughtException', function (err) {
-    console.error(err.stack)
-  })
 
   if (userLoader.error || groupsLoader.error || invitesLoader.error) {
     router.push('/login')

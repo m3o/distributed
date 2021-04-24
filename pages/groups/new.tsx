@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import Layout from '../../components/layout'
-import { useGroups, createGroup } from '../../lib/group'
+import { createGroup, useGroups } from '../../lib/group'
 import styles from './new.module.scss'
 
 export default function Home() {
@@ -9,24 +9,18 @@ export default function Home() {
   const groupsLoader = useGroups()
 
   const [name, setName] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-
-  // todo: improve error handling
-  if (groupsLoader.error) {
-    router.push('/error')
-    return <div />
-  }
+  const [submitting, setSubmitting] = useState<boolean>(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
+    setSubmitting(true)
 
     try {
       await createGroup(name)
       router.push('/')
     } catch ({ error, code }) {
       console.warn(error)
-      setLoading(false)
+      setSubmitting(false)
     }
   }
 
@@ -39,6 +33,15 @@ export default function Home() {
       </h1>
 
       <form onSubmit={onSubmit}>
+        {groupsLoader.error ? (
+          <p className={styles.error}>
+            {JSON.stringify(
+              groupsLoader.error,
+              Object.getOwnPropertyNames(groupsLoader.error),
+              2
+            )}
+          </p>
+        ) : null}
         <label>Name</label>
         <input
           required
@@ -46,14 +49,16 @@ export default function Home() {
           value={name}
           minLength={1}
           maxLength={100}
-          disabled={loading}
+          disabled={submitting || Boolean(groupsLoader.error)}
           onChange={(e) => setName(e.target.value || '')}
         />
 
         <input
           type="submit"
           value="Create group"
-          disabled={loading || name.length === 0}
+          disabled={
+            submitting || Boolean(groupsLoader.error) || name.length === 0
+          }
         />
       </form>
     </Layout>
