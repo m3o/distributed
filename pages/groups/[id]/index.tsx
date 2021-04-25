@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { createRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
 import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
@@ -20,6 +20,7 @@ import {
 } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
 import { deleteProfile, updateUser, User } from '../../../lib/user'
+import { useWsClient } from '../../../lib/wsClient'
 import styles from './index.module.scss'
 
 interface Chat {
@@ -33,31 +34,21 @@ export default function Group() {
   const groupLoader = useGroup(groupId)
   const inviteLoader = useInvites(groupId)
   const [chat, setChat] = useState<Chat>()
-  const [connected, setConnected] = useState<boolean>(false)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<
     'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'
   >(undefined)
   const [user, setUser] = useState<User>()
-  const chatUI = createRef<ChatUI>()
+  const chatUI = useRef<ChatUI>()
 
-  // todo: improve error handling
-  if (groupLoader.error || inviteLoader.error) {
-    router.push('/error')
-    return <div />
-  }
-
-  if (!connected && groupLoader.group) {
-    setConnected(true)
-    const w = groupLoader.group.websocket
-    const ws = new WebSocket(w.url)
-
-    ws.onopen = function () {
-      console.log('Websocket opened')
-      ws.send(JSON.stringify({ token: w.token, topic: w.topic }))
-    }
-
-    ws.onmessage = function ({ data }) {
+  const wsConfig = groupLoader.group?.websocket
+  useWsClient({
+    url: wsConfig?.url,
+    reconnectOnClose: true,
+    onopen: (_, ws) => {
+      ws.send(JSON.stringify({ token: wsConfig.token, topic: wsConfig.topic }))
+    },
+    onmessage: ({ data }) => {
       // todo: fix duplicate encoding?!
       const event = JSON.parse(data)
       const message = JSON.parse(JSON.parse(event.message))
@@ -153,16 +144,13 @@ export default function Group() {
           break
         }
       }
-    }
+    },
+  })
 
-    ws.onclose = () => {
-      console.log('Websocket closed')
-      setConnected(false)
-    }
-
-    ws.onerror = (ev) => {
-      console.log('Websocket errored ' + JSON.stringify(ev))
-    }
+  // todo: improve error handling
+  if (groupLoader.error || inviteLoader.error) {
+    router.push('/error')
+    return <div />
   }
 
   function setChatWrapped(type: string, id: string) {
