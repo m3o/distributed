@@ -452,21 +452,6 @@ export default function Group() {
     )
   }
 
-  function renderGifInput(): JSX.Element {
-    // const onSelect = (url: string) => {
-    //   chatUI.current?.SendMessage(url)
-    //   setSubview(undefined)
-    // }
-
-    return (
-      <GifInput
-        threadID={chat.id}
-        groupID={groupLoader.group.id}
-        dismiss={() => setSubview(undefined)}
-      />
-    )
-  }
-
   let initials = ''
   if (user) {
     initials = user.first_name.slice(0, 1) + user.last_name.slice(0, 1)
@@ -542,6 +527,13 @@ export default function Group() {
       {subview === 'settings' ? renderSettings() : null}
       {subview === 'chat-settings' ? renderChatSettings() : null}
       {subview === 'edit-profile' ? renderEditProfile() : null}
+      {subview === 'gif' && (
+        <GifInput
+          threadId={chat.id}
+          groupId={groupId}
+          dismiss={() => setSubview(undefined)}
+        />
+      )}
       {subview === 'manage-invites' && (
         <SubviewManageInvites
           groupId={groupId}
@@ -549,7 +541,6 @@ export default function Group() {
           onBack={() => setSubview('settings')}
         />
       )}
-      {subview === 'gif' ? renderGifInput() : null}
 
       <div
         className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}

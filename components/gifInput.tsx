@@ -7,8 +7,8 @@ import styles from './gifInput.module.scss'
 
 interface GifInputProps {
   dismiss: Function
-  groupID: string
-  threadID: string
+  groupId: string
+  threadId: string
 }
 
 interface GifInputState {
@@ -57,9 +57,9 @@ export default class GifInput extends React.Component<
     this.setState({ loading: true })
 
     const body = JSON.stringify({
-      groupID: this.props.groupID,
+      groupId: this.props.groupId,
       imageURL: image.images.original.url,
-      threadID: this.props.threadID,
+      threadId: this.props.threadId,
     })
     const rsp = await fetch('/api/payments/checkoutSession', {
       method: 'POST',
