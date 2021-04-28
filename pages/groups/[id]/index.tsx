@@ -1,6 +1,6 @@
 import Error from 'next/error'
 import { useRouter } from 'next/router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
 import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
@@ -20,7 +20,7 @@ import {
   useInvites,
 } from '../../../lib/invites'
 import { Message } from '../../../lib/message'
-import { deleteProfile, updateUser, User } from '../../../lib/user'
+import { deleteProfile, updateUser, User, useUser } from '../../../lib/user'
 import { useWsClient } from '../../../lib/wsClient'
 import styles from './index.module.scss'
 
@@ -33,12 +33,12 @@ export default function Group() {
   const router = useRouter()
   const groupId: string = (router.query?.id || '').toString()
   const groupLoader = useGroup(groupId)
+  const userLoader = useUser()
   const [chat, setChat] = useState<Chat>()
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<
     'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'
   >(undefined)
-  const [user, setUser] = useState<User>()
   const chatUI = useRef<ChatUI>()
 
   const wsConfig = groupLoader.group?.websocket
@@ -147,9 +147,18 @@ export default function Group() {
     },
   })
 
-  if (groupLoader.error) {
-    return <Error statusCode={404} title={groupLoader.error.message} />
+  if (groupLoader.error || userLoader.error) {
+    return (
+      <Error
+        statusCode={404}
+        title={groupLoader.error?.message || userLoader.error?.message}
+      />
+    )
   }
+
+  const initials =
+    (userLoader.user?.first_name || '').slice(0, 1) +
+    (userLoader.user?.last_name || '').slice(0, 1)
 
   function setChatWrapped(type: string, id: string) {
     const group = { ...groupLoader.group }
@@ -452,70 +461,6 @@ export default function Group() {
     )
   }
 
-  let initials = ''
-  if (user) {
-    initials = user.first_name.slice(0, 1) + user.last_name.slice(0, 1)
-  } else if (groupLoader.group?.members?.find((m) => m.current_user)) {
-    setUser(groupLoader.group?.members?.find((m) => m.current_user))
-  }
-
-  function renderEditProfile(): JSX.Element {
-    const onSubmit = (e: React.FormEvent) => {
-      e.preventDefault()
-      setSubview(undefined)
-      updateUser(user).catch((err) => alert(`Error updating profile: ${err}`))
-    }
-
-    return (
-      <div className={styles.settingsContainer}>
-        <div
-          className={styles.background}
-          onClick={() => setSubview(undefined)}
-        />
-        <div className={styles.settings}>
-          <h1>Edit Profile</h1>
-          <div
-            className={styles.dismiss}
-            onClick={() => setSubview('settings')}
-          >
-            <p>🔙</p>
-          </div>
-
-          <form onSubmit={onSubmit}>
-            <input
-              required
-              placeholder="First name"
-              value={user.first_name}
-              onChange={(e) =>
-                setUser({ ...user, first_name: e.target.value || '' })
-              }
-            />
-
-            <input
-              required
-              placeholder="Last name"
-              value={user.last_name}
-              onChange={(e) =>
-                setUser({ ...user, last_name: e.target.value || '' })
-              }
-            />
-
-            <input
-              required
-              placeholder="Email"
-              value={user.email}
-              onChange={(e) =>
-                setUser({ ...user, email: e.target.value || '' })
-              }
-            />
-
-            <input type="submit" value="Save changes" />
-          </form>
-        </div>
-      </div>
-    )
-  }
-
   function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
     setShowSidebar(false)
     setSubview(undefined)
@@ -523,10 +468,18 @@ export default function Group() {
   }
 
   return (
-    <Layout overrideClassName={styles.container} loading={groupLoader.loading}>
+    <Layout
+      overrideClassName={styles.container}
+      loading={groupLoader.loading || userLoader.loading}
+    >
       {subview === 'settings' ? renderSettings() : null}
       {subview === 'chat-settings' ? renderChatSettings() : null}
-      {subview === 'edit-profile' ? renderEditProfile() : null}
+      {subview === 'edit-profile' && (
+        <SubviewEditProfile
+          onBack={() => setSubview('settings')}
+          onDismiss={() => setSubview(undefined)}
+        />
+      )}
       {subview === 'gif' && (
         <GifInput
           threadId={chat.id}
@@ -537,8 +490,8 @@ export default function Group() {
       {subview === 'manage-invites' && (
         <SubviewManageInvites
           groupId={groupId}
-          onDismiss={() => setSubview(undefined)}
           onBack={() => setSubview('settings')}
+          onDismiss={() => setSubview(undefined)}
         />
       )}
 
@@ -664,15 +617,73 @@ function uniqueByID(array) {
   )
 }
 
-function SubviewManageInvites({
-  groupId,
-  onDismiss,
-  onBack,
-}: {
-  groupId: string
-  onDismiss: () => void
+interface SubviewProps {
+  groupId?: string
   onBack: () => void
-}) {
+  onDismiss: () => void
+}
+
+function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
+  const userLoader = useUser()
+  const [user, setUser] = useState(userLoader?.user)
+
+  useEffect(() => {
+    setUser(userLoader.user)
+  }, [userLoader?.user])
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onDismiss()
+    updateUser(user)
+      .then((data: { user: User }) => {
+        userLoader.mutate(data, false)
+      })
+      .catch((err) => alert(`Error updating profile: ${err}`))
+  }
+
+  return (
+    <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={onDismiss} />
+      <div className={styles.settings}>
+        <h1>Edit Profile</h1>
+        <div className={styles.dismiss} onClick={onBack}>
+          <p>🔙</p>
+        </div>
+
+        <form onSubmit={onSubmit}>
+          <input
+            required
+            placeholder="First name"
+            value={user.first_name}
+            onChange={(e) =>
+              setUser({ ...user, first_name: e.target.value || '' })
+            }
+          />
+
+          <input
+            required
+            placeholder="Last name"
+            value={user.last_name}
+            onChange={(e) =>
+              setUser({ ...user, last_name: e.target.value || '' })
+            }
+          />
+
+          <input
+            required
+            placeholder="Email"
+            value={user.email}
+            onChange={(e) => setUser({ ...user, email: e.target.value || '' })}
+          />
+
+          <input type="submit" value="Save changes" />
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function SubviewManageInvites({ groupId, onBack, onDismiss }: SubviewProps) {
   const inviteLoader = useInvites(groupId)
 
   function deleteInvite(i: Invite) {

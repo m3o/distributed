@@ -37,8 +37,9 @@ export default async function handler(
     }
 
     try {
-      await call('/v1/users/update', { ...body, id: user.id })
-      res.status(200).json({})
+      const rsp = await call('/v1/users/update', { ...body, id: user.id })
+      user = rsp.user
+      res.status(200).json({ user })
     } catch ({ error, code }) {
       console.error(`Error updating user: ${error}`)
       res.status(code).json({ error })

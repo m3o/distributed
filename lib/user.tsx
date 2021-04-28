@@ -21,22 +21,29 @@ export interface SignupParams {
   code?: string
 }
 
-const fetcher = (url: string) =>
-  fetch(url).then((res) => {
+const fetcher = (url: string) => {
+  return fetch(url).then((res) => {
     if (res.status === 200 || res.status === 201) {
       return res.json()
     } else {
       throw `Error: ${res.statusText}`
     }
   })
+}
 
-export function useUser(): { user?: User; loading: boolean; error: Error } {
-  const { data, error } = useSWR('/api/profile', fetcher)
+export function useUser(): {
+  user?: User
+  loading: boolean
+  error: Error
+  mutate: Function
+} {
+  const { data, error, mutate } = useSWR('/api/profile', fetcher)
 
   return {
     user: error ? undefined : data?.user,
     loading: !error && !data,
     error: error,
+    mutate,
   }
 }
 
@@ -67,7 +74,7 @@ export function updateUser(user: User): Promise<null> {
       .then(async (rsp) => {
         const body = await rsp.json()
         rsp.status === 200
-          ? resolve(null)
+          ? resolve(body)
           : reject(body.error || rsp.statusText)
       })
       .catch((err) => reject(err))
