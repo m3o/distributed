@@ -23,7 +23,15 @@ export interface Thread {
   last_seen?: string
 }
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  if (!res.ok) {
+    const data = await res.json()
+    const error = new Error(data?.error)
+    throw error
+  }
+  return res.json()
+}
 
 export function useGroups(): {
   groups?: Group[]

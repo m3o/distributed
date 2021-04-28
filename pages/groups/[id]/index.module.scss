@@ -247,10 +247,18 @@ $mobileWidth: 500px;
         margin-bottom: 5px;
       }
 
-      .emptyState {
+      .emptyState,
+      .loadingState {
         text-align: center;
         color: gray;
         font-style: italic;
+        font-size: 10pt;
+      }
+
+      .errorState {
+        text-align: center;
+        color: red;
+        font-style: bold;
         font-size: 10pt;
       }
 

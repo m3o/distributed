@@ -1,3 +1,4 @@
+import Error from 'next/error'
 import { useRouter } from 'next/router'
 import { useRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
@@ -32,7 +33,6 @@ export default function Group() {
   const router = useRouter()
   const groupId: string = (router.query?.id || '').toString()
   const groupLoader = useGroup(groupId)
-  const inviteLoader = useInvites(groupId)
   const [chat, setChat] = useState<Chat>()
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<
@@ -147,10 +147,8 @@ export default function Group() {
     },
   })
 
-  // todo: improve error handling
-  if (groupLoader.error || inviteLoader.error) {
-    router.push('/error')
-    return <div />
+  if (groupLoader.error) {
+    return <Error statusCode={404} title={groupLoader.error.message} />
   }
 
   function setChatWrapped(type: string, id: string) {
@@ -454,50 +452,6 @@ export default function Group() {
     )
   }
 
-  function deleteInvite(i: Invite) {
-    const invites = [...inviteLoader.invites]
-    if (!confirm(`Are you sure you want to delete the invite for ${i.email}?`))
-      return
-
-    revokeInvite(i.id)
-      .then(() => inviteLoader.mutate(invites.filter((x) => i.id !== x.id)))
-      .catch((err) => alert(`Erorr revoking invite: ${err}`))
-  }
-
-  function renderInvites(): JSX.Element {
-    return (
-      <div className={styles.settingsContainer}>
-        <div
-          className={styles.background}
-          onClick={() => setSubview(undefined)}
-        />
-        <div className={styles.settings}>
-          <h1>Manage Invites</h1>
-          <div
-            className={styles.dismiss}
-            onClick={() => setSubview('settings')}
-          >
-            <p>🔙</p>
-          </div>
-
-          <section>
-            {inviteLoader.invites?.length ? null : (
-              <p className={styles.emptyState}>There are no pending invites</p>
-            )}
-            <ul>
-              {inviteLoader.invites?.map((i) => (
-                <li key={i.id} onClick={() => deleteInvite(i)}>
-                  <p>{i.email}</p>
-                  <p>Click to delete</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-      </div>
-    )
-  }
-
   function renderGifInput(): JSX.Element {
     // const onSelect = (url: string) => {
     //   chatUI.current?.SendMessage(url)
@@ -588,7 +542,13 @@ export default function Group() {
       {subview === 'settings' ? renderSettings() : null}
       {subview === 'chat-settings' ? renderChatSettings() : null}
       {subview === 'edit-profile' ? renderEditProfile() : null}
-      {subview === 'manage-invites' ? renderInvites() : null}
+      {subview === 'manage-invites' && (
+        <SubviewManageInvites
+          groupId={groupId}
+          onDismiss={() => setSubview(undefined)}
+          onBack={() => setSubview('settings')}
+        />
+      )}
       {subview === 'gif' ? renderGifInput() : null}
 
       <div
@@ -710,5 +670,60 @@ export default function Group() {
 function uniqueByID(array) {
   return array.filter(
     (x, xi) => !array.slice(xi + 1).some((y) => y.id === x.id)
+  )
+}
+
+function SubviewManageInvites({
+  groupId,
+  onDismiss,
+  onBack,
+}: {
+  groupId: string
+  onDismiss: () => void
+  onBack: () => void
+}) {
+  const inviteLoader = useInvites(groupId)
+
+  function deleteInvite(i: Invite) {
+    const invites = [...inviteLoader.invites]
+    if (!confirm(`Are you sure you want to delete the invite for ${i.email}?`))
+      return
+
+    revokeInvite(i.id)
+      .then(() => inviteLoader.mutate(invites.filter((x) => i.id !== x.id)))
+      .catch((err) => alert(`Erorr revoking invite: ${err}`))
+  }
+
+  return (
+    <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={onDismiss} />
+      <div className={styles.settings}>
+        <h1>Manage Invites</h1>
+        <div className={styles.dismiss} onClick={onBack}>
+          <p>🔙</p>
+        </div>
+
+        <section>
+          {inviteLoader.loading ? (
+            <p className={styles.loadingState}>Loading...</p>
+          ) : inviteLoader.error ? (
+            <p className={styles.errorState}>
+              Error: {inviteLoader.error.message}
+            </p>
+          ) : !(inviteLoader.invites?.length > 0) ? (
+            <p className={styles.emptyState}>There are no pending invites</p>
+          ) : (
+            <ul>
+              {inviteLoader.invites?.map((i) => (
+                <li key={i.id} onClick={() => deleteInvite(i)}>
+                  <p>{i.email}</p>
+                  <p>Click to delete</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </div>
   )
 }
