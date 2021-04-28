@@ -314,50 +314,6 @@ export default function Group() {
     }
   }
 
-  async function deleteThreadPopup() {
-    if (!window.confirm('Are you sure you want to delete this room')) return
-
-    try {
-      await deleteThread(chat.id)
-      groupLoader.mutate({
-        ...groupLoader.group,
-        threads: groupLoader.group.threads?.filter((t) => t.id !== chat.id),
-      })
-    } catch (error) {
-      alert(`Error deleting room: ${error}`)
-    }
-  }
-
-  async function removeUserPopuop() {
-    if (
-      !window.confirm(
-        'Are you sure you want to remove this user from the group?'
-      )
-    )
-      return
-
-    try {
-      await removeMember(groupId, chat.id)
-      groupLoader.mutate({
-        ...groupLoader.group,
-        threads: groupLoader.group.members?.filter((t) => t.id !== chat.id),
-      })
-    } catch (error) {
-      alert(`Error removing user: ${error}`)
-    }
-  }
-
-  async function renameThreadPopup() {
-    const name = window.prompt('Enter the new name of the room')
-    if (!name?.length) return
-
-    try {
-      await updateThread(chat.id, name)
-    } catch (error) {
-      alert(`Error renaming thread: ${error}`)
-    }
-  }
-
   function showMsgIndicator(type: string, id: string): boolean {
     let resource: { messages?: Message[]; last_seen?: string | number }
 
@@ -420,47 +376,6 @@ export default function Group() {
     )
   }
 
-  function renderChatSettings(): JSX.Element {
-    return (
-      <div className={styles.settingsContainer}>
-        <div
-          className={styles.background}
-          onClick={() => setSubview(undefined)}
-        />
-        <div className={styles.settings}>
-          <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
-          <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
-            <p>🔙</p>
-          </div>
-
-          <section>
-            <ul>
-              {chat.type === 'thread' ? (
-                <li
-                  onClick={() => renameThreadPopup() && setSubview(undefined)}
-                >
-                  Rename room
-                </li>
-              ) : null}
-              {chat.type === 'thread' ? (
-                <li
-                  onClick={() => deleteThreadPopup() && setSubview(undefined)}
-                >
-                  Delete room
-                </li>
-              ) : null}
-              {chat.type === 'thread' ? null : (
-                <li onClick={() => removeUserPopuop() && setSubview(undefined)}>
-                  Remove user from group
-                </li>
-              )}
-            </ul>
-          </section>
-        </div>
-      </div>
-    )
-  }
-
   function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
     setShowSidebar(false)
     setSubview(undefined)
@@ -473,7 +388,14 @@ export default function Group() {
       loading={groupLoader.loading || userLoader.loading}
     >
       {subview === 'settings' ? renderSettings() : null}
-      {subview === 'chat-settings' ? renderChatSettings() : null}
+      {subview === 'chat-settings' && (
+        <SubviewChatSettings
+          chat={chat}
+          groupId={groupId}
+          onBack={() => setSubview('settings')}
+          onDismiss={() => setSubview(undefined)}
+        />
+      )}
       {subview === 'edit-profile' && (
         <SubviewEditProfile
           onBack={() => setSubview('settings')}
@@ -618,9 +540,105 @@ function uniqueByID(array) {
 }
 
 interface SubviewProps {
+  chat?: Chat
   groupId?: string
   onBack: () => void
   onDismiss: () => void
+}
+
+function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
+  const groupLoader = useGroup(groupId)
+
+  async function deleteThreadPopup() {
+    if (!window.confirm('Are you sure you want to delete this room')) return
+
+    try {
+      await deleteThread(chat.id)
+      groupLoader.mutate({
+        ...groupLoader.group,
+        threads: groupLoader.group.threads?.filter((t) => t.id !== chat.id),
+      })
+    } catch (error) {
+      alert(`Error deleting room: ${error}`)
+    }
+  }
+
+  async function removeUserPopuop() {
+    if (
+      !window.confirm(
+        'Are you sure you want to remove this user from the group?'
+      )
+    )
+      return
+
+    try {
+      await removeMember(groupId, chat.id)
+      groupLoader.mutate({
+        ...groupLoader.group,
+        threads: groupLoader.group.members?.filter((t) => t.id !== chat.id),
+      })
+    } catch (error) {
+      alert(`Error removing user: ${error}`)
+    }
+  }
+
+  async function renameThreadPopup() {
+    const name = window.prompt('Enter the new name of the room')
+    if (!name?.length) return
+
+    try {
+      await updateThread(chat.id, name)
+    } catch (error) {
+      alert(`Error renaming thread: ${error}`)
+    }
+  }
+
+  return (
+    <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={onDismiss} />
+      <div className={styles.settings}>
+        <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
+        <div className={styles.dismiss} onClick={onDismiss}>
+          <p>🔙</p>
+        </div>
+
+        <section>
+          <ul>
+            {chat.type === 'thread' && (
+              <li
+                onClick={() => {
+                  renameThreadPopup()
+                  onDismiss()
+                }}
+              >
+                Rename room
+              </li>
+            )}
+            {chat.type === 'thread' && (
+              <li
+                onClick={() => {
+                  deleteThreadPopup()
+                  onDismiss()
+                }}
+              >
+                Delete room
+              </li>
+            )}
+            {chat.type === 'chat' && (
+              <li
+                onClick={() => {
+                  removeUserPopuop()
+                  onDismiss()
+                }}
+              >
+                Remove user from group
+              </li>
+            )}
+          </ul>
+        </section>
+      </div>
+    </div>
+  )
 }
 
 function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
