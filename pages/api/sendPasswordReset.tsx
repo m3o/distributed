@@ -34,7 +34,7 @@ export default async function handler(
 
   let code: string
   try {
-    const rsp = await call('/v1/codes/Create', { identity: user.email })
+    const rsp = await call('/v1/otp/Generate', { id: user.email })
     code = rsp.code
   } catch ({ error, code }) {
     console.error(`Error creating code: ${error}`)

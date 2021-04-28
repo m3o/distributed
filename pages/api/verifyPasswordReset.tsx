@@ -29,7 +29,7 @@ export default async function handler(
   }
 
   try {
-    await call('/v1/codes/Verify', { identity: user.email, code: body.code })
+    await call('/v1/otp/Validate', { id: user.email, code: body.code })
   } catch ({ error, code }) {
     console.error(`Error reading code: ${error}`)
     res.status(code).json({ error })
