@@ -1,6 +1,6 @@
 import Error from 'next/error'
 import { useRouter } from 'next/router'
-import { useEffect, useRef, useState } from 'react'
+import { Dispatch, useEffect, useRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
 import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
@@ -29,6 +29,13 @@ interface Chat {
   id: string
 }
 
+type Subview =
+  | 'settings'
+  | 'chat-settings'
+  | 'edit-profile'
+  | 'manage-invites'
+  | 'gif'
+
 export default function Group() {
   const router = useRouter()
   const groupId: string = (router.query?.id || '').toString()
@@ -36,9 +43,7 @@ export default function Group() {
   const userLoader = useUser()
   const [chat, setChat] = useState<Chat>()
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
-  const [subview, setSubview] = useState<
-    'settings' | 'chat-settings' | 'edit-profile' | 'manage-invites' | 'gif'
-  >(undefined)
+  const [subview, setSubview] = useState<Subview>(undefined)
   const chatUI = useRef<ChatUI>()
 
   const wsConfig = groupLoader.group?.websocket
@@ -67,7 +72,7 @@ export default function Group() {
           console.log('User left group:', message)
           if (message.payload.current_user) {
             alert('You have been removed from the group')
-            window.location.href = '/'
+            router.push('/')
             return
           }
           groupLoader.mutate(
@@ -275,45 +280,6 @@ export default function Group() {
     }
   }
 
-  async function renameGroupPopup() {
-    const name = window.prompt('Enter the new name of the group')
-    if (!name?.length) return
-
-    try {
-      await renameGroup(groupId, name)
-      groupLoader.mutate({ ...groupLoader.group, name })
-    } catch (error) {
-      alert(`Error renaming group: ${error}`)
-    }
-  }
-
-  async function logoutPopup() {
-    if (!window.confirm('Are you sure you want to logout?')) return
-    router.push('/logout')
-  }
-
-  async function deleteProfilePopup() {
-    if (!window.confirm('Are you sure you want to delete your profile?')) return
-
-    try {
-      await deleteProfile()
-      router.push('/logout')
-    } catch (error) {
-      alert(`Error deleting profile: ${error}`)
-    }
-  }
-
-  async function leaveGroupPopup() {
-    if (!window.confirm('Are you sure you want to leave this group')) return
-
-    try {
-      await leaveGroup(groupId)
-      window.location.href = '/'
-    } catch (error) {
-      alert(`Error leaving group: ${error}`)
-    }
-  }
-
   function showMsgIndicator(type: string, id: string): boolean {
     let resource: { messages?: Message[]; last_seen?: string | number }
 
@@ -338,44 +304,6 @@ export default function Group() {
     return showIndicator
   }
 
-  function renderSettings(): JSX.Element {
-    return (
-      <div className={styles.settingsContainer}>
-        <div
-          className={styles.background}
-          onClick={() => setSubview(undefined)}
-        />
-        <div className={styles.settings}>
-          <h1>Settings</h1>
-          <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
-            <p>🔙</p>
-          </div>
-
-          <section>
-            <h2>Group</h2>
-            <ul>
-              <li onClick={() => router.push('/')}>Switch group</li>
-              <li onClick={() => leaveGroupPopup()}>Leave group</li>
-              <li onClick={() => renameGroupPopup()}>Rename group</li>
-              <li onClick={() => setSubview('manage-invites')}>
-                Manage invites
-              </li>
-            </ul>
-          </section>
-
-          <section>
-            <h2>Profile</h2>
-            <ul>
-              <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
-              <li onClick={() => deleteProfilePopup()}>Delete profile</li>
-              <li onClick={() => logoutPopup()}>Logout</li>
-            </ul>
-          </section>
-        </div>
-      </div>
-    )
-  }
-
   function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
     setShowSidebar(false)
     setSubview(undefined)
@@ -387,12 +315,17 @@ export default function Group() {
       overrideClassName={styles.container}
       loading={groupLoader.loading || userLoader.loading}
     >
-      {subview === 'settings' ? renderSettings() : null}
+      {subview === 'settings' && (
+        <SubviewSettings
+          groupId={groupId}
+          setSubview={setSubview}
+          onDismiss={() => setSubview(undefined)}
+        />
+      )}
       {subview === 'chat-settings' && (
         <SubviewChatSettings
           chat={chat}
           groupId={groupId}
-          onBack={() => setSubview('settings')}
           onDismiss={() => setSubview(undefined)}
         />
       )}
@@ -402,18 +335,18 @@ export default function Group() {
           onDismiss={() => setSubview(undefined)}
         />
       )}
-      {subview === 'gif' && (
-        <GifInput
-          threadId={chat.id}
-          groupId={groupId}
-          dismiss={() => setSubview(undefined)}
-        />
-      )}
       {subview === 'manage-invites' && (
         <SubviewManageInvites
           groupId={groupId}
           onBack={() => setSubview('settings')}
           onDismiss={() => setSubview(undefined)}
+        />
+      )}
+      {subview === 'gif' && (
+        <GifInput
+          threadId={chat.id}
+          groupId={groupId}
+          dismiss={() => setSubview(undefined)}
         />
       )}
 
@@ -542,8 +475,84 @@ function uniqueByID(array) {
 interface SubviewProps {
   chat?: Chat
   groupId?: string
-  onBack: () => void
+  setSubview?: Dispatch<Subview>
+  onBack?: () => void
   onDismiss: () => void
+}
+
+function SubviewSettings({ groupId, setSubview, onDismiss }: SubviewProps) {
+  const router = useRouter()
+  const groupLoader = useGroup(groupId)
+
+  async function renameGroupPopup() {
+    const name = window.prompt('Enter the new name of the group')
+    if (!name?.length) return
+
+    try {
+      await renameGroup(groupId, name)
+      groupLoader.mutate({ ...groupLoader.group, name })
+    } catch (error) {
+      alert(`Error renaming group: ${error}`)
+    }
+  }
+
+  async function logoutPopup() {
+    if (!window.confirm('Are you sure you want to logout?')) return
+    router.push('/logout')
+  }
+
+  async function deleteProfilePopup() {
+    if (!window.confirm('Are you sure you want to delete your profile?')) return
+
+    try {
+      await deleteProfile()
+      router.push('/logout')
+    } catch (error) {
+      alert(`Error deleting profile: ${error}`)
+    }
+  }
+
+  async function leaveGroupPopup() {
+    if (!window.confirm('Are you sure you want to leave this group')) return
+
+    try {
+      await leaveGroup(groupId)
+      router.push('/')
+    } catch (error) {
+      alert(`Error leaving group: ${error}`)
+    }
+  }
+
+  return (
+    <div className={styles.settingsContainer}>
+      <div className={styles.background} onClick={onDismiss} />
+      <div className={styles.settings}>
+        <h1>Settings</h1>
+        <div className={styles.dismiss} onClick={onDismiss}>
+          <p>🔙</p>
+        </div>
+
+        <section>
+          <h2>Group</h2>
+          <ul>
+            <li onClick={() => router.push('/')}>Switch group</li>
+            <li onClick={() => leaveGroupPopup()}>Leave group</li>
+            <li onClick={() => renameGroupPopup()}>Rename group</li>
+            <li onClick={() => setSubview('manage-invites')}>Manage invites</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Profile</h2>
+          <ul>
+            <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
+            <li onClick={() => deleteProfilePopup()}>Delete profile</li>
+            <li onClick={() => logoutPopup()}>Logout</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  )
 }
 
 function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {

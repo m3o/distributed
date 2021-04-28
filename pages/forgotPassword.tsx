@@ -40,7 +40,7 @@ export default function Login() {
     setLoading(true)
     verifyPasswordReset(email, code, password)
       .then(() => {
-        window.location.href = '/'
+        router.push('/')
       })
       .catch((err: any) => {
         setError(err)
