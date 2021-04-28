@@ -42,7 +42,10 @@ export function useGroups(): {
 export function useGroup(
   id: string
 ): { group?: Group; loading: boolean; error: Error; mutate: Function } {
-  const { data, error, mutate } = useSWR('/api/groups/' + id, fetcher)
+  const { data, error, mutate } = useSWR(
+    id ? '/api/groups/' + id : null,
+    fetcher
+  )
 
   return {
     group: error ? undefined : data,
