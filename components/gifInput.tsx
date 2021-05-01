@@ -1,4 +1,5 @@
 import { GifsResult, GiphyFetch } from '@giphy/js-fetch-api'
+import classNames from 'classnames'
 import React from 'react'
 import 'reactjs-popup/dist/index.css'
 import { getStripe } from '../lib/stripe'
@@ -128,7 +129,9 @@ export default class GifInput extends React.Component<
       this.setState({ selectedSlug: selected ? undefined : i.slug })
     return (
       <img
-        className={selected ? styles.selected : ''}
+        className={classNames({
+          [styles.selected]: selected,
+        })}
         onClick={onClick}
         key={i.slug}
         src={i.images.preview_gif.url}

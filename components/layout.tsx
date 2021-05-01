@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import Head from 'next/head'
 import Link from 'next/link'
 import styles from './layout.module.scss'
@@ -72,7 +73,10 @@ export default function Layout({
 
           <main>
             <div
-              className={[styles.inner, className].filter((c) => !!c).join(' ')}
+              className={classNames({
+                [className]: !!className,
+                [styles.inner]: true,
+              })}
             >
               {children}
             </div>

@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { Component, createRef } from 'react'
 import Twilio from 'twilio-video'
 import { User } from '../lib/user'
@@ -247,7 +248,7 @@ export default class Stream extends Component<Props, State> {
       .sort((a, b) => a.connectedAt - b.connectedAt)
 
     return (
-      <div className={`${this.props.className} ${styles.container}`}>
+      <div className={classNames(this.props.className, styles.container)}>
         {participants.map((p) => {
           return (
             <ParticipantComponent
@@ -365,7 +366,7 @@ class ParticipantComponent extends Component<ParticipantProps> {
     // https://github.com/facebook/react/issues/10389
     return (
       <div
-        className={`${styles.participant} ${sizeStyle}`}
+        className={classNames(styles.participant, sizeStyle)}
         onClick={this.onClick}
       >
         <audio autoPlay playsInline ref={this.audioRef} />

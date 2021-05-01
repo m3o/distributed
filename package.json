@@ -21,6 +21,7 @@
     "@stripe/stripe-js": "^1.13.1",
     "@types/twilio": "^2.11.0",
     "@types/twilio-video": "^2.7.3",
+    "classnames": "^2.2.6",
     "cookie": "^0.4.1",
     "date-fns": "^2.16.1",
     "emoji-mart": "^3.0.0",

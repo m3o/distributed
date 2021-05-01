@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { Picker } from 'emoji-mart'
 import 'emoji-mart/css/emoji-mart.css'
 import moment from 'moment'
@@ -174,19 +175,19 @@ export default class Chat extends Component<Props, State> {
         <div className={styles.streamButtons}>
           <p
             onClick={toggleAudio}
-            className={[
-              styles.button,
-              joinedAudio ? styles.buttonActive : '',
-            ].join(' ')}
+            className={classNames({
+              [styles.button]: true,
+              [styles.buttonActive]: joinedAudio,
+            })}
           >
             🎙️
           </p>
           <p
             onClick={toggleVideo}
-            className={[
-              styles.button,
-              joinedVideo ? styles.buttonActive : '',
-            ].join(' ')}
+            className={classNames({
+              [styles.button]: true,
+              [styles.buttonActive]: joinedAudio,
+            })}
           >
             📹
           </p>

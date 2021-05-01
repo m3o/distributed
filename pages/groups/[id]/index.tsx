@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import uniqBy from 'lodash.uniqby'
 import Error from 'next/error'
 import { useRouter } from 'next/router'
@@ -353,7 +354,10 @@ export default function Group() {
       )}
 
       <div
-        className={[styles.sidebar, showSidebar ? styles.show : ''].join(' ')}
+        className={classNames({
+          [styles.sidebar]: true,
+          [styles.show]: showSidebar,
+        })}
       >
         <div className={styles.upper} onClick={() => setSubview('settings')}>
           <h1>{groupLoader.group?.name}</h1>
@@ -378,10 +382,10 @@ export default function Group() {
           <ul>
             {uniqBy(groupLoader.group?.threads || [], 'id').map((s) => {
               const onClick = () => setChatWrapped('thread', s.id)
-              const className =
-                chat?.type === 'thread' && chat?.id === s.id
-                  ? styles.linkActive
-                  : null
+              const className = classNames({
+                [styles.linkActive]:
+                  chat?.type === 'thread' && chat?.id === s.id,
+              })
               return (
                 <li className={className} onClick={onClick} key={s.id}>
                   <p>{s.topic}</p>
@@ -406,10 +410,10 @@ export default function Group() {
               ?.filter((u) => !u.current_user)
               ?.map((m) => {
                 const onClick = () => setChatWrapped('chat', m.id)
-                const className =
-                  chat?.type === 'chat' && chat?.id === m.id
-                    ? styles.linkActive
-                    : null
+                const className = classNames({
+                  [styles.linkActive]:
+                    chat?.type === 'chat' && chat?.id === m.id,
+                })
                 return (
                   <li key={m.id} className={className} onClick={onClick}>
                     <p>
