@@ -46,6 +46,8 @@ export default function Group() {
   const [chat, setChat] = useState<Chat>()
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [subview, setSubview] = useState<Subview>(undefined)
+  const [enabledVideo, setEnabledVideo] = useState(false)
+  const [enabledAudio, setEnabledAudio] = useState(false)
   const chatUI = useRef<ChatUI>()
 
   const wsConfig = groupLoader.group?.websocket
@@ -161,7 +163,7 @@ export default function Group() {
       if (
         chat &&
         (chat.type !== type || chat.id !== id) &&
-        (window.audioEnabled || window.videoEnabled)
+        (enabledAudio || enabledVideo)
       ) {
         if (
           !confirm(
@@ -201,7 +203,7 @@ export default function Group() {
       setChat({ type, id })
       if (showSidebar) setShowSidebar(false)
     },
-    [chat, groupId, groupLoader, showSidebar]
+    [chat, groupId, groupLoader, showSidebar, enabledVideo, enabledAudio]
   )
 
   useEffect(() => {
@@ -484,6 +486,10 @@ export default function Group() {
             ref={chatUI}
             messages={messages}
             participants={participants}
+            enabledVideo={enabledVideo}
+            setEnabledVideo={setEnabledVideo}
+            enabledAudio={enabledAudio}
+            setEnabledAudio={setEnabledAudio}
           />
         )}
       </div>

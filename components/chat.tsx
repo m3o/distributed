@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { Picker } from 'emoji-mart'
 import 'emoji-mart/css/emoji-mart.css'
 import moment from 'moment'
-import { Component } from 'react'
+import { Component, Dispatch, SetStateAction } from 'react'
 import { v4 as uuid } from 'uuid'
 import Stream from '../components/stream'
 import { createMessage, Message as Msg } from '../lib/message'
@@ -20,14 +20,18 @@ interface Props {
   messages?: Msg[]
   // participants in the conversation
   participants?: User[]
+  // whether video is enabled
+  enabledVideo: boolean
+  setEnabledVideo: Dispatch<SetStateAction<boolean>>
+  // whether audio is enabled
+  enabledAudio: boolean
+  setEnabledAudio: Dispatch<SetStateAction<boolean>>
 }
 
 interface State {
   messages: Msg[]
   message: string
   listening: boolean
-  joinedAudio: boolean
-  joinedVideo: boolean
   onlineUserIDs: string[]
   showEmojiPicker: boolean
 }
@@ -40,8 +44,6 @@ export default class Chat extends Component<Props, State> {
       messages: props.messages || [],
       // listen automatically except for mobile
       listening: !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-      joinedAudio: false,
-      joinedVideo: false,
       onlineUserIDs: [],
       showEmojiPicker: false,
     }
@@ -158,10 +160,6 @@ export default class Chat extends Component<Props, State> {
   }
 
   renderStream(): JSX.Element {
-    const { joinedAudio, joinedVideo } = this.state
-    const toggleAudio = () => this.setState({ joinedAudio: !joinedAudio })
-    const toggleVideo = () => this.setState({ joinedVideo: !joinedVideo })
-
     const roomID =
       this.props.chatType === 'thread'
         ? this.props.chatID
@@ -174,19 +172,19 @@ export default class Chat extends Component<Props, State> {
       <div className={styles.stream}>
         <div className={styles.streamButtons}>
           <p
-            onClick={toggleAudio}
+            onClick={() => this.props?.setEnabledAudio((c) => !c)}
             className={classNames({
               [styles.button]: true,
-              [styles.buttonActive]: joinedAudio,
+              [styles.buttonActive]: this.props.enabledAudio,
             })}
           >
             🎙️
           </p>
           <p
-            onClick={toggleVideo}
+            onClick={() => this.props?.setEnabledVideo((c) => !c)}
             className={classNames({
               [styles.button]: true,
-              [styles.buttonActive]: joinedAudio,
+              [styles.buttonActive]: this.props.enabledVideo,
             })}
           >
             📹
@@ -195,10 +193,12 @@ export default class Chat extends Component<Props, State> {
 
         <Stream
           roomID={roomID}
-          audio={joinedAudio}
-          video={joinedVideo}
           className={styles.media}
           participants={this.props.participants}
+          enabledVideo={this.props.enabledVideo}
+          setEnabledVideo={this.props.setEnabledVideo}
+          enabledAudio={this.props.enabledAudio}
+          setEnabledAudio={this.props.setEnabledAudio}
         />
       </div>
     )

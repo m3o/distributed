@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { Component, createRef } from 'react'
+import { Component, createRef, Dispatch, SetStateAction } from 'react'
 import Twilio from 'twilio-video'
 import { User } from '../lib/user'
 import { getVideoProfile } from '../lib/videos'
@@ -8,14 +8,16 @@ import styles from './stream.module.scss'
 interface Props {
   // the room id is used as the identifier for the twilio video call
   roomID: string
-  // audio indicates if the user has enabled their audio input
-  audio?: boolean
-  // video indicates if the user has enabled their video input
-  video?: boolean
   // className which can be optionally provided to add additonal styling to the stream component
   className?: string
   // the participants in the stream, this is used to add labels to the stream such as user name etc
   participants: User[]
+  // whether video is enabled
+  enabledVideo: boolean
+  setEnabledVideo: Dispatch<SetStateAction<boolean>>
+  // whether audio is enabled
+  enabledAudio: boolean
+  setEnabledAudio: Dispatch<SetStateAction<boolean>>
 }
 
 interface State {
@@ -93,26 +95,20 @@ export default class Stream extends Component<Props, State> {
 
     // disconnect from the old room if joining a new room. this will happen when switching from one
     // room to another if the key prop is not changed.
-    const { roomID, audio, video } = this.props
+    const { roomID, enabledAudio, enabledVideo } = this.props
     const { room, token } = this.state
     if (roomID !== prevProps?.roomID && room) this.disconnectRoom()
 
-    // todo: find a cleaner way to share this info globally. this is used in `pages/groups/[id].tsx`
-    // to conditionally warn the user if they try to switch to another room whilst still connected
-    // to video or audio in the current room.
-    window.audioEnabled = audio
-    window.videoEnabled = video
-
     const tracksToAdd = []
     if (
-      audio &&
+      enabledAudio &&
       room &&
       Array.from(room.localParticipant.audioTracks).length === 0
     ) {
       // if the local audio track is not published, and the user has it enabled, we need to add this
       // track to the connection
       tracksToAdd.push(await Twilio.createLocalAudioTrack())
-    } else if (room && !audio) {
+    } else if (room && !enabledAudio) {
       // if the user has switched off their audio, we'll unpublish their audio tracks
       Array.from(room.localParticipant.audioTracks)
         .map((t) => t[1].track)
@@ -123,14 +119,14 @@ export default class Stream extends Component<Props, State> {
     }
 
     if (
-      video &&
+      enabledVideo &&
       room &&
       Array.from(room.localParticipant.videoTracks).length === 0
     ) {
       // if the local video track is not published, and the user has it enabled, we need to add this
       // track to the connection
       tracksToAdd.push(await Twilio.createLocalVideoTrack())
-    } else if (room && !video) {
+    } else if (room && !enabledVideo) {
       // if the user has switched off their video, we'll unpublish their video tracks
       Array.from(room.localParticipant.videoTracks)
         .map((t) => t[1].track)
@@ -255,7 +251,10 @@ export default class Stream extends Component<Props, State> {
               key={p.user.id}
               participant={p}
               muted={p.user.id === identity}
-              videoEnabled={true}
+              enabledVideo={this.props.enabledVideo}
+              setEnabledVideo={this.props.setEnabledVideo}
+              enabledAudio={this.props.enabledAudio}
+              setEnabledAudio={this.props.setEnabledAudio}
             />
           )
         })}
@@ -267,21 +266,24 @@ export default class Stream extends Component<Props, State> {
 interface ParticipantProps {
   muted: boolean
   participant: Participant
-  videoEnabled: boolean
+  // whether video is enabled
+  enabledVideo: boolean
+  setEnabledVideo: Dispatch<SetStateAction<boolean>>
+  // whether audio is enabled
+  enabledAudio: boolean
+  setEnabledAudio: Dispatch<SetStateAction<boolean>>
 }
 
 class ParticipantComponent extends Component<ParticipantProps> {
   readonly state: {
     size?: number
-    audioEnabled: boolean
-    videoEnabled: boolean
   }
   readonly videoRef = createRef<HTMLVideoElement>()
   readonly audioRef = createRef<HTMLAudioElement>()
 
   constructor(props: ParticipantProps) {
     super(props)
-    this.state = { size: 0, audioEnabled: false, videoEnabled: false }
+    this.state = { size: 0 }
     this.onClick = this.onClick.bind(this)
     this.connectTrack = this.connectTrack.bind(this)
     this.disconnectTrack = this.disconnectTrack.bind(this)
@@ -300,12 +302,12 @@ class ParticipantComponent extends Component<ParticipantProps> {
       )
 
       if (x.kind === 'audio') {
-        this.setState({ audioEnabled: true })
+        this.props.setEnabledAudio(true)
         this.audioRef.current.srcObject = x.track
           ? x.track.attach().srcObject
           : x.attach().srcObject
       } else {
-        this.setState({ videoEnabled: true })
+        this.props.setEnabledVideo(true)
         this.videoRef.current.srcObject = x.track
           ? x.track.attach().srcObject
           : x.attach().srcObject
@@ -319,10 +321,10 @@ class ParticipantComponent extends Component<ParticipantProps> {
   disconnectTrack(x: any) {
     if (x.kind === 'audio') {
       this.audioRef.current.srcObject = undefined
-      this.setState({ audioEnabled: false })
+      this.props.setEnabledAudio(false)
     } else {
       this.videoRef.current.srcObject = undefined
-      this.setState({ videoEnabled: false })
+      this.props.setEnabledVideo(false)
     }
   }
 
@@ -356,8 +358,7 @@ class ParticipantComponent extends Component<ParticipantProps> {
   }
 
   render(): JSX.Element {
-    const { audioEnabled, videoEnabled } = this.state
-    const { participant } = this.props
+    const { participant, enabledVideo, enabledAudio } = this.props
     const sizeStyle = { 0: styles.small, 1: styles.medium, 2: styles.large }[
       this.state.size
     ]
@@ -371,16 +372,16 @@ class ParticipantComponent extends Component<ParticipantProps> {
       >
         <audio autoPlay playsInline ref={this.audioRef} />
         <video
-          style={videoEnabled ? {} : { display: 'none' }}
+          style={enabledVideo ? {} : { display: 'none' }}
           autoPlay
           playsInline
           ref={this.videoRef}
         />
-        {videoEnabled ? null : <p>{participant.user.first_name}</p>}
-        {videoEnabled ? null : (
+        {enabledVideo ? null : <p>{participant.user.first_name}</p>}
+        {enabledVideo ? null : (
           <p className={styles.icons}>
-            {audioEnabled ? <span>🎤</span> : null}
-            {videoEnabled ? <span>🎥</span> : null}
+            {enabledAudio ? <span>🎤</span> : null}
+            {enabledVideo ? <span>🎥</span> : null}
           </p>
         )}
       </div>
