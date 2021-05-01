@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import uniqBy from 'lodash.uniqby'
 import Error from 'next/error'
 import { useRouter } from 'next/router'
-import { Dispatch, useEffect, useRef, useState } from 'react'
+import { Dispatch, useCallback, useEffect, useRef, useState } from 'react'
 import ChatUI from '../../../components/chat'
 import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
@@ -154,6 +154,89 @@ export default function Group() {
     },
   })
 
+  const onSetChat = useCallback(
+    (type: string, id: string) => {
+      const group = { ...groupLoader.group }
+
+      if (
+        chat &&
+        (chat.type !== type || chat.id !== id) &&
+        (window.audioEnabled || window.videoEnabled)
+      ) {
+        if (
+          !confirm(
+            'Are you sure you want to switch rooms? You will be disconnected from audio and video'
+          )
+        )
+          return
+      }
+
+      if (chat?.type === 'thread') {
+        const threads = [...groupLoader.group.threads]
+        if (!threads) {
+          console.log('No threads loaded')
+          return
+        }
+        const thr = threads.find((t) => t.id === chat.id)
+        if (thr) {
+          thr.last_seen = new Date().toISOString()
+        }
+        groupLoader.mutate({ ...group, threads }, false)
+      } else if (chat?.type === 'chat') {
+        const members = [...group.members]
+        const thr = members.find((t) => t.id === chat.id)
+        if (thr) {
+          thr.chat = {
+            ...(members.find((t) => t.id === chat.id).chat || {}),
+            last_seen: new Date().toISOString(),
+          }
+        }
+        groupLoader.mutate({ ...group, members }, false)
+      }
+
+      localStorage.setItem(
+        `group/${groupId}/chat`,
+        JSON.stringify({ type, id })
+      )
+      setChat({ type, id })
+      if (showSidebar) setShowSidebar(false)
+    },
+    [chat, groupId, groupLoader, showSidebar]
+  )
+
+  useEffect(() => {
+    if (chat) return
+    if (!groupLoader.group?.threads) return
+    if (groupLoader.group.threads.length === 0) return
+
+    // default to the last opened chat, or the first
+    const chatJson = localStorage.getItem(`group/${groupId}/chat`)
+
+    if (chatJson) {
+      const { type, id } = JSON.parse(chatJson)
+      onSetChat(type, id)
+    } else if (groupLoader.group.threads?.length) {
+      onSetChat('thread', groupLoader.group.threads[0].id)
+    }
+  }, [chat, groupId, groupLoader, onSetChat])
+
+  const onClearChat = useCallback(() => {
+    localStorage.removeItem(`group/${groupId}/chat`)
+    setChat(undefined)
+  }, [groupId, setChat])
+
+  useEffect(() => {
+    if (!chat) return
+
+    let thread
+    if (chat?.type === 'thread') {
+      thread = groupLoader?.group?.threads?.find((t) => t.id === chat.id)
+    } else if (chat?.type === 'chat') {
+      thread = groupLoader?.group?.members?.find((m) => m.id === chat.id)
+    }
+    if (!thread) onClearChat()
+  }, [chat, groupLoader, onClearChat])
+
   if (groupLoader.error || userLoader.error) {
     return (
       <Error
@@ -167,78 +250,14 @@ export default function Group() {
     (userLoader.user?.first_name || '').slice(0, 1) +
     (userLoader.user?.last_name || '').slice(0, 1)
 
-  function setChatWrapped(type: string, id: string) {
-    const group = { ...groupLoader.group }
-
-    if (
-      chat &&
-      (chat.type !== type || chat.id !== id) &&
-      (window.audioEnabled || window.videoEnabled)
-    ) {
-      if (
-        !confirm(
-          'Are you sure you want to switch rooms? You will be disconnected from audio and video'
-        )
-      )
-        return
-    }
-
-    if (chat?.type === 'thread') {
-      const threads = [...groupLoader.group.threads]
-      if (!threads) {
-        console.log('No threads loaded')
-        return
-      }
-      const thr = threads.find((t) => t.id === chat.id)
-      if (thr) {
-        thr.last_seen = Date.now().toString()
-      }
-
-      groupLoader.mutate({ ...group, threads }, false)
-    } else if (chat?.type === 'chat') {
-      const members = [...group.members]
-      const thr = members.find((t) => t.id === chat.id)
-      if (thr) {
-        thr.chat = {
-          ...(members.find((t) => t.id === chat.id).chat || {}),
-          last_seen: Date.now().toString(),
-        }
-      }
-      groupLoader.mutate({ ...group, members }, false)
-    }
-
-    localStorage.setItem(`group/${groupId}/chat`, JSON.stringify({ type, id }))
-    setChat({ type, id })
-    if (showSidebar) setShowSidebar(false)
-  }
-
-  function clearChatWrapped() {
-    localStorage.removeItem(`group/${groupId}/chat`)
-    setChat(undefined)
-  }
-
-  // default to the last opened chat, or the first
-  if (chat === undefined && (groupLoader.group?.threads?.length || 0) > 0) {
-    const chatStr = localStorage.getItem(`group/${groupId}/chat`)
-
-    if (chatStr) {
-      const { type, id } = JSON.parse(chatStr)
-      setChatWrapped(type, id)
-    } else if (groupLoader.group.threads?.length) {
-      setChatWrapped('thread', groupLoader.group.threads[0].id)
-    }
-  }
-
   let messages = []
   let participants = []
   if (chat?.type === 'thread') {
-    const thread = groupLoader?.group?.threads?.find((s) => s.id === chat.id)
-    if (!thread) clearChatWrapped()
+    const thread = groupLoader?.group?.threads?.find((t) => t.id === chat.id)
     messages = thread?.messages || []
     participants = groupLoader?.group?.members || []
   } else if (chat?.type === 'chat') {
-    const member = groupLoader?.group?.members?.find((s) => s.id === chat.id)
-    if (!member) clearChatWrapped()
+    const member = groupLoader?.group?.members?.find((m) => m.id === chat.id)
     messages = member?.chat?.messages || []
     participants = groupLoader.group.members.filter(
       (m) => m.id === chat.id || m.current_user
@@ -283,19 +302,19 @@ export default function Group() {
   }
 
   function showMsgIndicator(type: string, id: string): boolean {
-    let resource: { messages?: Message[]; last_seen?: string | number }
+    let resource: { messages?: Message[]; last_seen?: string }
 
     if (type === 'chat') {
-      resource = groupLoader.group.members.find((t) => t.id === id)?.chat
+      resource = groupLoader.group.members.find((m) => m.id === id)?.chat
     } else if (type === 'thread') {
-      resource = groupLoader.group.threads.find((t) => t.id === id)
+      resource = groupLoader.group.threads.find((m) => m.id === id)
     }
 
     if (chat?.type === type && chat?.id === id) return false
     if (!resource?.messages?.length) return false
     if (!resource.last_seen) return true
 
-    const lastSeen = Date.parse(resource.last_seen as string)
+    const lastSeen = Date.parse(resource.last_seen)
     let showIndicator = false
     resource.messages
       .filter((m) => !m.author?.current_user)
@@ -380,18 +399,18 @@ export default function Group() {
             <span>🛋️</span> Rooms
           </h3>
           <ul>
-            {uniqBy(groupLoader.group?.threads || [], 'id').map((s) => {
-              const onClick = () => setChatWrapped('thread', s.id)
+            {uniqBy(groupLoader.group?.threads || [], 'id').map((t) => {
+              const onClick = () => onSetChat('thread', t.id)
               const className = classNames({
                 [styles.linkActive]:
-                  chat?.type === 'thread' && chat?.id === s.id,
+                  chat?.type === 'thread' && chat?.id === t.id,
               })
               return (
-                <li className={className} onClick={onClick} key={s.id}>
-                  <p>{s.topic}</p>
-                  {showMsgIndicator('thread', s.id) ? (
+                <li className={className} onClick={onClick} key={t.id}>
+                  <p>{t.topic}</p>
+                  {showMsgIndicator('thread', t.id) && (
                     <div className={styles.msgIndicator} />
-                  ) : null}
+                  )}
                 </li>
               )
             })}
@@ -409,7 +428,7 @@ export default function Group() {
             {groupLoader.group?.members
               ?.filter((u) => !u.current_user)
               ?.map((m) => {
-                const onClick = () => setChatWrapped('chat', m.id)
+                const onClick = () => onSetChat('chat', m.id)
                 const className = classNames({
                   [styles.linkActive]:
                     chat?.type === 'chat' && chat?.id === m.id,
@@ -419,9 +438,9 @@ export default function Group() {
                     <p>
                       {m.first_name} {m.last_name}
                     </p>
-                    {showMsgIndicator('chat', m.id) ? (
+                    {showMsgIndicator('chat', m.id) && (
                       <div className={styles.msgIndicator} />
-                    ) : null}
+                    )}
                   </li>
                 )
               })}
@@ -440,24 +459,24 @@ export default function Group() {
           >
             <span>🍔</span>
           </p>
-          {chat ? (
+          {chat && (
             <p onClick={() => setSubview('chat-settings')}>
               <span>⚙️</span>
             </p>
-          ) : null}
-          {chat ? (
+          )}
+          {chat && (
             <p onClick={createWhiteboard}>
               <span>✏️</span>
             </p>
-          ) : null}
-          {chat?.type === 'thread' ? (
+          )}
+          {chat?.type === 'thread' && (
             <p onClick={() => setSubview('gif')}>
               <span>🤪</span>
             </p>
-          ) : null}
+          )}
         </div>
 
-        {chat ? (
+        {chat && (
           <ChatUI
             key={chat.id}
             chatType={chat.type}
@@ -466,7 +485,7 @@ export default function Group() {
             messages={messages}
             participants={participants}
           />
-        ) : null}
+        )}
       </div>
     </Layout>
   )
@@ -585,7 +604,7 @@ function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
       await removeMember(groupId, chat.id)
       groupLoader.mutate({
         ...groupLoader.group,
-        threads: groupLoader.group.members?.filter((t) => t.id !== chat.id),
+        threads: groupLoader.group.members?.filter((m) => m.id !== chat.id),
       })
     } catch (error) {
       alert(`Error removing user: ${error}`)

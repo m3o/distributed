@@ -8,7 +8,7 @@ export interface User {
   email: string
   current_user?: boolean
   chat: {
-    last_seen?: number | string
+    last_seen?: string
     messages?: Message[]
   }
 }
