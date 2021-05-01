@@ -6,7 +6,7 @@ import popupStyles from '../pages/groups/[id]/index.module.scss'
 import styles from './gifInput.module.scss'
 
 interface GifInputProps {
-  dismiss: Function
+  onDismiss: Function
   groupId: string
   threadId: string
 }
@@ -83,13 +83,13 @@ export default class GifInput extends React.Component<
       <div className={popupStyles.settingsContainer}>
         <div
           className={popupStyles.background}
-          onClick={() => this.props.dismiss()}
+          onClick={() => this.props.onDismiss()}
         />
         <div className={popupStyles.settings}>
           <h1>Send a Gif</h1>
           <div
             className={popupStyles.dismiss}
-            onClick={() => this.props.dismiss()}
+            onClick={() => this.props.onDismiss()}
           >
             <p>🔙</p>
           </div>

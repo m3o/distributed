@@ -317,36 +317,37 @@ export default function Group() {
     >
       {subview === 'settings' && (
         <SubviewSettings
+          chat={chat}
           groupId={groupId}
           setSubview={setSubview}
-          onDismiss={() => setSubview(undefined)}
         />
       )}
       {subview === 'chat-settings' && (
         <SubviewChatSettings
           chat={chat}
           groupId={groupId}
-          onDismiss={() => setSubview(undefined)}
+          setSubview={setSubview}
         />
       )}
       {subview === 'edit-profile' && (
         <SubviewEditProfile
-          onBack={() => setSubview('settings')}
-          onDismiss={() => setSubview(undefined)}
+          chat={chat}
+          groupId={groupId}
+          setSubview={setSubview}
         />
       )}
       {subview === 'manage-invites' && (
         <SubviewManageInvites
+          chat={chat}
           groupId={groupId}
-          onBack={() => setSubview('settings')}
-          onDismiss={() => setSubview(undefined)}
+          setSubview={setSubview}
         />
       )}
       {subview === 'gif' && (
         <GifInput
           threadId={chat.id}
           groupId={groupId}
-          dismiss={() => setSubview(undefined)}
+          onDismiss={() => setSubview(undefined)}
         />
       )}
 
@@ -476,11 +477,9 @@ interface SubviewProps {
   chat?: Chat
   groupId?: string
   setSubview?: Dispatch<Subview>
-  onBack?: () => void
-  onDismiss: () => void
 }
 
-function SubviewSettings({ groupId, setSubview, onDismiss }: SubviewProps) {
+function SubviewSettings({ groupId, setSubview }: SubviewProps) {
   const router = useRouter()
   const groupLoader = useGroup(groupId)
 
@@ -525,10 +524,13 @@ function SubviewSettings({ groupId, setSubview, onDismiss }: SubviewProps) {
 
   return (
     <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={onDismiss} />
+      <div
+        className={styles.background}
+        onClick={() => setSubview(undefined)}
+      />
       <div className={styles.settings}>
         <h1>Settings</h1>
-        <div className={styles.dismiss} onClick={onDismiss}>
+        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
           <p>🔙</p>
         </div>
 
@@ -555,7 +557,7 @@ function SubviewSettings({ groupId, setSubview, onDismiss }: SubviewProps) {
   )
 }
 
-function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
+function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
   const groupLoader = useGroup(groupId)
 
   async function deleteThreadPopup() {
@@ -604,10 +606,13 @@ function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
 
   return (
     <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={onDismiss} />
+      <div
+        className={styles.background}
+        onClick={() => setSubview(undefined)}
+      />
       <div className={styles.settings}>
         <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
-        <div className={styles.dismiss} onClick={onDismiss}>
+        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
           <p>🔙</p>
         </div>
 
@@ -617,7 +622,7 @@ function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
               <li
                 onClick={() => {
                   renameThreadPopup()
-                  onDismiss()
+                  setSubview(undefined)
                 }}
               >
                 Rename room
@@ -627,7 +632,7 @@ function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
               <li
                 onClick={() => {
                   deleteThreadPopup()
-                  onDismiss()
+                  setSubview(undefined)
                 }}
               >
                 Delete room
@@ -637,7 +642,7 @@ function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
               <li
                 onClick={() => {
                   removeUserPopuop()
-                  onDismiss()
+                  setSubview(undefined)
                 }}
               >
                 Remove user from group
@@ -650,7 +655,7 @@ function SubviewChatSettings({ chat, groupId, onDismiss }: SubviewProps) {
   )
 }
 
-function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
+function SubviewEditProfile({ setSubview }: SubviewProps) {
   const userLoader = useUser()
   const [user, setUser] = useState(userLoader?.user)
 
@@ -660,7 +665,7 @@ function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onDismiss()
+    setSubview(undefined)
     updateUser(user)
       .then((data: { user: User }) => {
         userLoader.mutate(data, false)
@@ -670,10 +675,13 @@ function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
 
   return (
     <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={onDismiss} />
+      <div
+        className={styles.background}
+        onClick={() => setSubview(undefined)}
+      />
       <div className={styles.settings}>
         <h1>Edit Profile</h1>
-        <div className={styles.dismiss} onClick={onBack}>
+        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
           <p>🔙</p>
         </div>
 
@@ -710,7 +718,7 @@ function SubviewEditProfile({ onBack, onDismiss }: SubviewProps) {
   )
 }
 
-function SubviewManageInvites({ groupId, onBack, onDismiss }: SubviewProps) {
+function SubviewManageInvites({ groupId, setSubview }: SubviewProps) {
   const inviteLoader = useInvites(groupId)
 
   function deleteInvite(i: Invite) {
@@ -725,10 +733,13 @@ function SubviewManageInvites({ groupId, onBack, onDismiss }: SubviewProps) {
 
   return (
     <div className={styles.settingsContainer}>
-      <div className={styles.background} onClick={onDismiss} />
+      <div
+        className={styles.background}
+        onClick={() => setSubview(undefined)}
+      />
       <div className={styles.settings}>
         <h1>Manage Invites</h1>
-        <div className={styles.dismiss} onClick={onBack}>
+        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
           <p>🔙</p>
         </div>
 
