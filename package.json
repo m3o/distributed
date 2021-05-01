@@ -24,6 +24,7 @@
     "cookie": "^0.4.1",
     "date-fns": "^2.16.1",
     "emoji-mart": "^3.0.0",
+    "lodash.uniqby": "^4.7.0",
     "moment": "^2.29.1",
     "next": "^10.0.5",
     "next-pwa": "^5.0.5",

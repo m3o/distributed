@@ -1,3 +1,4 @@
+import uniqBy from 'lodash.uniqby'
 import Error from 'next/error'
 import { useRouter } from 'next/router'
 import { Dispatch, useEffect, useRef, useState } from 'react'
@@ -375,7 +376,7 @@ export default function Group() {
             <span>🛋️</span> Rooms
           </h3>
           <ul>
-            {uniqueByID(groupLoader.group?.threads || []).map((s) => {
+            {uniqBy(groupLoader.group?.threads || [], 'id').map((s) => {
               const onClick = () => setChatWrapped('thread', s.id)
               const className =
                 chat?.type === 'thread' && chat?.id === s.id
@@ -464,12 +465,6 @@ export default function Group() {
         ) : null}
       </div>
     </Layout>
-  )
-}
-
-function uniqueByID(array) {
-  return array.filter(
-    (x, xi) => !array.slice(xi + 1).some((y) => y.id === x.id)
   )
 }
 
