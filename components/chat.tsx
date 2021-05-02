@@ -1,8 +1,17 @@
 import classNames from 'classnames'
 import { Picker } from 'emoji-mart'
 import 'emoji-mart/css/emoji-mart.css'
+import uniqBy from 'lodash.uniqby'
 import moment from 'moment'
-import { Component, Dispatch, SetStateAction } from 'react'
+import {
+  Dispatch,
+  forwardRef,
+  SetStateAction,
+  useEffect,
+  useImperativeHandle,
+  useState,
+  ForwardRefRenderFunction,
+} from 'react'
 import { v4 as uuid } from 'uuid'
 import Stream from '../components/stream'
 import { createMessage, Message as Msg } from '../lib/message'
@@ -11,13 +20,22 @@ import { User } from '../lib/user'
 import styles from './chat.module.scss'
 import Message from './message'
 
-interface Props {
+function messageComparator(a: Msg, b: Msg): number {
+  return moment(a.sent_at).isAfter(b.sent_at) ? -1 : 1
+}
+
+export interface ChatUIRefAttrs {
+  // eslint-disable-next-line no-unused-vars
+  sendMessage: (text: string) => void
+}
+
+export interface ChatUIProps {
   // chatType, e.g. 'thread' or 'chat'
   chatType: string
   // if the chat is a thread, this is that threads ID
-  chatID: string
+  chatId: string
   // any mesages preloaded
-  messages?: Msg[]
+  initialMessages?: Msg[]
   // participants in the conversation
   participants?: User[]
   // whether video is enabled
@@ -28,163 +46,98 @@ interface Props {
   setEnabledAudio: Dispatch<SetStateAction<boolean>>
 }
 
-interface State {
-  messages: Msg[]
-  message: string
-  listening: boolean
-  onlineUserIDs: string[]
-  showEmojiPicker: boolean
-}
+const ChatUI: ForwardRefRenderFunction<ChatUIRefAttrs, ChatUIProps> = (
+  {
+    chatType,
+    chatId,
+    initialMessages,
+    participants,
+    enabledVideo,
+    setEnabledVideo,
+    enabledAudio,
+    setEnabledAudio,
+  },
+  ref
+) => {
+  const [message, setMessage] = useState<string>('')
+  const [messages, setMessages] = useState<Msg[]>(initialMessages || [])
+  const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false)
 
-export default class Chat extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = {
-      message: '',
-      messages: props.messages || [],
-      // listen automatically except for mobile
-      listening: !/iPhone|iPad|iPod|Android/i.test(navigator.userAgent),
-      onlineUserIDs: [],
-      showEmojiPicker: false,
-    }
-    this.SendMessage = this.SendMessage.bind(this)
-    this.onSubmit = this.onSubmit.bind(this)
-    this.setSeen = this.setSeen.bind(this)
-  }
-
-  SendMessage(text: string) {
-    const resource = { type: this.props.chatType, id: this.props.chatID }
-    const message = { id: uuid(), text }
-
-    createMessage(resource, message).catch((err) => {
-      alert(`Error sending message: ${err}`)
-      this.setState({
-        messages: this.state.messages.filter((m) => m.id !== message.id),
-      })
-    })
-
-    this.setState({
-      messages: [
-        ...this.state.messages,
-        {
-          ...message,
-          sent_at: Date.now(),
-          author: this.props.participants?.find((p) => p.current_user),
-        },
-      ],
-    })
-  }
-
-  componentDidMount() {
-    this.setSeen()
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (prevProps?.messages !== this.props.messages) {
-      this.setState({
-        messages: [...this.state.messages, ...this.props.messages].filter(
-          (x, xi, arr) => !arr.slice(xi + 1).some((y) => y.id === x.id)
-        ),
-      })
-    }
-
-    if (
-      this.state.messages !== prevState.messages ||
-      this.props.messages !== prevProps?.messages
-    )
-      this.setSeen()
-  }
-
-  async setSeen() {
+  const updateSeen = async (chatType: string, chatId: string) => {
     try {
-      await setSeen(this.props.chatType, this.props.chatID)
+      await setSeen(chatType, chatId)
     } catch (error) {
       console.error(`Error setting seen: ${error}`)
     }
   }
 
-  onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    this.SendMessage(this.state.message)
-    this.setState({ message: '' })
-  }
+  useEffect(() => {
+    updateSeen(chatType, chatId)
+  }, [chatType, chatId])
 
-  render() {
-    return (
-      <div className={styles.container}>
-        {this.renderStream()}
+  useEffect(() => {
+    setMessages((c) =>
+      uniqBy([...(initialMessages || []), ...c], 'id').sort(messageComparator)
+    )
+  }, [initialMessages])
 
-        <div
-          onClick={() => this.setState({ showEmojiPicker: false })}
-          className={styles.messages}
-        >
-          {this.state.messages.sort(sortMessages).map((m) => (
-            <Message key={m.id} data={m} />
-          ))}
-        </div>
+  const sendMessage = (text: string) => {
+    const resource = { type: chatType, id: chatId }
+    const msg = { id: uuid(), text }
 
-        <div className={styles.compose}>
-          <form onSubmit={this.onSubmit}>
-            <input
-              required
-              // ref={r => r?.focus()}
-              type="text"
-              value={this.state.message}
-              placeholder="Send a message"
-              onChange={(e) => this.setState({ message: e.target.value || '' })}
-            />
+    createMessage(resource, msg).catch((err) => {
+      alert(`Error sending message: ${err}`)
+      setMessages((c) => c.filter((m) => m.id !== msg.id))
+    })
 
-            <p
-              onClick={() =>
-                this.setState({ showEmojiPicker: !this.state.showEmojiPicker })
-              }
-            >
-              <span>🙂</span>
-            </p>
-          </form>
-          {this.state.showEmojiPicker ? (
-            <Picker
-              showPreview={false}
-              style={{ position: 'absolute', bottom: '70px', right: '20px' }}
-              onSelect={(e) =>
-                this.setState({
-                  message: this.state.message + e.native,
-                  showEmojiPicker: false,
-                })
-              }
-            />
-          ) : null}
-        </div>
-      </div>
+    setMessages((c) =>
+      [
+        ...c,
+        {
+          ...msg,
+          sent_at: Date.now(),
+          author: participants?.find((p) => p.current_user),
+        },
+      ].sort(messageComparator)
     )
   }
 
-  renderStream(): JSX.Element {
-    const roomID =
-      this.props.chatType === 'thread'
-        ? this.props.chatID
-        : this.props.participants
-            .sort((a, b) => (a.id > b.id ? 1 : -1))
-            .map((a) => a.id)
-            .join('-')
+  useImperativeHandle(ref, () => ({
+    sendMessage,
+  }))
 
-    return (
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    sendMessage(message)
+    setMessage('')
+  }
+
+  const roomId =
+    chatType === 'thread'
+      ? chatId
+      : participants
+          .sort((a, b) => (a.id < b.id ? -1 : 1))
+          .map((a) => a.id)
+          .join('-')
+
+  return (
+    <div className={styles.container}>
       <div className={styles.stream}>
         <div className={styles.streamButtons}>
           <p
-            onClick={() => this.props?.setEnabledAudio((c) => !c)}
+            onClick={() => setEnabledAudio((c) => !c)}
             className={classNames({
               [styles.button]: true,
-              [styles.buttonActive]: this.props.enabledAudio,
+              [styles.buttonActive]: enabledAudio,
             })}
           >
             🎙️
           </p>
           <p
-            onClick={() => this.props?.setEnabledVideo((c) => !c)}
+            onClick={() => setEnabledVideo((c) => !c)}
             className={classNames({
               [styles.button]: true,
-              [styles.buttonActive]: this.props.enabledVideo,
+              [styles.buttonActive]: enabledVideo,
             })}
           >
             📹
@@ -192,19 +145,52 @@ export default class Chat extends Component<Props, State> {
         </div>
 
         <Stream
-          roomID={roomID}
+          roomId={roomId}
           className={styles.media}
-          participants={this.props.participants}
-          enabledVideo={this.props.enabledVideo}
-          setEnabledVideo={this.props.setEnabledVideo}
-          enabledAudio={this.props.enabledAudio}
-          setEnabledAudio={this.props.setEnabledAudio}
+          participants={participants}
+          enabledVideo={enabledVideo}
+          setEnabledVideo={setEnabledVideo}
+          enabledAudio={enabledAudio}
+          setEnabledAudio={setEnabledAudio}
         />
       </div>
-    )
-  }
+
+      <div
+        onClick={() => setShowEmojiPicker(false)}
+        className={styles.messages}
+      >
+        {messages.map((m) => (
+          <Message key={m.id} data={m} />
+        ))}
+      </div>
+
+      <div className={styles.compose}>
+        <form onSubmit={onSubmit}>
+          <input
+            required
+            type="text"
+            placeholder="Send a message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value || '')}
+          />
+
+          <p onClick={() => setShowEmojiPicker((c) => !c)}>
+            <span>🙂</span>
+          </p>
+        </form>
+        {showEmojiPicker && (
+          <Picker
+            showPreview={false}
+            style={{ position: 'absolute', bottom: '70px', right: '20px' }}
+            onSelect={(e) => {
+              setMessage((c) => c + e.native)
+              setShowEmojiPicker(false)
+            }}
+          />
+        )}
+      </div>
+    </div>
+  )
 }
 
-function sortMessages(a: Msg, b: Msg): number {
-  return moment(a.sent_at).isAfter(b.sent_at) ? -1 : 1
-}
+export default forwardRef(ChatUI)

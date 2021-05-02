@@ -7,7 +7,7 @@ import styles from './stream.module.scss'
 
 interface Props {
   // the room id is used as the identifier for the twilio video call
-  roomID: string
+  roomId: string
   // className which can be optionally provided to add additonal styling to the stream component
   className?: string
   // the participants in the stream, this is used to add labels to the stream such as user name etc
@@ -95,9 +95,9 @@ export default class Stream extends Component<Props, State> {
 
     // disconnect from the old room if joining a new room. this will happen when switching from one
     // room to another if the key prop is not changed.
-    const { roomID, enabledAudio, enabledVideo } = this.props
+    const { roomId, enabledAudio, enabledVideo } = this.props
     const { room, token } = this.state
-    if (roomID !== prevProps?.roomID && room) this.disconnectRoom()
+    if (roomId !== prevProps?.roomId && room) this.disconnectRoom()
 
     const tracksToAdd = []
     if (
@@ -146,7 +146,7 @@ export default class Stream extends Component<Props, State> {
       // at the same time
       console.log(`Connecting with ${tracksToAdd.length} tracks`)
       this.setState({ connecting: true })
-      await Twilio.connect(token, { name: roomID, tracks: tracksToAdd }).then(
+      await Twilio.connect(token, { name: roomId, tracks: tracksToAdd }).then(
         this.roomJoined,
         (error) => {
           alert('Could not connect to Twilio: ' + error.message)
@@ -157,7 +157,7 @@ export default class Stream extends Component<Props, State> {
 
   disconnectRoom() {
     if (!this.state.room) return
-    console.log(`Leaving room: ${this.props.roomID}...`)
+    console.log(`Leaving room: ${this.props.roomId}...`)
     this.state.room.disconnect()
     this.setState({ room: undefined, participants: {}, connecting: false })
   }

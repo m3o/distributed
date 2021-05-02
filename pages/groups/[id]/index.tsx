@@ -3,6 +3,7 @@ import uniqBy from 'lodash.uniqby'
 import Error from 'next/error'
 import { useRouter } from 'next/router'
 import { Dispatch, useCallback, useEffect, useRef, useState } from 'react'
+import type { ChatUIRefAttrs } from '../../../components/chat'
 import ChatUI from '../../../components/chat'
 import GifInput from '../../../components/gifInput'
 import Layout from '../../../components/layout'
@@ -48,7 +49,7 @@ export default function Group() {
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
   const [enabledVideo, setEnabledVideo] = useState(false)
   const [enabledAudio, setEnabledAudio] = useState(false)
-  const chatUI = useRef<ChatUI>()
+  const chatRef = useRef<ChatUIRefAttrs>()
 
   const wsConfig = groupLoader.group?.websocket
   useWsClient({
@@ -289,7 +290,7 @@ export default function Group() {
   }
 
   function createWhiteboard() {
-    chatUI.current?.SendMessage('whiteboard')
+    chatRef.current?.sendMessage('whiteboard')
   }
 
   async function sendInvite() {
@@ -490,10 +491,10 @@ export default function Group() {
         {activeChat && (
           <ChatUI
             key={activeChat.id}
+            ref={chatRef}
             chatType={activeChat.type}
-            chatID={activeChat.id}
-            ref={chatUI}
-            messages={messages}
+            chatId={activeChat.id}
+            initialMessages={messages}
             participants={participants}
             enabledVideo={enabledVideo}
             setEnabledVideo={setEnabledVideo}
