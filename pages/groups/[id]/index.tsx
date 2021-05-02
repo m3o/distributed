@@ -43,9 +43,9 @@ export default function Group() {
   const groupId: string = (router.query?.id || '').toString()
   const groupLoader = useGroup(groupId)
   const userLoader = useUser()
-  const [chat, setChat] = useState<Chat>()
+  const [activeChat, setActiveChat] = useState<Chat>()
+  const [activeSubview, setActiveSubview] = useState<Subview>(undefined)
   const [showSidebar, setShowSidebar] = useState<boolean>(false)
-  const [subview, setSubview] = useState<Subview>(undefined)
   const [enabledVideo, setEnabledVideo] = useState(false)
   const [enabledAudio, setEnabledAudio] = useState(false)
   const chatUI = useRef<ChatUI>()
@@ -131,8 +131,12 @@ export default function Group() {
             },
             false
           )
-          if (chat?.type === 'thread' && chat?.id === message.payload.id)
-            setChat(undefined)
+          if (
+            activeChat?.type === 'thread' &&
+            activeChat?.id === message.payload.id
+          ) {
+            setActiveChat(undefined)
+          }
           break
         case 'message.created': {
           console.log('New message: ', message)
@@ -161,35 +165,33 @@ export default function Group() {
       const group = { ...groupLoader.group }
 
       if (
-        chat &&
-        (chat.type !== type || chat.id !== id) &&
+        activeChat &&
+        (activeChat.type !== type || activeChat.id !== id) &&
         (enabledAudio || enabledVideo)
       ) {
-        if (
-          !confirm(
-            'Are you sure you want to switch rooms? You will be disconnected from audio and video'
-          )
+        const confirmation = confirm(
+          'Are you sure you want to switch rooms? You will be disconnected from audio and video'
         )
-          return
+        if (!confirmation) return
       }
 
-      if (chat?.type === 'thread') {
+      if (activeChat?.type === 'thread') {
         const threads = [...groupLoader.group.threads]
         if (!threads) {
           console.log('No threads loaded')
           return
         }
-        const thr = threads.find((t) => t.id === chat.id)
+        const thr = threads.find((t) => t.id === activeChat.id)
         if (thr) {
           thr.last_seen = new Date().toISOString()
         }
         groupLoader.mutate({ ...group, threads }, false)
-      } else if (chat?.type === 'chat') {
+      } else if (activeChat?.type === 'chat') {
         const members = [...group.members]
-        const thr = members.find((t) => t.id === chat.id)
+        const thr = members.find((t) => t.id === activeChat.id)
         if (thr) {
           thr.chat = {
-            ...(members.find((t) => t.id === chat.id).chat || {}),
+            ...(members.find((t) => t.id === activeChat.id).chat || {}),
             last_seen: new Date().toISOString(),
           }
         }
@@ -200,14 +202,14 @@ export default function Group() {
         `group/${groupId}/chat`,
         JSON.stringify({ type, id })
       )
-      setChat({ type, id })
+      setActiveChat({ type, id })
       if (showSidebar) setShowSidebar(false)
     },
-    [chat, groupId, groupLoader, showSidebar, enabledVideo, enabledAudio]
+    [activeChat, groupId, groupLoader, showSidebar, enabledVideo, enabledAudio]
   )
 
   useEffect(() => {
-    if (chat) return
+    if (activeChat) return
     if (!groupLoader.group?.threads) return
     if (groupLoader.group.threads.length === 0) return
 
@@ -220,24 +222,24 @@ export default function Group() {
     } else if (groupLoader.group.threads?.length) {
       onSetChat('thread', groupLoader.group.threads[0].id)
     }
-  }, [chat, groupId, groupLoader, onSetChat])
+  }, [activeChat, groupId, groupLoader, onSetChat])
 
   const onClearChat = useCallback(() => {
     localStorage.removeItem(`group/${groupId}/chat`)
-    setChat(undefined)
-  }, [groupId, setChat])
+    setActiveChat(undefined)
+  }, [groupId, setActiveChat])
 
   useEffect(() => {
-    if (!chat) return
+    if (!activeChat) return
 
     let thread
-    if (chat?.type === 'thread') {
-      thread = groupLoader?.group?.threads?.find((t) => t.id === chat.id)
-    } else if (chat?.type === 'chat') {
-      thread = groupLoader?.group?.members?.find((m) => m.id === chat.id)
+    if (activeChat?.type === 'thread') {
+      thread = groupLoader?.group?.threads?.find((t) => t.id === activeChat.id)
+    } else if (activeChat?.type === 'chat') {
+      thread = groupLoader?.group?.members?.find((m) => m.id === activeChat.id)
     }
     if (!thread) onClearChat()
-  }, [chat, groupLoader, onClearChat])
+  }, [activeChat, groupLoader, onClearChat])
 
   if (groupLoader.error || userLoader.error) {
     return (
@@ -254,15 +256,19 @@ export default function Group() {
 
   let messages = []
   let participants = []
-  if (chat?.type === 'thread') {
-    const thread = groupLoader?.group?.threads?.find((t) => t.id === chat.id)
+  if (activeChat?.type === 'thread') {
+    const thread = groupLoader?.group?.threads?.find(
+      (t) => t.id === activeChat.id
+    )
     messages = thread?.messages || []
     participants = groupLoader?.group?.members || []
-  } else if (chat?.type === 'chat') {
-    const member = groupLoader?.group?.members?.find((m) => m.id === chat.id)
+  } else if (activeChat?.type === 'chat') {
+    const member = groupLoader?.group?.members?.find(
+      (m) => m.id === activeChat.id
+    )
     messages = member?.chat?.messages || []
     participants = groupLoader.group.members.filter(
-      (m) => m.id === chat.id || m.current_user
+      (m) => m.id === activeChat.id || m.current_user
     )
   }
 
@@ -276,7 +282,7 @@ export default function Group() {
         ...groupLoader.group!,
         threads: [...groupLoader.group!.threads, thread],
       })
-      setChat({ type: 'thread', id: thread.id })
+      setActiveChat({ type: 'thread', id: thread.id })
     } catch (error) {
       alert(`Error creating channel ${channel}: ${error}`)
     }
@@ -312,7 +318,7 @@ export default function Group() {
       resource = groupLoader.group.threads.find((m) => m.id === id)
     }
 
-    if (chat?.type === type && chat?.id === id) return false
+    if (activeChat?.type === type && activeChat?.id === id) return false
     if (!resource?.messages?.length) return false
     if (!resource.last_seen) return true
 
@@ -329,7 +335,7 @@ export default function Group() {
 
   function dismissMenu(e: React.MouseEvent<HTMLDivElement>): void {
     setShowSidebar(false)
-    setSubview(undefined)
+    setActiveSubview(undefined)
     e.stopPropagation()
   }
 
@@ -338,39 +344,39 @@ export default function Group() {
       overrideClassName={styles.container}
       loading={groupLoader.loading || userLoader.loading}
     >
-      {subview === 'settings' && (
+      {activeSubview === 'settings' && (
         <SubviewSettings
-          chat={chat}
+          activeChat={activeChat}
           groupId={groupId}
-          setSubview={setSubview}
+          setActiveSubview={setActiveSubview}
         />
       )}
-      {subview === 'chat-settings' && (
+      {activeSubview === 'chat-settings' && (
         <SubviewChatSettings
-          chat={chat}
+          activeChat={activeChat}
           groupId={groupId}
-          setSubview={setSubview}
+          setActiveSubview={setActiveSubview}
         />
       )}
-      {subview === 'edit-profile' && (
+      {activeSubview === 'edit-profile' && (
         <SubviewEditProfile
-          chat={chat}
+          activeChat={activeChat}
           groupId={groupId}
-          setSubview={setSubview}
+          setActiveSubview={setActiveSubview}
         />
       )}
-      {subview === 'manage-invites' && (
+      {activeSubview === 'manage-invites' && (
         <SubviewManageInvites
-          chat={chat}
+          activeChat={activeChat}
           groupId={groupId}
-          setSubview={setSubview}
+          setActiveSubview={setActiveSubview}
         />
       )}
-      {subview === 'gif' && (
+      {activeSubview === 'gif' && (
         <GifInput
-          threadId={chat.id}
+          threadId={activeChat.id}
           groupId={groupId}
-          onDismiss={() => setSubview(undefined)}
+          onDismiss={() => setActiveSubview(undefined)}
         />
       )}
 
@@ -380,7 +386,10 @@ export default function Group() {
           [styles.show]: showSidebar,
         })}
       >
-        <div className={styles.upper} onClick={() => setSubview('settings')}>
+        <div
+          className={styles.upper}
+          onClick={() => setActiveSubview('settings')}
+        >
           <h1>{groupLoader.group?.name}</h1>
 
           <div className={styles.initials}>
@@ -405,7 +414,7 @@ export default function Group() {
               const onClick = () => onSetChat('thread', t.id)
               const className = classNames({
                 [styles.linkActive]:
-                  chat?.type === 'thread' && chat?.id === t.id,
+                  activeChat?.type === 'thread' && activeChat?.id === t.id,
               })
               return (
                 <li className={className} onClick={onClick} key={t.id}>
@@ -433,7 +442,7 @@ export default function Group() {
                 const onClick = () => onSetChat('chat', m.id)
                 const className = classNames({
                   [styles.linkActive]:
-                    chat?.type === 'chat' && chat?.id === m.id,
+                    activeChat?.type === 'chat' && activeChat?.id === m.id,
                 })
                 return (
                   <li key={m.id} className={className} onClick={onClick}>
@@ -461,28 +470,28 @@ export default function Group() {
           >
             <span>🍔</span>
           </p>
-          {chat && (
-            <p onClick={() => setSubview('chat-settings')}>
+          {activeChat && (
+            <p onClick={() => setActiveSubview('chat-settings')}>
               <span>⚙️</span>
             </p>
           )}
-          {chat && (
+          {activeChat && (
             <p onClick={createWhiteboard}>
               <span>✏️</span>
             </p>
           )}
-          {chat?.type === 'thread' && (
-            <p onClick={() => setSubview('gif')}>
+          {activeChat?.type === 'thread' && (
+            <p onClick={() => setActiveSubview('gif')}>
               <span>🤪</span>
             </p>
           )}
         </div>
 
-        {chat && (
+        {activeChat && (
           <ChatUI
-            key={chat.id}
-            chatType={chat.type}
-            chatID={chat.id}
+            key={activeChat.id}
+            chatType={activeChat.type}
+            chatID={activeChat.id}
             ref={chatUI}
             messages={messages}
             participants={participants}
@@ -498,12 +507,12 @@ export default function Group() {
 }
 
 interface SubviewProps {
-  chat?: Chat
+  activeChat?: Chat
   groupId?: string
-  setSubview?: Dispatch<Subview>
+  setActiveSubview?: Dispatch<Subview>
 }
 
-function SubviewSettings({ groupId, setSubview }: SubviewProps) {
+function SubviewSettings({ groupId, setActiveSubview }: SubviewProps) {
   const router = useRouter()
   const groupLoader = useGroup(groupId)
 
@@ -550,11 +559,14 @@ function SubviewSettings({ groupId, setSubview }: SubviewProps) {
     <div className={styles.settingsContainer}>
       <div
         className={styles.background}
-        onClick={() => setSubview(undefined)}
+        onClick={() => setActiveSubview(undefined)}
       />
       <div className={styles.settings}>
         <h1>Settings</h1>
-        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+        <div
+          className={styles.dismiss}
+          onClick={() => setActiveSubview(undefined)}
+        >
           <p>🔙</p>
         </div>
 
@@ -564,14 +576,18 @@ function SubviewSettings({ groupId, setSubview }: SubviewProps) {
             <li onClick={() => router.push('/')}>Switch group</li>
             <li onClick={() => leaveGroupPopup()}>Leave group</li>
             <li onClick={() => renameGroupPopup()}>Rename group</li>
-            <li onClick={() => setSubview('manage-invites')}>Manage invites</li>
+            <li onClick={() => setActiveSubview('manage-invites')}>
+              Manage invites
+            </li>
           </ul>
         </section>
 
         <section>
           <h2>Profile</h2>
           <ul>
-            <li onClick={() => setSubview('edit-profile')}>Edit profile</li>
+            <li onClick={() => setActiveSubview('edit-profile')}>
+              Edit profile
+            </li>
             <li onClick={() => deleteProfilePopup()}>Delete profile</li>
             <li onClick={() => logoutPopup()}>Logout</li>
           </ul>
@@ -581,17 +597,23 @@ function SubviewSettings({ groupId, setSubview }: SubviewProps) {
   )
 }
 
-function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
+function SubviewChatSettings({
+  activeChat,
+  groupId,
+  setActiveSubview,
+}: SubviewProps) {
   const groupLoader = useGroup(groupId)
 
   async function deleteThreadPopup() {
     if (!window.confirm('Are you sure you want to delete this room')) return
 
     try {
-      await deleteThread(chat.id)
+      await deleteThread(activeChat.id)
       groupLoader.mutate({
         ...groupLoader.group,
-        threads: groupLoader.group.threads?.filter((t) => t.id !== chat.id),
+        threads: groupLoader.group.threads?.filter(
+          (t) => t.id !== activeChat.id
+        ),
       })
     } catch (error) {
       alert(`Error deleting room: ${error}`)
@@ -607,10 +629,12 @@ function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
       return
 
     try {
-      await removeMember(groupId, chat.id)
+      await removeMember(groupId, activeChat.id)
       groupLoader.mutate({
         ...groupLoader.group,
-        threads: groupLoader.group.members?.filter((m) => m.id !== chat.id),
+        threads: groupLoader.group.members?.filter(
+          (m) => m.id !== activeChat.id
+        ),
       })
     } catch (error) {
       alert(`Error removing user: ${error}`)
@@ -622,7 +646,7 @@ function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
     if (!name?.length) return
 
     try {
-      await updateThread(chat.id, name)
+      await updateThread(activeChat.id, name)
     } catch (error) {
       alert(`Error renaming thread: ${error}`)
     }
@@ -632,41 +656,44 @@ function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
     <div className={styles.settingsContainer}>
       <div
         className={styles.background}
-        onClick={() => setSubview(undefined)}
+        onClick={() => setActiveSubview(undefined)}
       />
       <div className={styles.settings}>
-        <h1>{chat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
-        <div className={styles.dismiss} onClick={() => setSubview(undefined)}>
+        <h1>{activeChat.type === 'thread' ? 'Room' : 'User'} Settings</h1>
+        <div
+          className={styles.dismiss}
+          onClick={() => setActiveSubview(undefined)}
+        >
           <p>🔙</p>
         </div>
 
         <section>
           <ul>
-            {chat.type === 'thread' && (
+            {activeChat.type === 'thread' && (
               <li
                 onClick={() => {
                   renameThreadPopup()
-                  setSubview(undefined)
+                  setActiveSubview(undefined)
                 }}
               >
                 Rename room
               </li>
             )}
-            {chat.type === 'thread' && (
+            {activeChat.type === 'thread' && (
               <li
                 onClick={() => {
                   deleteThreadPopup()
-                  setSubview(undefined)
+                  setActiveSubview(undefined)
                 }}
               >
                 Delete room
               </li>
             )}
-            {chat.type === 'chat' && (
+            {activeChat.type === 'chat' && (
               <li
                 onClick={() => {
                   removeUserPopuop()
-                  setSubview(undefined)
+                  setActiveSubview(undefined)
                 }}
               >
                 Remove user from group
@@ -679,7 +706,7 @@ function SubviewChatSettings({ chat, groupId, setSubview }: SubviewProps) {
   )
 }
 
-function SubviewEditProfile({ setSubview }: SubviewProps) {
+function SubviewEditProfile({ setActiveSubview }: SubviewProps) {
   const userLoader = useUser()
   const [user, setUser] = useState(userLoader?.user)
 
@@ -689,7 +716,7 @@ function SubviewEditProfile({ setSubview }: SubviewProps) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setSubview(undefined)
+    setActiveSubview(undefined)
     updateUser(user)
       .then((data: { user: User }) => {
         userLoader.mutate(data, false)
@@ -701,11 +728,14 @@ function SubviewEditProfile({ setSubview }: SubviewProps) {
     <div className={styles.settingsContainer}>
       <div
         className={styles.background}
-        onClick={() => setSubview(undefined)}
+        onClick={() => setActiveSubview(undefined)}
       />
       <div className={styles.settings}>
         <h1>Edit Profile</h1>
-        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
+        <div
+          className={styles.dismiss}
+          onClick={() => setActiveSubview('settings')}
+        >
           <p>🔙</p>
         </div>
 
@@ -742,7 +772,7 @@ function SubviewEditProfile({ setSubview }: SubviewProps) {
   )
 }
 
-function SubviewManageInvites({ groupId, setSubview }: SubviewProps) {
+function SubviewManageInvites({ groupId, setActiveSubview }: SubviewProps) {
   const inviteLoader = useInvites(groupId)
 
   function deleteInvite(i: Invite) {
@@ -759,11 +789,14 @@ function SubviewManageInvites({ groupId, setSubview }: SubviewProps) {
     <div className={styles.settingsContainer}>
       <div
         className={styles.background}
-        onClick={() => setSubview(undefined)}
+        onClick={() => setActiveSubview(undefined)}
       />
       <div className={styles.settings}>
         <h1>Manage Invites</h1>
-        <div className={styles.dismiss} onClick={() => setSubview('settings')}>
+        <div
+          className={styles.dismiss}
+          onClick={() => setActiveSubview('settings')}
+        >
           <p>🔙</p>
         </div>
 
