@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-const WS_RECONNECT_TIMEOUT_INITIAL = 2000
-const WS_RECONNECT_TIMEOUT_MAX = 60000
+const WS_RECONNECT_TIMEOUT_INITIAL = 2 * 1000
+const WS_RECONNECT_TIMEOUT_MAX = 5 * 60 * 1000
 
 const calculateTimeout = (prevTimeout) =>
   Math.min(prevTimeout * 2, WS_RECONNECT_TIMEOUT_MAX)
@@ -61,9 +61,12 @@ function useWsClient(
     wsClient.current.onclose = (event) => {
       console.log(`Websocket(${url}) closed: ${JSON.stringify(event)}`)
       if (reconnectOnClose) {
+        console.log(
+          `Websocket(${url}) reconnecting in ${reconnectTimeout.current} ms`
+        )
         clearTimeout(reconnectTimer.current)
-        reconnectTimeout.current = calculateTimeout(reconnectTimeout.current)
         reconnectTimer.current = setTimeout(connect, reconnectTimeout.current)
+        reconnectTimeout.current = calculateTimeout(reconnectTimeout.current)
       }
       if (onclose) onclose(event, wsClient.current)
     }

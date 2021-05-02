@@ -95,7 +95,7 @@ const ChatUI: ForwardRefRenderFunction<ChatUIRefAttrs, ChatUIProps> = (
         ...c,
         {
           ...msg,
-          sent_at: Date.now(),
+          sent_at: new Date().toISOString(),
           author: participants?.find((p) => p.current_user),
         },
       ].sort(messageComparator)
