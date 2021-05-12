@@ -18,6 +18,7 @@ following content:
 # The micro API endpoint/key
 MICRO_API_ENDPOINT=https://api.m3o.com
 MICRO_API_KEY=xxxxxxx
+MICRO_API_NAMESPACE=xxxxxx
 
 # Sendgrid api key for sending invites
 SENDGRID_API_KEY=xxxxxxxx
