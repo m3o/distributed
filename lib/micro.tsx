@@ -2,7 +2,10 @@ export let BaseURL = 'http://localhost:8080'
 if (process.env.MICRO_API_ENDPOINT?.length) {
   BaseURL = process.env.MICRO_API_ENDPOINT
 }
-
+export let APINamespace = 'micro'
+if (process.env.MICRO_API_NAMESPACE?.length) {
+  APINamespace = 'distributed'
+}
 export let APIKey = 'NONE'
 if (process.env.MICRO_API_KEY?.length) {
   APIKey = process.env.MICRO_API_KEY
@@ -14,7 +17,7 @@ if (process.env.MICRO_API_KEY?.length) {
 export default function call(path: string, params?: any): Promise<any> {
   return new Promise<any>((resolve: any, reject: any) => {
     const body = JSON.stringify(params)
-    const headers = { 'Content-Type': 'application/json' } as any
+    const headers = { 'Content-Type': 'application/json', 'Micro-Namespace': APINamespace } as any
     if (path.startsWith('/v1/')) {
       // TODO make this less hacky
       headers.Authorization = 'Bearer ' + APIKey

@@ -19,7 +19,7 @@ export default async function handler(
   if (req.method === 'GET') {
     const websocket: any = { topic: 'whiteboard-' + whiteboard_id }
     try {
-      websocket.token = (await Call('/v1/streams/Token', websocket)).token
+      websocket.token = (await Call('/streams/Token', websocket)).token
       let protocol = 'ws'
       if (req.headers.referer && req.headers.referer.startsWith('https:')) {
         protocol = 'wss'
@@ -60,7 +60,7 @@ export default async function handler(
 
   try {
     console.log('Publishing to topic', 'whiteboard-' + whiteboard_id)
-    await Call('/v1/streams/Publish', {
+    await Call('/streams/Publish', {
       topic: 'whiteboard-' + whiteboard_id,
       message: JSON.stringify(body),
     })

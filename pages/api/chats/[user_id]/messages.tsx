@@ -25,7 +25,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -36,7 +36,7 @@ export default async function handler(
   // load the user they are opening the chat with
   let chatUser: any
   try {
-    const rsp = await call('/v1/users/read', { ids: [user_id] })
+    const rsp = await call('/users/read', { ids: [user_id] })
     chatUser = rsp.users[user_id as string]
   } catch ({ error, code }) {
     res.status(code).json({ error })
@@ -46,7 +46,7 @@ export default async function handler(
   // load the thread
   let chat_id: any
   try {
-    const rsp = await call('/v1/chats/CreateChat', {
+    const rsp = await call('/chats/CreateChat', {
       user_ids: [user.id, user_id],
     })
     chat_id = rsp.chat.id
@@ -60,7 +60,7 @@ export default async function handler(
   if (req.method === 'GET') {
     let messages = []
     try {
-      const rsp = await call('/v1/chats/ListMessages', { chat_id })
+      const rsp = await call('/chats/ListMessages', { chat_id })
       messages = rsp.messages || []
     } catch ({ error, code }) {
       console.error(`Error loading messages: ${error}, code: ${code}`)
@@ -103,7 +103,7 @@ export default async function handler(
       author_id: user.id,
       text: body.text,
     }
-    msg = (await call('/v1/chats/CreateMessage', params)).message
+    msg = (await call('/chats/CreateMessage', params)).message
   } catch ({ error, code }) {
     res.status(code || 500).json({ error })
     return
@@ -111,7 +111,7 @@ export default async function handler(
 
   // publish the message to the other user and ourselves
   try {
-    await call('/v1/streams/Publish', {
+    await call('/streams/Publish', {
       topic: chatUser.id,
       message: JSON.stringify({
         type: 'message.created',
@@ -129,7 +129,7 @@ export default async function handler(
         },
       }),
     })
-    await call('/v1/streams/Publish', {
+    await call('/streams/Publish', {
       topic: user.id,
       message: JSON.stringify({
         type: 'message.created',

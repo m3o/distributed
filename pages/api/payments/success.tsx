@@ -20,7 +20,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/Validate', { token })
+    const rsp = await call('/users/Validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -45,7 +45,7 @@ export default async function handler(
   // load the group
   let group: any
   try {
-    const rsp = await call('/v1/groups/Read', { ids: [groupID] })
+    const rsp = await call('/groups/Read', { ids: [groupID] })
     group = rsp.groups[groupID]
   } catch ({ error, code }) {
     res.status(500).json({ error: 'Error finding group' })
@@ -61,7 +61,7 @@ export default async function handler(
       author_id: user.id,
       text: imageURL,
     }
-    msg = (await call('/v1/threads/CreateMessage', params)).message
+    msg = (await call('/threads/CreateMessage', params)).message
   } catch ({ error, code }) {
     res.status(500).json({ error: 'Error creating message' })
     return
@@ -70,7 +70,7 @@ export default async function handler(
   // publish the message to the other users in the group
   try {
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'message.created',

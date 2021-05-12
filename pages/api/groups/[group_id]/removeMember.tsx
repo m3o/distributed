@@ -34,7 +34,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -45,7 +45,7 @@ export default async function handler(
   // load the group
   let group: any
   try {
-    const rsp = await call('/v1/groups/Read', { ids: [group_id] })
+    const rsp = await call('/groups/Read', { ids: [group_id] })
     group = rsp.groups[group_id as string]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -65,7 +65,7 @@ export default async function handler(
 
   // remove the user from group
   try {
-    await call('/v1/groups/RemoveMember', {
+    await call('/groups/RemoveMember', {
       group_id: group.id,
       member_id: body.id,
     })
@@ -78,7 +78,7 @@ export default async function handler(
   // publish the message to the users in the group
   try {
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'group.user.left',

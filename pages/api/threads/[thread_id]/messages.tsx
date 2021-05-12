@@ -25,7 +25,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -36,7 +36,7 @@ export default async function handler(
   // load the thread
   let thread: any
   try {
-    const rsp = await call('/v1/threads/ReadConversation', { id: thread_id })
+    const rsp = await call('/threads/ReadConversation', { id: thread_id })
     thread = rsp.conversation
   } catch ({ error, code }) {
     console.error(`Error loading conversation: ${error}, code: ${code}`)
@@ -47,7 +47,7 @@ export default async function handler(
   // load the group
   let group: any
   try {
-    const rsp = await call('/v1/groups/Read', { ids: [thread.group_id] })
+    const rsp = await call('/groups/Read', { ids: [thread.group_id] })
     group = rsp.groups[thread.group_id]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -69,7 +69,7 @@ export default async function handler(
   if (req.method === 'GET') {
     let messages = []
     try {
-      const rsp = await call('/v1/threads/ListMessages', {
+      const rsp = await call('/threads/ListMessages', {
         conversation_id: thread.id,
       })
       messages = rsp.messages || []
@@ -84,7 +84,7 @@ export default async function handler(
 
     let users = {}
     try {
-      const rsp = await call('/v1/users/read', {
+      const rsp = await call('/users/read', {
         ids: messages.map((m) => m.author_id),
       })
       users = rsp.users || {}
@@ -124,7 +124,7 @@ export default async function handler(
       author_id: user.id,
       text: body.text,
     }
-    msg = (await call('/v1/threads/CreateMessage', params)).message
+    msg = (await call('/threads/CreateMessage', params)).message
   } catch ({ error, code }) {
     res.status(code).json({ error })
     return
@@ -133,7 +133,7 @@ export default async function handler(
   // publish the message to the other users in the group
   try {
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'message.created',

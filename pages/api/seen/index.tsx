@@ -22,7 +22,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -41,7 +41,7 @@ export default async function handler(
 
   // update the last seen time
   try {
-    await call('/v1/seen/Set', { user_id: user.id, ...body })
+    await call('/seen/Set', { user_id: user.id, ...body })
     res.status(200).json({})
   } catch ({ error, code }) {
     console.error(`Error updating last seen: ${error}, code: ${code}`)

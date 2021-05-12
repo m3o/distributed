@@ -21,7 +21,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -32,7 +32,7 @@ export default async function handler(
   // load the invites
   let invites: any
   try {
-    const rsp = await call('/v1/invites/List', { email: user.email })
+    const rsp = await call('/invites/List', { email: user.email })
     invites = rsp.invites || []
   } catch ({ error, code }) {
     console.error(`Error loading invites: ${error}, code: ${code}`)
@@ -47,7 +47,7 @@ export default async function handler(
   // load the details for the groups
   let groups: any
   try {
-    const rsp = await call('/v1/groups/Read', {
+    const rsp = await call('/groups/Read', {
       ids: invites.map((i) => i.group_id),
     })
     groups = rsp.groups

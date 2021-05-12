@@ -22,7 +22,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -35,7 +35,7 @@ export default async function handler(
       // load the groups
       let groups = []
       try {
-        const rsp = await call('/v1/groups/List', { member_id: user.id })
+        const rsp = await call('/groups/List', { member_id: user.id })
         groups = rsp.groups || []
       } catch ({ error, code }) {
         console.error(`Error loading groups: ${error}. code: ${code}`)
@@ -47,7 +47,7 @@ export default async function handler(
       let users: any
       try {
         const user_ids = groups.map((g) => g.member_ids).flat()
-        users = (await call('/v1/users/read', { ids: user_ids })).users
+        users = (await call('/users/read', { ids: user_ids })).users
       } catch ({ error, code }) {
         console.error(`Error loading users: ${error}, code: ${code}`)
         res.status(500).json({ error: 'Error loading users' })
@@ -67,7 +67,7 @@ export default async function handler(
       // create a group
       let group: any
       try {
-        const rsp = await call('/v1/groups/Create', JSON.parse(req.body))
+        const rsp = await call('/groups/Create', JSON.parse(req.body))
         group = rsp.group
       } catch ({ error, code }) {
         res.status(code).json({ error })
@@ -76,7 +76,7 @@ export default async function handler(
 
       // join the group
       try {
-        await call('/v1/groups/AddMember', {
+        await call('/groups/AddMember', {
           group_id: group.id,
           member_id: user.id,
         })

@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest) {
       wss.on('message', (data) => {
         // set up connection to micro
         wsToMicro = new WebSocket(
-          BaseURL.replace('http', 'ws') + '/v1/streams/subscribe',
+          BaseURL.replace('http', 'ws') + '/streams/subscribe',
           [],
           {
             headers: {

@@ -25,7 +25,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -36,7 +36,7 @@ export default async function handler(
   // load the group
   let group: any
   try {
-    const rsp = await call('/v1/groups/Read', { ids: [group_id] })
+    const rsp = await call('/groups/Read', { ids: [group_id] })
     group = rsp.groups[group_id as string]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -67,7 +67,7 @@ export default async function handler(
     }
 
     try {
-      await call('/v1/groups/Update', { id: group.id, name: body.name })
+      await call('/groups/Update', { id: group.id, name: body.name })
     } catch ({ error, code }) {
       console.error(`Error updating group: ${error}, code: ${code}`)
       res.status(500).json({ error: 'Error updating group' })
@@ -77,7 +77,7 @@ export default async function handler(
     // publish the message to the other users in the group
     try {
       group.member_ids.forEach(async (id: string) => {
-        await call('/v1/streams/Publish', {
+        await call('/streams/Publish', {
           topic: id,
           message: JSON.stringify({
             type: 'group.updated',
@@ -98,7 +98,7 @@ export default async function handler(
   // load the conversations and the recent messages within them
   let threads: any
   try {
-    const rsp = await call('/v1/threads/ListConversations', { group_id })
+    const rsp = await call('/threads/ListConversations', { group_id })
     threads = rsp.conversations || []
   } catch ({ error, code }) {
     console.error(`Error loading conversations: ${error}, code: ${code}`)
@@ -109,7 +109,7 @@ export default async function handler(
   const user_ids: any = [...(group.member_ids || [])]
   if (threads.length > 0) {
     try {
-      const rsp = await call('/v1/threads/RecentMessages', {
+      const rsp = await call('/threads/RecentMessages', {
         conversation_ids: threads.map((s) => s.id),
       })
       if (rsp.messages) {
@@ -136,7 +136,7 @@ export default async function handler(
       .map(async (id: string) => {
         let chat_id: any
         try {
-          const rsp = await call('/v1/chats/CreateChat', {
+          const rsp = await call('/chats/CreateChat', {
             user_ids: [user.id, id],
           })
           chat_id = rsp.chat.id
@@ -146,7 +146,7 @@ export default async function handler(
         }
 
         try {
-          const rsp = await call('/v1/chats/ListMessages', { chat_id })
+          const rsp = await call('/chats/ListMessages', { chat_id })
           chatMessages[id] = rsp.messages || []
         } catch ({ error, code }) {
           console.error(`Error loading messages: ${error}, code: ${code}`)
@@ -157,7 +157,7 @@ export default async function handler(
   // load the details of the users
   let users: any
   try {
-    users = (await call('/v1/users/read', { ids: user_ids })).users
+    users = (await call('/users/read', { ids: user_ids })).users
   } catch ({ error, code }) {
     console.error(`Error loading users: ${error}, code: ${code}`)
     res.status(500).json({ error: 'Error loading users' })
@@ -173,7 +173,7 @@ export default async function handler(
         resource_type: 'thread',
         resource_ids: threads.map((s) => s.id),
       }
-      threadLastSeens = (await call('/v1/seen/Read', req)).timestamps || {}
+      threadLastSeens = (await call('/seen/Read', req)).timestamps || {}
     } catch ({ error, code }) {
       console.error(`Error loading last seen: ${error}, code: ${code}`)
       res.status(500).json({ error: 'Error loading last seen times' })
@@ -187,7 +187,7 @@ export default async function handler(
       resource_type: 'chat',
       resource_ids: Object.keys(users),
     }
-    chatLastSeens = (await call('/v1/seen/Read', req)).timestamps || {}
+    chatLastSeens = (await call('/seen/Read', req)).timestamps || {}
   } catch ({ error, code }) {
     console.error(`Error loading last seen: ${error}, code: ${code}`)
     res.status(500).json({ error: 'Error loading last seen times' })
@@ -197,7 +197,7 @@ export default async function handler(
   // generate a token for the websocket
   const websocket: any = { topic: user.id }
   try {
-    websocket.token = (await call('/v1/streams/Token', websocket)).token
+    websocket.token = (await call('/streams/Token', websocket)).token
     let protocol = 'ws'
     if (req.headers.referer && req.headers.referer.startsWith('https:')) {
       protocol = 'wss'

@@ -14,7 +14,7 @@ export default async function handler(
 
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -37,7 +37,7 @@ export default async function handler(
     }
 
     try {
-      await call('/v1/users/update', { ...body, id: user.id })
+      await call('/users/update', { ...body, id: user.id })
       res.status(200).json({})
     } catch ({ error, code }) {
       console.error(`Error updating user: ${error}`)
@@ -54,7 +54,7 @@ export default async function handler(
   // load the groups
   let groups = []
   try {
-    const rsp = await call('/v1/groups/List', { member_id: user.id })
+    const rsp = await call('/groups/List', { member_id: user.id })
     groups = rsp.groups
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}. code: ${code}`)
@@ -66,7 +66,7 @@ export default async function handler(
   try {
     await groups.forEach(
       async (g) =>
-        await call('/v1/groups/RemoveMember', {
+        await call('/groups/RemoveMember', {
           group_id: g.id,
           member_id: user.id,
         })
@@ -77,6 +77,6 @@ export default async function handler(
   }
 
   // delete the user
-  await call('/v1/users/delete', { id: user.id })
+  await call('/users/delete', { id: user.id })
   res.status(200).json({})
 }

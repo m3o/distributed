@@ -16,7 +16,7 @@ export default async function handler(
 
   let user: any
   try {
-    const rsp = await call('/v1/users/ReadByEmail', { emails: [body.email] })
+    const rsp = await call('/users/ReadByEmail', { emails: [body.email] })
     user = rsp.users ? rsp.users[body.email?.toLowerCase()] : null
   } catch ({ error, code }) {
     console.error(`Error reading users: ${error}`)
@@ -29,7 +29,7 @@ export default async function handler(
   }
 
   try {
-    await call('/v1/codes/Verify', { identity: user.email, code: body.code })
+    await call('/codes/Verify', { identity: user.email, code: body.code })
   } catch ({ error, code }) {
     console.error(`Error reading code: ${error}`)
     res.status(code).json({ error })
@@ -37,14 +37,14 @@ export default async function handler(
   }
 
   try {
-    await call('/v1/users/update', { id: user.id, password: body.password })
+    await call('/users/update', { id: user.id, password: body.password })
   } catch ({ error, code }) {
     res.status(code).json({ error })
     return
   }
 
   try {
-    const rsp = await call('/v1/users/login', {
+    const rsp = await call('/users/login', {
       email: user.email,
       password: body.password,
     })

@@ -25,7 +25,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -36,7 +36,7 @@ export default async function handler(
   // load the thread
   let thread: any
   try {
-    const rsp = await call('/v1/threads/ReadConversation', { id: thread_id })
+    const rsp = await call('/threads/ReadConversation', { id: thread_id })
     thread = rsp.conversation
   } catch ({ error, code }) {
     console.error(`Error loading conversation: ${error}, code: ${code}`)
@@ -47,7 +47,7 @@ export default async function handler(
   // load the group
   let group: any
   try {
-    const rsp = await call('/v1/groups/Read', { ids: [thread.group_id] })
+    const rsp = await call('/groups/Read', { ids: [thread.group_id] })
     group = rsp.groups[thread.group_id]
   } catch ({ error, code }) {
     console.error(`Error loading groups: ${error}, code: ${code}`)
@@ -68,14 +68,14 @@ export default async function handler(
   // delete the thread
   if (req.method === 'DELETE') {
     try {
-      await call('/v1/threads/DeleteConversation', { id: thread.id })
+      await call('/threads/DeleteConversation', { id: thread.id })
     } catch ({ error, code }) {
       res.status(code).json({ error })
       return
     }
 
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'thread.deleted',
@@ -98,7 +98,7 @@ export default async function handler(
     }
 
     try {
-      await call('/v1/threads/UpdateConversation', {
+      await call('/threads/UpdateConversation', {
         id: thread.id,
         topic: body.topic,
       })
@@ -108,7 +108,7 @@ export default async function handler(
     }
 
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'thread.updated',

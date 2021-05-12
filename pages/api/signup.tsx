@@ -17,7 +17,7 @@ export default async function handler(
   let invite: any
   if (body.code?.length) {
     try {
-      const rsp = await call('/v1/invites/Read', { code: body.code })
+      const rsp = await call('/invites/Read', { code: body.code })
       invite = rsp.invite
     } catch ({ code, error }) {
       res.status(code).json({ error })
@@ -28,7 +28,7 @@ export default async function handler(
   let user: any
   let token: any
   try {
-    const rsp = await call('/v1/users/create', {
+    const rsp = await call('/users/create', {
       first_name: body.first_name,
       last_name: body.last_name,
       email: body.email,
@@ -50,7 +50,7 @@ export default async function handler(
   // load the group to get the members
   let group: any
   try {
-    group = (await call('/v1/groups/Read', { ids: [invite.group_id] })).groups[
+    group = (await call('/groups/Read', { ids: [invite.group_id] })).groups[
       invite.group_id
     ]
   } catch ({ error, code }) {
@@ -61,7 +61,7 @@ export default async function handler(
 
   // add the user as a member of the group
   try {
-    await call('/v1/groups/AddMember', {
+    await call('/groups/AddMember', {
       group_id: invite.group_id,
       member_id: user.id,
     })
@@ -73,7 +73,7 @@ export default async function handler(
 
   // delete the invitation
   try {
-    await call('/v1/invites/Delete', { id: invite.id })
+    await call('/invites/Delete', { id: invite.id })
   } catch ({ error, code }) {
     console.error(`Error deleting invite: ${error}, code: ${code}`)
     res.status(500).json({ error: 'Error accepting invitation' })
@@ -83,7 +83,7 @@ export default async function handler(
   // publish the message to the users in the group
   try {
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'group.user.joined',

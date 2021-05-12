@@ -25,7 +25,7 @@ export default async function handler(
   // authenticate the request
   let user: any
   try {
-    const rsp = await call('/v1/users/validate', { token })
+    const rsp = await call('/users/validate', { token })
     user = rsp.user
   } catch ({ error, code }) {
     const statusCode = code === 400 ? 401 : code
@@ -36,7 +36,7 @@ export default async function handler(
   // load the groups the user is a part of
   let group: any
   try {
-    const rsp = await call('/v1/groups/List', { member_id: user.id })
+    const rsp = await call('/groups/List', { member_id: user.id })
     group = rsp.groups?.find((g) => g.id === group_id)
     if (!group) {
       res.status(403).json({ error: 'Not a member of this group' })
@@ -59,7 +59,7 @@ export default async function handler(
   // create the thread
   let conversation: any
   try {
-    const rsp = await call('/v1/threads/CreateConversation', {
+    const rsp = await call('/threads/CreateConversation', {
       group_id,
       topic: body.topic,
     })
@@ -71,7 +71,7 @@ export default async function handler(
   // publish the message to the users in the group
   try {
     group.member_ids.forEach(async (id: string) => {
-      await call('/v1/streams/Publish', {
+      await call('/streams/Publish', {
         topic: id,
         message: JSON.stringify({
           type: 'tread.created',
