@@ -4,7 +4,7 @@ if (process.env.MICRO_API_ENDPOINT?.length) {
 }
 export let APINamespace = 'micro'
 if (process.env.MICRO_API_NAMESPACE?.length) {
-  APINamespace = 'distributed'
+  APINamespace = process.env.MICRO_API_NAMESPACE
 }
 export let APIKey = 'NONE'
 if (process.env.MICRO_API_KEY?.length) {
